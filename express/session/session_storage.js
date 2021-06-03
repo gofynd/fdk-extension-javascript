@@ -20,6 +20,9 @@ class SessionStorage {
         let session = await extension.storage.get(sessionId);
         if(session) {
             session = JSON.parse(session);
+            if(session.expires) {
+                session.expires = new Date(session.expires);
+            }
             session = Session.cloneSession(sessionId, session, false);
         }
         return session;
