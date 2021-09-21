@@ -22,8 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Installing dependencies
-        run: cd ..
-      - name: Installing dependencies
         run: npm install
       - name: Run a test cases
         run: npm test
