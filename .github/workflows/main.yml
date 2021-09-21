@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: Installing dependencies
         run: npm install
+      - name: Folder list
+        run: ls
       - name: Run a test cases
         run: npm test
       - name: Removing Dependencies
