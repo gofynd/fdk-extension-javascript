@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: ./test-cases 
+      - uses: ./actions/test-cases
       - name: Installing dependencies
         run: cd ..
       - name: Installing dependencies
