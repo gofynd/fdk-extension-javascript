@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v0.3.0-beta.1
+      - uses: actions/checkout@v1
       - name: Installing dependencies
         run: cd ..
       - name: Installing dependencies
