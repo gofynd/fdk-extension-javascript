@@ -85,7 +85,7 @@ function setupRoutes(ext) {
         }
     });
 
-    FdkRoutes.get("/fp/auth", sessionMiddleware(extension, false), async (req, res, next) => {
+    FdkRoutes.get("/fp/auth", sessionMiddleware(ext, false), async (req, res, next) => {
         // ?code=ddjfhdsjfsfh&client_id=jsfnsajfhkasf&company_id=1&state=jashoh
         try {
             if(!req.fdkSession) {
