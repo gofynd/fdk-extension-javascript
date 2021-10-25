@@ -4,6 +4,7 @@ const {FdkInvalidExtensionJson} = require("./error_code");
 const urljoin = require('url-join');
 const { PlatformConfig, PlatformClient, ApplicationConfig, ApplicationClient } = require("fdk-client-javascript");
 const { WebhookRegistry } = require('./webhook');
+const SessionStorage = require("./session/session_storage");
 
 class Extension {
     constructor() {
@@ -15,11 +16,13 @@ class Extension {
         this.access_mode = null;
         this.cluster = "https://api.fynd.com";
         this.webhookRegistry = null;
+        this.sessionStore = null;
     }
 
     initialize(data) {
         this.storage = data.storage;
 
+        this.sessionStorage = new SessionStorage(this.storage);
         if(!data.api_key){
             throw new FdkInvalidExtensionJson("Invalid api_key");
         }
@@ -95,8 +98,6 @@ class Extension {
     }
 }
 
-const extension = new Extension();
-
 module.exports = {
-    extension
+    Extension
 };

@@ -2,7 +2,6 @@
 const express = require('express');
 const { v4 : uuidv4} = require("uuid");
 const Session = require("./session/session");
-const SessionStorage = require("./session/session_storage");
 const { FdkSessionNotFoundError, FdkInvalidOAuthError } = require("./error_code");
 const { SESSION_COOKIE_NAME } = require('./constants');
 const { sessionMiddleware } = require('./middleware/session_middleware');
@@ -27,7 +26,7 @@ function setupRoutes(ext) {
                     cluster: ext.cluster,
                     companyId: companyId
                 });
-                session = await SessionStorage.getSession(sid);
+                session = await ext.sessionStorage.getSession(sid);
                 if(!session) {
                     session = new Session(sid);
                 } else if(session.extension_id !== ext.api_key) {
@@ -79,14 +78,14 @@ function setupRoutes(ext) {
                 state: session.state,
                 access_mode: ext.access_mode
             });
-            await SessionStorage.saveSession(session);
+            await ext.sessionStorage.saveSession(session);
             res.redirect(redirectUrl);
         } catch (error) {
             next(error);
         }
     });
 
-    FdkRoutes.get("/fp/auth", sessionMiddleware(false), async (req, res, next) => {
+    FdkRoutes.get("/fp/auth", sessionMiddleware(extension, false), async (req, res, next) => {
         // ?code=ddjfhdsjfsfh&client_id=jsfnsajfhkasf&company_id=1&state=jashoh
         try {
             if(!req.fdkSession) {
@@ -114,7 +113,7 @@ function setupRoutes(ext) {
             req.fdkSession.access_token_validity = sessionExpires.getTime();
             req.fdkSession.current_user = token.current_user;
             req.fdkSession.refresh_token = token.refresh_token;
-            await SessionStorage.saveSession(req.fdkSession);
+            await ext.sessionStorage.saveSession(req.fdkSession);
 
             const compCookieName = `${SESSION_COOKIE_NAME}_${req.fdkSession.company_id}`
             res.cookie(compCookieName, req.fdkSession.id, { 
@@ -146,7 +145,7 @@ function setupRoutes(ext) {
                     cluster: ext.cluster,
                     companyId: company_id
                 });
-                let session = await SessionStorage.getSession(sid);
+                let session = await ext.sessionStorage.getSession(sid);
                 const client = await ext.getPlatformClient(company_id, session);
                 req.platformClient = client;
             }

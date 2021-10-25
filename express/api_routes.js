@@ -1,11 +1,10 @@
 'use strict';
-const { extension } = require('./extension');
 const express = require('express');
 const { sessionMiddleware } = require('./middleware/session_middleware');
 const { PlatformClient, ApplicationConfig, ApplicationClient } = require("fdk-client-javascript");
 
 
-function setupProxyRoutes() {
+function setupProxyRoutes(extension) {
     const apiRoutes = express.Router({  mergeParams: true });
     const applicationProxyRoutes = express.Router({  mergeParams: true });
 
@@ -29,7 +28,7 @@ function setupProxyRoutes() {
         }
     });
     
-    apiRoutes.use(sessionMiddleware(true), async (req, res, next) => {
+    apiRoutes.use(sessionMiddleware(extension, true), async (req, res, next) => {
         try {
             const client = await extension.getPlatformClient(req.fdkSession.company_id, req.fdkSession);
             req.platformClient = client;

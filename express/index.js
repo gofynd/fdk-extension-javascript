@@ -1,16 +1,16 @@
 'use strict';
 
-const {extension} = require('./extension');
+const {Extension} = require('./extension');
 const setupRoutes = require("./routes");
 const { setupProxyRoutes } = require("./api_routes");
 const Session = require("./session/session");
-const SessionStorage = require("./session/session_storage");
 const { ApplicationConfig, ApplicationClient } = require("fdk-client-javascript");
 
 function setupFdk(data) {
+    var extension = new Extension();
     extension.initialize(data);
     let router = setupRoutes(extension);
-    let { apiRoutes, applicationProxyRoutes } = setupProxyRoutes();
+    let { apiRoutes, applicationProxyRoutes } = setupProxyRoutes(extension);
 
     async function getPlatformClient(companyId) {
         let client = null;
@@ -19,7 +19,7 @@ function setupFdk(data) {
                 cluster: extension.cluster,
                 companyId: companyId
             });
-            let session = await SessionStorage.getSession(sid);
+            let session = await extension.sessionStorage.getSession(sid);
             client = await extension.getPlatformClient(companyId, session);
         }
         return client;
