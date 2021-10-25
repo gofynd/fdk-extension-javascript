@@ -57,13 +57,14 @@ let fdkExtension = setupFdk({
     }
 });
 
-app.use(fdkExtension.fdkHandler);
+
 app.use('/_healthz', (req, res, next) => {
     res.json({
         "ok": "ok"
     });
 });
 
+app.use('/', fdkExtension.fdkHandler);
 fdkExtension.apiRoutes.get("/test/routes", async (req, res, next) => {
     try {
         let data = await req.platformClient.lead.getTickets();
