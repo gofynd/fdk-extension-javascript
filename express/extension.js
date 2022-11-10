@@ -12,6 +12,7 @@ class Extension {
     constructor() {
         this.api_key = null;
         this.api_secret = null;
+        this.signature_key = null;
         this.storage = null;
         this.base_url = null;
         this.callbacks = null;
@@ -40,8 +41,13 @@ class Extension {
         if (!data.callbacks || (data.callbacks && (!data.callbacks.auth || !data.callbacks.uninstall))) {
             throw new FdkInvalidExtensionConfig("Missing some of callbacks. Please add all `auth` and `uninstall` callbacks.");
         }
-
         this.callbacks = data.callbacks;
+
+        if (!data.signature_key) {
+            throw new FdkInvalidExtensionConfig("Missing SIGNATURE_KEY");
+        }
+        this.signature_key = data.signature_key
+
         this.access_mode = data.access_mode || "offline";
 
         if (data.cluster) {
@@ -105,6 +111,7 @@ class Extension {
             domain: this.cluster,
             apiKey: this.api_key,
             apiSecret: this.api_secret,
+            signatureKey: this.signature_key,
             useAutoRenewTimer: false
         });
         return platformConfig;

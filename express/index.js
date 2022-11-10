@@ -37,6 +37,7 @@ function setupFdk(data, syncInitialization) {
         let applicationConfig = new ApplicationConfig({
             applicationID: applicationId,
             applicationToken: applicationToken,
+            signatureKey: data.signature_key,
             domain: extension.cluster
         });
         let applicationClient = new ApplicationClient(applicationConfig);

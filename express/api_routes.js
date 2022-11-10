@@ -20,6 +20,7 @@ function setupProxyRoutes() {
                 req.applicationConfig = new ApplicationConfig({
                     applicationID: req.application._id,
                     applicationToken: req.application.token,
+                    signatureKey: extension.signature_key
                 });
                 req.applicationClient = new ApplicationClient(req.applicationConfig);
             }
