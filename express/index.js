@@ -4,17 +4,25 @@ const {Extension} = require('./extension');
 const setupRoutes = require("./routes");
 const { setupProxyRoutes } = require("./api_routes");
 const Session = require("./session/session");
-const { ApplicationConfig, ApplicationClient } = require("fdk-client-javascript");
+const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const logger = require('./logger');
 
-function setupFdk(data) {
-    var extension = new Extension();
-    extension.initialize(data);
+function setupFdk(data, syncInitialization) {
+    if (data.debug) {
+        logger.transports[0].level = 'debug';
+    }
+    const extension = new Extension();
+    const promiseInit = extension.initialize(data)
+        .catch(err=>{
+            logger.error(err);
+            throw err;
+        });
     let router = setupRoutes(extension);
     let { apiRoutes, applicationProxyRoutes } = setupProxyRoutes(extension);
 
     async function getPlatformClient(companyId) {
         let client = null;
-        if(!extension.isOnlineAccessMode()) {
+        if (!extension.isOnlineAccessMode()) {
             let sid = Session.generateSessionId(false, {
                 cluster: extension.cluster,
                 companyId: companyId
@@ -35,7 +43,7 @@ function setupFdk(data) {
         return applicationClient;
     }
 
-    return {
+    const configInstance =  {
         fdkHandler: router,
         extension: extension,
         apiRoutes: apiRoutes,
@@ -44,6 +52,8 @@ function setupFdk(data) {
         getPlatformClient: getPlatformClient,
         getApplicationClient: getApplicationClient
     };
+
+    return syncInitialization? promiseInit.then(()=>configInstance).catch(()=>configInstance): configInstance;
 }
 
 module.exports = {

@@ -1,7 +1,7 @@
 'use strict';
 const express = require('express');
 const { sessionMiddleware } = require('./middleware/session_middleware');
-const { PlatformClient, ApplicationConfig, ApplicationClient } = require("fdk-client-javascript");
+const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
 
 
 function setupProxyRoutes(extension) {
@@ -19,6 +19,7 @@ function setupProxyRoutes(extension) {
                 req.applicationConfig = new ApplicationConfig({
                     applicationID: req.application._id,
                     applicationToken: req.application.token,
+                    domain: extension.cluster
                 });
                 req.applicationClient = new ApplicationClient(req.applicationConfig);
             }
