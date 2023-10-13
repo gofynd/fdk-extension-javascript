@@ -8,8 +8,12 @@ function setupProxyRoutes(extension) {
     const apiRoutes = express.Router({  mergeParams: true });
     const applicationProxyRoutes = express.Router({  mergeParams: true });
 
-    applicationProxyRoutes.use(async (req, res, next) => {
+    applicationProxyRoutes.use(["/", "/:cluster_id"],async (req, res, next) => {
         try {
+            const clusterId = req.params.cluster_id;
+            if (clusterId) {
+                extension = ExtensionFactory.getExtension(clusterId)
+            }
             if(req.headers["x-user-data"]) {
                 req.user = JSON.parse(req.headers["x-user-data"]);
                 req.user.user_id = req.user._id;
@@ -29,8 +33,12 @@ function setupProxyRoutes(extension) {
         }
     });
     
-    apiRoutes.use(sessionMiddleware(extension, true), async (req, res, next) => {
+    apiRoutes.use(["/", "/:cluster_id"], sessionMiddleware(extension, true), async (req, res, next) => {
         try {
+            const clusterId = req.params.cluster_id;
+            if (clusterId) {
+                extension = ExtensionFactory.getExtension(clusterId)
+            }
             const client = await extension.getPlatformClient(req.fdkSession.company_id, req.fdkSession);
             req.platformClient = client;
             req.extension = extension;

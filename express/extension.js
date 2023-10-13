@@ -4,6 +4,9 @@ const { FdkInvalidExtensionConfig } = require("./error_code");
 const urljoin = require('url-join');
 const { PlatformConfig, PlatformClient } = require("@gofynd/fdk-client-javascript");
 const { WebhookRegistry } = require('./webhook');
+const logger = require('./logger');
+const { fdkAxios } = require('@gofynd/fdk-client-javascript/sdk/common/AxiosHelper');
+const { version } = require('./../package.json');
 const SessionStorage = require("./session/session_storage");
 
 class Extension {
@@ -18,6 +21,7 @@ class Extension {
         this.webhookRegistry = null;
         this.sessionStore = null;
         this._isInitialized = false;
+        this._clusterId = null;
     }
 
     async initialize(data) {
@@ -49,6 +53,7 @@ class Extension {
                 throw new FdkInvalidExtensionConfig("Invalid cluster value. Invalid value: " + data.cluster);
             }
             this.cluster = data.cluster;
+            this._clusterId = this.cluster.replace("https://", "");
         }
         this.webhookRegistry = new WebhookRegistry();
 
@@ -78,6 +83,10 @@ class Extension {
 
     get isInitialized(){
         return this._isInitialized;
+    }
+
+    get clusterId(){
+        return this._clusterId;
     }
 
     verifyScopes(scopes, extensionData) {
@@ -158,7 +167,7 @@ class Extension {
             logger.debug(`Extension details received: ${logger.safeStringify(extensionData)}`);
             return extensionData;
         } catch (err) {
-            throw new FdkInvalidExtensionConfig("Invalid api_key or api_secret. Reason:" + err.message);
+            throw new FdkInvalidExtensionConfig("Invalid api_key or api_secret. Reason: " + err.message);
         }
     }
 }

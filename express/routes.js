@@ -11,12 +11,13 @@ const FdkRoutes = express.Router();
 
 function setupRoutes(ext) {
 
-    let storage = ext.storage;
-    let callbacks = ext.callbacks;
-
-    FdkRoutes.get("/fp/install", async (req, res, next) => {
+    FdkRoutes.get(["/fp/install", "/:cluster_id/fp/install"], async (req, res, next) => {
         // ?company_id=1&client_id=123313112122
         try {
+            const cluster_id = req.params.cluster_id;
+            if (cluster_id) {
+                ext = ExtensionFactory.getExtension(cluster_id)
+            }
             let companyId = parseInt(req.query.company_id);
             let platformConfig = ext.getPlatformConfig(companyId);
             let session;
@@ -89,9 +90,13 @@ function setupRoutes(ext) {
         }
     });
 
-    FdkRoutes.get("/fp/auth", sessionMiddleware(ext, false), async (req, res, next) => {
+    FdkRoutes.get(["/fp/auth", "/:cluster_id/fp/auth"], sessionMiddleware(ext, false), async (req, res, next) => {
         // ?code=ddjfhdsjfsfh&client_id=jsfnsajfhkasf&company_id=1&state=jashoh
         try {
+            const cluster_id = req.params.cluster_id;
+            if (cluster_id) {
+                ext = ExtensionFactory.getExtension(cluster_id)
+            }
             if (!req.fdkSession) {
                 throw new FdkSessionNotFoundError("Can not complete oauth process as session not found");
             }
@@ -107,11 +112,6 @@ function setupRoutes(ext) {
             let token = platformConfig.oauthClient.raw_token;
             let sessionExpires = new Date(Date.now() + token.expires_in * 1000);
 
-            req.fdkSession.access_token = token.access_token;
-            req.fdkSession.expires_in = token.expires_in;
-            req.fdkSession.access_token_validity = sessionExpires.getTime();
-            req.fdkSession.current_user = token.current_user;
-            req.fdkSession.refresh_token = token.refresh_token;
             req.fdkSession.expires = sessionExpires;
             token.access_token_validity = sessionExpires.getTime();
             req.fdkSession.updateToken(token);
@@ -172,11 +172,14 @@ function setupRoutes(ext) {
     });
 
 
-    FdkRoutes.post("/fp/auto_install", sessionMiddleware(false), async (req, res, next) => {
+    FdkRoutes.post(["/fp/auto_install", "/:cluster_id/fp/auto_install"], sessionMiddleware(ext, false), async (req, res, next) => {
         try {
 
             let { company_id, code } = req.body;
-
+            const cluster_id = req.params.cluster_id;
+            if (cluster_id) {
+                ext = ExtensionFactory.getExtension(cluster_id)
+            }
             logger.debug(`Extension auto install started for company: ${company_id} on company creation.`);
 
             let platformConfig = ext.getPlatformConfig(company_id);
@@ -223,9 +226,10 @@ function setupRoutes(ext) {
         }
     });
 
-    FdkRoutes.post("/fp/uninstall", async (req, res, next) => {
+    FdkRoutes.post(["/fp/uninstall", "/:cluster_id/fp/uninstall"], async (req, res, next) => {
         try {
             let { company_id } = req.body;
+            const cluster_id = req.params.cluster_id;
             let sid;
             if (!ext.isOnlineAccessMode()) {
                 sid = Session.generateSessionId(false, {

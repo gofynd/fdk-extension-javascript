@@ -1,9 +1,14 @@
 'use strict';
+const { ExtensionFactory } = require('../extension_factory');
 const { SESSION_COOKIE_NAME } = require('./../constants');
 
 function sessionMiddleware(extension, strict) {
     return async (req, res, next) => {
         try {
+            const clusterId = req.params.cluster_id;
+            if (clusterId) {
+                extension = ExtensionFactory.getExtension(clusterId)
+            }
             const companyId = req.headers['x-company-id'] || req.query['company_id'];
             const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
             let sessionId = req.signedCookies[compCookieName];
