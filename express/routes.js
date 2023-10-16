@@ -148,8 +148,7 @@ function setupRoutes(ext) {
             }
             let redirectUrl = await ext.callbacks.auth(req);
             if(req.fdkSession.redirect_path){
-                redirectUrl = new URL(redirectUrl).origin;
-                redirectUrl += req.fdkSession.redirect_path
+                redirectUrl = req.fdkSession.redirect_path;
             }
             logger.debug(`Redirecting after auth callback to url: ${redirectUrl}`);
             res.redirect(redirectUrl);
