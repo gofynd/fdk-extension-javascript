@@ -2,6 +2,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require("uuid");
 const Session = require("./session/session");
+const { ExtensionFactory } = require("./extension_factory")
 const { FdkSessionNotFoundError, FdkInvalidOAuthError } = require("./error_code");
 const { SESSION_COOKIE_NAME } = require('./constants');
 const { sessionMiddleware } = require('./middleware/session_middleware');
