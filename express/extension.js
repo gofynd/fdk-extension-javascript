@@ -7,6 +7,7 @@ const { WebhookRegistry } = require('./webhook');
 const logger = require('./logger');
 const { fdkAxios } = require('@gofynd/fdk-client-javascript/sdk/common/AxiosHelper');
 const { version } = require('./../package.json');
+const SessionStorage = require("./session/session_storage");
 
 class Extension {
     constructor() {
@@ -18,7 +19,9 @@ class Extension {
         this.access_mode = null;
         this.cluster = "https://api.fynd.com";
         this.webhookRegistry = null;
+        this.sessionStore = null;
         this._isInitialized = false;
+        this._clusterId = null;
     }
 
     async initialize(data) {
@@ -27,6 +30,7 @@ class Extension {
 
         this.storage = data.storage;
 
+        this.sessionStorage = new SessionStorage(this.storage);
         if (!data.api_key) {
             throw new FdkInvalidExtensionConfig("Invalid api_key");
         }
@@ -49,6 +53,7 @@ class Extension {
                 throw new FdkInvalidExtensionConfig("Invalid cluster value. Invalid value: " + data.cluster);
             }
             this.cluster = data.cluster;
+            this._clusterId = this.cluster.replace("https://", "");
         }
         this.webhookRegistry = new WebhookRegistry();
 
@@ -78,6 +83,10 @@ class Extension {
 
     get isInitialized(){
         return this._isInitialized;
+    }
+
+    get clusterId(){
+        return this._clusterId;
     }
 
     verifyScopes(scopes, extensionData) {
@@ -115,7 +124,6 @@ class Extension {
         if (!this._isInitialized){
             throw new FdkInvalidExtensionConfig('Extension not initialized due to invalid data')    
         }
-        const SessionStorage = require('./session/session_storage');
         
         let platformConfig = this.getPlatformConfig(companyId);
         platformConfig.oauthClient.setToken(session);
@@ -128,7 +136,7 @@ class Extension {
                 const renewTokenRes = await platformConfig.oauthClient.renewAccessToken(session.access_mode === 'offline');
                 renewTokenRes.access_token_validity = platformConfig.oauthClient.token_expires_at;
                 session.updateToken(renewTokenRes);
-                await SessionStorage.saveSession(session);
+                await this.sessionStorage.saveSession(session);
                 logger.debug(`Access token renewed for company ${companyId} with response ${logger.safeStringify(renewTokenRes)}`);
             }
         }
@@ -159,14 +167,11 @@ class Extension {
             logger.debug(`Extension details received: ${logger.safeStringify(extensionData)}`);
             return extensionData;
         } catch (err) {
-            throw new FdkInvalidExtensionConfig("Invalid api_key or api_secret. Reason:" + err.message);
+            throw new FdkInvalidExtensionConfig("Invalid api_key or api_secret. Reason: " + err.message);
         }
     }
 }
 
-
-const extension = new Extension();
-
 module.exports = {
-    extension
+    Extension
 };
