@@ -5,13 +5,14 @@ const Session = require("./session/session");
 const { FdkSessionNotFoundError, FdkInvalidOAuthError } = require("./error_code");
 const { SESSION_COOKIE_NAME } = require('./constants');
 const { sessionMiddleware } = require('./middleware/session_middleware');
+const { ExtensionFactory } = require('./extension_factory');
 const logger = require('./logger');
 const FdkRoutes = express.Router();
 
 
 function setupRoutes(ext) {
 
-    FdkRoutes.get(["/fp/install", "/:cluster_id/fp/install"], async (req, res, next) => {
+    FdkRoutes.get(["/:cluster_id/fp/install", "/fp/install"], async (req, res, next) => {
         // ?company_id=1&client_id=123313112122
         try {
             const cluster_id = req.params.cluster_id;
@@ -21,7 +22,7 @@ function setupRoutes(ext) {
             let companyId = parseInt(req.query.company_id);
             let platformConfig = ext.getPlatformConfig(companyId);
             let session;
-            if(ext.isOnlineAccessMode()) {
+            if (ext.isOnlineAccessMode()) {
                 session = new Session(Session.generateSessionId(true));
             } else {
                 let sid = Session.generateSessionId(false, {
@@ -29,9 +30,9 @@ function setupRoutes(ext) {
                     companyId: companyId
                 });
                 session = await ext.sessionStorage.getSession(sid);
-                if(!session) {
+                if (!session) {
                     session = new Session(sid);
-                } else if(session.extension_id !== ext.api_key) {
+                } else if (session.extension_id !== ext.api_key) {
                     session = new Session(sid);
                 }
             }
@@ -90,7 +91,7 @@ function setupRoutes(ext) {
         }
     });
 
-    FdkRoutes.get(["/fp/auth", "/:cluster_id/fp/auth"], sessionMiddleware(ext, false), async (req, res, next) => {
+    FdkRoutes.get(["/:cluster_id/fp/auth", "/fp/auth"], sessionMiddleware(ext, false), async (req, res, next) => {
         // ?code=ddjfhdsjfsfh&client_id=jsfnsajfhkasf&company_id=1&state=jashoh
         try {
             const cluster_id = req.params.cluster_id;
@@ -115,7 +116,7 @@ function setupRoutes(ext) {
             req.fdkSession.expires = sessionExpires;
             token.access_token_validity = sessionExpires.getTime();
             req.fdkSession.updateToken(token);
-            
+
             await ext.sessionStorage.saveSession(req.fdkSession);
 
             // Generate separate access token for offline mode
@@ -172,7 +173,7 @@ function setupRoutes(ext) {
     });
 
 
-    FdkRoutes.post(["/fp/auto_install", "/:cluster_id/fp/auto_install"], sessionMiddleware(ext, false), async (req, res, next) => {
+    FdkRoutes.post(["/:cluster_id/fp/auto_install", "/fp/auto_install"], sessionMiddleware(ext, false), async (req, res, next) => {
         try {
 
             let { company_id, code } = req.body;
@@ -187,7 +188,7 @@ function setupRoutes(ext) {
                 cluster: ext.cluster,
                 companyId: company_id
             });
-            
+
             let session = await ext.sessionStorage.getSession(sid);
             if (!session) {
                 session = new Session(sid);
@@ -206,9 +207,9 @@ function setupRoutes(ext) {
             session.updateToken(offlineTokenRes);
 
             if (!ext.isOnlineAccessMode()) {
-                await ext.sessionStorage.saveSession(session);  
+                await ext.sessionStorage.saveSession(session);
             }
-            
+
             if (ext.webhookRegistry.isInitialized && ext.webhookRegistry.isSubscribeOnInstall) {
                 const client = await ext.getPlatformClient(company_id, session);
                 await ext.webhookRegistry.syncEvents(client, null, true).catch((err) => {
@@ -218,7 +219,7 @@ function setupRoutes(ext) {
             logger.debug(`Extension installed for company: ${company_id} on company creation.`);
             if (ext.callbacks.auto_install) {
                 await ext.callbacks.auto_install(req);
-            }            
+            }
             res.json({ message: "success" });
         } catch (error) {
             logger.error(error);
@@ -226,7 +227,7 @@ function setupRoutes(ext) {
         }
     });
 
-    FdkRoutes.post(["/fp/uninstall", "/:cluster_id/fp/uninstall"], async (req, res, next) => {
+    FdkRoutes.post(["/:cluster_id/fp/uninstall", "/fp/uninstall"], async (req, res, next) => {
         try {
             let { company_id } = req.body;
             const cluster_id = req.params.cluster_id;

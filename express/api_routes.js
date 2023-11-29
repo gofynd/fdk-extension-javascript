@@ -2,13 +2,14 @@
 const express = require('express');
 const { sessionMiddleware } = require('./middleware/session_middleware');
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const { ExtensionFactory } = require('./extension_factory');
 
 
 function setupProxyRoutes(extension) {
     const apiRoutes = express.Router({  mergeParams: true });
     const applicationProxyRoutes = express.Router({  mergeParams: true });
 
-    applicationProxyRoutes.use(["/", "/:cluster_id"],async (req, res, next) => {
+    applicationProxyRoutes.use(["/:cluster_id", "/"],async (req, res, next) => {
         try {
             const clusterId = req.params.cluster_id;
             if (clusterId) {
@@ -33,7 +34,7 @@ function setupProxyRoutes(extension) {
         }
     });
     
-    apiRoutes.use(["/", "/:cluster_id"], sessionMiddleware(extension, true), async (req, res, next) => {
+    apiRoutes.use(["/:cluster_id", "/"], sessionMiddleware(extension, true), async (req, res, next) => {
         try {
             const clusterId = req.params.cluster_id;
             if (clusterId) {
