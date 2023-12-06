@@ -3,8 +3,9 @@
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
-const { SESSION_COOKIE_NAME } = require("../../express/constants");
+const { SESSION_COOKIE_NAME } = require("../../constants");
 const hmacSHA256 = require("crypto-js/hmac-sha256");
+const { WebhookRegistry } = require('../../webhook');
 
 function getSignature(body) {
     return hmacSHA256(JSON.stringify(body), 'API_SECRET')
@@ -13,7 +14,7 @@ function getSignature(body) {
 describe("Webhook Integrations", () => {
     let webhookConfig = null;
     let cookie = "";
-    beforeEach(async () => {
+    beforeAll(async () => {
         webhookConfig = {
             api_path: '/v1/webhooks',
             notification_email: 'test@abc.com',
@@ -25,10 +26,10 @@ describe("Webhook Integrations", () => {
                 'application/coupon/create': {
                     version: '1',
                     handler: function () { throw Error('test error') }
-                }
+                },
             }
         }
-        this.fdk_instance = await fdkHelper({
+        this.fdk_instance = await fdkHelper.initializeSDK({
             access_mode: "offline",
             webhook_config: webhookConfig
         });
@@ -59,10 +60,110 @@ describe("Webhook Integrations", () => {
         expect(response.status).toBe(302);
     });
 
-    afterEach(async () => {
+    afterAll(async () => {
         await clearData();
     });
+    
+    it('Should throw error on missing api path', async () => {
+        try{
+            webhookConfig = {
+                notification_email: 'test@abc.com',
+            }
+            const webhook = new WebhookRegistry();
+            await webhook.initialize(
+                webhookConfig,
+                {access_mode: "offline"}
+            );
+        }
+        catch(err)
+        {
+            expect(err.message).toBe('Invalid or missing "api_path"')
+        }
+    });
 
+    it('Should throw error on missing notification email', async () => {
+        try{
+            webhookConfig = {
+                api_path: '/v1/webhooks',
+            }
+            const webhook = new WebhookRegistry();
+            await webhook.initialize(
+                webhookConfig,
+                {access_mode: "offline"}
+            );
+        }
+        catch(err)
+        {
+            expect(err.message).toBe('Invalid or missing "notification_email"')
+        }
+    });
+    
+    it('Should throw error on missing event map', async () => {
+        try{
+            webhookConfig = {
+                api_path: '/v1/webhooks',
+                notification_email: 'test@abc.com',
+            }
+            const webhook = new WebhookRegistry();
+            await webhook.initialize(
+                webhookConfig,
+                {access_mode: "offline"}
+            );
+        }
+        catch(err)
+        {
+            expect(err.message).toBe('Invalid or missing "event_map"')
+        }
+    });
+    
+      
+    it('Should throw error on invalid event map key', async () => {
+        try{
+            webhookConfig = {
+                api_path: '/v1/webhooks',
+                notification_email: 'test@abc.com',
+                event_map: {
+                    'company/product': {
+                        version: '1',
+                        handler: function () { }
+                    },
+                }
+            }
+            const webhook = new WebhookRegistry();
+            await webhook.initialize(
+                webhookConfig,
+                {access_mode: "offline"}
+            );
+        }
+        catch(err)
+        {
+            expect(err.message).toBe('Error while fetching webhook events configuration, Reason: Invalid webhook event map key. Invalid key: company/product')
+        }
+    });
+    
+    it('Should throw error if webhook event not found', async () => {
+        try{
+            webhookConfig = {
+                api_path: '/v1/webhooks',
+                notification_email: 'test@abc.com',
+                event_map: {
+                    'company/product/create': {
+                        handler: function () { }
+                    },
+                }
+            }
+            const webhook = new WebhookRegistry();
+            await webhook.initialize(
+                webhookConfig,
+                {cluster: "http://localdev.fyndx0.de",}
+            );
+        }
+        catch(err)
+        {
+            expect(err.message).toBe('Webhooks events name: company/product/create, version: undefined not found')
+        }
+    });
+    
     it("Register webhooks", async () => {
         const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "product", "type": "create", "category": "company"} };
         const res = await request

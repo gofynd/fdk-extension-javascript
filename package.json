@@ -31,6 +31,7 @@
       "**/*.js"
     ],
     "exclude": [
+      "spec.js",
       "spec/*",
       "node_modules/*",
       "tools/*",

@@ -1,9 +1,7 @@
 'use strict';
 const { extension } = require('./extension');
 const express = require('express');
-const { sessionMiddleware } = require('./middleware/session_middleware');
-const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
-
+const { sessionMiddleware, getApplicationConfig } = require('./middleware/session_middleware');
 
 function setupProxyRoutes() {
     const apiRoutes = express.Router({  mergeParams: true });
@@ -11,19 +9,11 @@ function setupProxyRoutes() {
 
     applicationProxyRoutes.use(async (req, res, next) => {
         try {
-            if(req.headers["x-user-data"]) {
-                req.user = JSON.parse(req.headers["x-user-data"]);
-                req.user.user_id = req.user._id;
-            }
-            if(req.headers["x-application-data"]) {
-                req.application = JSON.parse(req.headers["x-application-data"]);
-                req.applicationConfig = new ApplicationConfig({
-                    applicationID: req.application._id,
-                    applicationToken: req.application.token,
-                    domain: extension.cluster
-                });
-                req.applicationClient = new ApplicationClient(req.applicationConfig);
-            }
+            const { user, application, applicationConfig, applicationClient } = await getApplicationConfig(req.headers["x-user-data"], req.headers["x-application-data"], extension)
+            req.user = user;
+            req.application = application;
+            req.applicationConfig = applicationConfig;
+            req.applicationClient = applicationClient;
             next();
         } catch (error) {
             next(error);

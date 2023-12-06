@@ -6,7 +6,10 @@ const { setupProxyRoutes } = require("./api_routes");
 const Session = require("./session/session");
 const SessionStorage = require("./session/session_storage");
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const { SESSION_COOKIE_NAME } = require('./constants');
 const logger = require('./logger');
+const { isAuthorized, getApplicationConfig } = require('./middleware/session_middleware');
+const routerHandlers = require('./handlers')
 
 function setupFdk(data, syncInitialization) {
     if (data.debug) {
@@ -20,16 +23,17 @@ function setupFdk(data, syncInitialization) {
     let router = setupRoutes(extension);
     let { apiRoutes, applicationProxyRoutes } = setupProxyRoutes();
 
-    async function getPlatformClient(companyId) {
+    async function getPlatformClient(companyId, sessionId) {
         let client = null;
+        let sid = sessionId;
         if (!extension.isOnlineAccessMode()) {
-            let sid = Session.generateSessionId(false, {
+            sid = Session.generateSessionId(false, {
                 cluster: extension.cluster,
                 companyId: companyId
             });
-            let session = await SessionStorage.getSession(sid);
-            client = await extension.getPlatformClient(companyId, session);
         }
+        let session = await SessionStorage.getSession(sid);
+        client = await extension.getPlatformClient(companyId, session);
         return client;
     }
 
@@ -50,7 +54,9 @@ function setupFdk(data, syncInitialization) {
         webhookRegistry: extension.webhookRegistry,
         applicationProxyRoutes: applicationProxyRoutes,
         getPlatformClient: getPlatformClient,
-        getApplicationClient: getApplicationClient
+        getApplicationClient: getApplicationClient,
+        middlewares: { isAuthorized, getApplicationConfig },
+        routerHandlers: routerHandlers
     };
 
     return syncInitialization? promiseInit.then(()=>configInstance).catch(()=>configInstance): configInstance;
