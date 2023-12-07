@@ -1,4 +1,4 @@
-const MemoryStorage = require('../../../storage/memory_storage');
+const MemoryStorage = require('../../../express/storage/memory_storage');
 
 describe('Memory Storage', () => {
   let memoryStorage;

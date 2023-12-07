@@ -1,5 +1,5 @@
-const { setupFdk } = require("../../index");
-const { RedisStorage } = require("../../storage");
+const { setupFdk } = require("../../express");
+const { RedisStorage } = require("../../express/storage");
 const { redisConnection } = require("../helpers/setup_db");
 let sessionId;
 const getSession = () => {

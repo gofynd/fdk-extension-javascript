@@ -1,4 +1,4 @@
-const BaseStorage = require('../../../storage/base_storage');
+const BaseStorage = require('../../../express/storage/base_storage');
 
 describe('Base Storage', () => {
   let baseStorage;
