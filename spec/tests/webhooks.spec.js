@@ -6,6 +6,7 @@ const request = require("../helpers/server");
 const { SESSION_COOKIE_NAME } = require("../../constants");
 const hmacSHA256 = require("crypto-js/hmac-sha256");
 const { WebhookRegistry } = require('../../webhook');
+const { applicationId } = require("./constants");
 
 function getSignature(body) {
     return hmacSHA256(JSON.stringify(body), 'API_SECRET')
@@ -14,10 +15,12 @@ function getSignature(body) {
 describe("Webhook Integrations", () => {
     let webhookConfig = null;
     let cookie = "";
+    let new_fdk_instance = ""
     beforeAll(async () => {
         webhookConfig = {
             api_path: '/v1/webhooks',
             notification_email: 'test@abc.com',
+            subscribed_saleschannel: 'specific',
             event_map: {
                 'company/product/create': {
                     version: '1',
@@ -31,6 +34,7 @@ describe("Webhook Integrations", () => {
         }
         this.fdk_instance = await fdkHelper.initializeSDK({
             access_mode: "offline",
+            debug: true,
             webhook_config: webhookConfig
         });
         request.app.restApp.use(this.fdk_instance.fdkHandler);
@@ -174,6 +178,17 @@ describe("Webhook Integrations", () => {
         expect(res.status).toBe(200);
         expect(res.body.success).toBeTrue();
     });
+    
+    it("Should throw invalid signature error", async () => {
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "product", "type": "create", "category": "company"} };
+        const res = await request
+            .post(`/v1/webhooks`)
+            .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
+            .set('x-fp-signature', "invalid-signature")
+            .send(reqBody);
+        expect(res.status).toBe(500);
+        expect(res.body.success).toBeFalse();
+    });
 
     it("Invalid webhook path", async () => {
         const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "update", "category": "application"} };
@@ -195,6 +210,16 @@ describe("Webhook Integrations", () => {
         expect(res.status).toBe(500);
         expect(res.body.success).toBeFalse();
     });
+    
+    it('Should enable webhook for saleschannel' ,async() =>{
+        const platformClient = await this.fdk_instance.getPlatformClient('1');
+        await this.fdk_instance.webhookRegistry.enableSalesChannelWebhook(platformClient, '000000000000000000000002');
+    });
+    
+    it('Should disable webhook for saleschannel' ,async() =>{
+        const platformClient = await this.fdk_instance.getPlatformClient('1');
+        await this.fdk_instance.webhookRegistry.disableSalesChannelWebhook(platformClient, applicationId);
+    })
 
     it("Sync webhooks: Add new", async () => {
         const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application"} };
@@ -218,6 +243,148 @@ describe("Webhook Integrations", () => {
             .send(reqBody);
         expect(res.status).toBe(200);
         expect(handlerFn).toHaveBeenCalled();
+    });
+    
+    it("Sync event --> Should throw webhook registry not initialized", async () => {
+        try{
+            const webhook = new WebhookRegistry();
+            await webhook.syncEvents();
+        }
+        catch(err)
+        {
+            expect(err.message).toBe('Webhook registry not initialized')
+        }
+    });
+    
+    it("Process webhook--> Should throw webhook registry not initialized", async () => {
+        try{
+            const webhook = new WebhookRegistry();
+            await webhook.processWebhook({});
+        }
+        catch(err)
+        {
+            expect(err.message).toBe('Webhook registry not initialized')
+        }
+    });
+    
+    it("Enable sales channel webhook --> Should throw webhook registry not initialized", async () => {
+        try{
+            const webhook = new WebhookRegistry();
+            await webhook.enableSalesChannelWebhook(null, applicationId);
+        }
+        catch(err)
+        {
+            expect(err.message).toBe('Webhook registry not initialized')
+        }
+    });
+    
+    it('Enable sales channel webhook --> Should throw error if subscribed_saleschannel is not set to specific' ,async() =>{
+        try{
+            const platformClient = await this.fdk_instance.getPlatformClient('1');
+            await this.fdk_instance.webhookRegistry.enableSalesChannelWebhook(platformClient, applicationId);
+        }
+        catch(error)
+        {
+            expect(error.message).toBe('`subscribed_saleschannel` is not set to `specific` in webhook config');
+        }
+    });
+    
+    it("Disable sales channel webhook --> Should throw webhook registry not initialized", async () => {
+        try{
+            const webhook = new WebhookRegistry();
+            await webhook.disableSalesChannelWebhook(null, applicationId);
+        }
+        catch(err)
+        {
+            expect(err.message).toBe('Webhook registry not initialized')
+        }
+    });
+    
+    it('Disable sales channel webhook --> Should throw error if subscribed_saleschannel is not set to specific' ,async() =>{
+        try{
+            const platformClient = await this.fdk_instance.getPlatformClient('1');
+            await this.fdk_instance.webhookRegistry.disableSalesChannelWebhook(platformClient, applicationId);
+        }
+        catch(error){
+            expect(error.message).toBe('`subscribed_saleschannel` is not set to `specific` in webhook config');
+        }
+    });
+    
+    
+    it("Sync webhooks: empty subscriber config", async () => {
+        webhookConfig = {
+            api_path: '/v1/webhooks',
+            notification_email: 'test@abc.com',
+            subscribed_saleschannel: 'specific',
+            event_map: {
+                'company/product/create': {
+                    version: '1',
+                    handler: function () { }
+                },
+                'application/coupon/create': {
+                    version: '1',
+                    handler: function () {}
+                },
+            }
+        }
+        new_fdk_instance = await fdkHelper.initializeSDK({
+            access_mode: "offline",
+            api_key: "NEW_API_KEY",
+            api_secret: "NEW_API_SECRET",
+            webhook_config: webhookConfig,
+            debug: true
+        });
+        
+        
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application"} };
+        const newMap = {
+            api_path: '/v1/webhooks',
+            notification_email: 'test@abc.com',
+            event_map: {
+                'application/coupon/create': {
+                    version: '1',
+                    handler: function () { }
+                }
+            }
+        }
+        const platformClient = await new_fdk_instance.getPlatformClient('1');
+        await new_fdk_instance.webhookRegistry.syncEvents(platformClient, null,newMap);
+        const res = await request
+            .post(`/v1/webhooks`)
+            .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
+            .set('x-fp-signature', getSignature(reqBody))
+            .send(reqBody);
+        expect(res.status).toBe(200);
+    });
+    
+    it('Should throw error if fetch subscriber config failed' ,async() =>{
+        try{
+            const webhook = new WebhookRegistry();
+            await webhook.getSubscriberConfig(null);
+        }
+        catch(error){
+            expect(error.message).toContain('Error while fetching webhook subscriber configuration');
+        }
+    });
+
+    it('Enable sales channel webhook --> Should throw error if subscriber config is not found' ,async() =>{
+        try{
+            const platformClient = await new_fdk_instance.getPlatformClient('1');
+            await new_fdk_instance.webhookRegistry.enableSalesChannelWebhook(platformClient, applicationId);
+        }
+        catch(error){
+            expect(error.message).toBe('Failed to add saleschannel webhook. Reason: Subscriber config not found');
+        }
+    });
+    
+    it('Disable sales channel webhook --> Should throw error if subscriber config is not found' ,async() =>{
+        try{
+            const platformClient = await new_fdk_instance.getPlatformClient('1');
+            await new_fdk_instance.webhookRegistry.disableSalesChannelWebhook(platformClient, applicationId);
+        }
+        catch(error){
+            expect(error.message).toBe('Failed to remove saleschannel webhook. Reason: Subscriber config not found');
+        }
     });
 
     // it("Sync webhooks: Replace existing", async () => {

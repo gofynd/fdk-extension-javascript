@@ -6,7 +6,7 @@ const request = require("../helpers/server");
 const { RedisStorage } = require("../../storage");
 const { redisConnection } = require("../helpers/setup_db");
 const { SESSION_COOKIE_NAME } = require("../../constants");
-const { userHeaders, applicationHeaders } = require("./constants");
+const { userHeaders, applicationHeaders, applicationId, applicationToken  } = require("./constants");
 const { formRequestObject } = require('../../utils');
 
 describe("Custom framework integration as express - Extension launch flow", () => {
@@ -197,8 +197,8 @@ describe("Custom framework integration as express - Extension launch flow", () =
 
   it("Should return  ApplicationClient in offline mode", async () => {
     const client = await fdk_instance.getApplicationClient(
-      "000000000000000000000001",
-      "BSBXcYPP"
+      applicationId,
+      applicationToken
     );
     expect(client.cart).toBeDefined();
   });
@@ -213,7 +213,7 @@ describe("Custom framework integration as express - Extension launch flow", () =
   it("/fp/install auth call back should contains application id", async () => {
     let response = await request
       .get(
-        "/custom/fp/install?company_id=1&install_event=true&application_id=000000000000000000000001"
+        `/custom/fp/install?company_id=1&install_event=true&application_id=${applicationId}`
       )
       .send();
     let redirectUrl = response.headers["location"].split("?")[1];

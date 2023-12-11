@@ -136,6 +136,24 @@ describe("Extension initialization flow and validations", () => {
             expect(err.message).toContain('Invalid scopes in extension config. Invalid scopes: ')
         }
     });
+    
+    it('`getPlatformConfig` --> Should throw error if extension is not initialized', async () => {
+        try {
+            extension.getPlatformConfig();
+        }
+        catch (err) {
+            expect(err.message).toContain('Extension not initialized due to invalid data')
+        }
+    });
+    
+    it('`getPlatformClient` --> Should throw error if extension is not initialized', async () => {
+        try {
+            await extension.getPlatformClient();
+        }
+        catch (err) {
+            expect(err.message).toContain('Extension not initialized due to invalid data')
+        }
+    });
 
     it('Should Intitialize extension successfully', async () => {
         await extension.initialize({

@@ -4,7 +4,7 @@ const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
 const { SESSION_COOKIE_NAME } = require("../../constants");
-const { userHeaders, applicationHeaders } = require("./constants");
+const { userHeaders, applicationHeaders, applicationId, applicationToken } = require("./constants");
 
 describe("Extension launch flow", () => {
     let webhookConfig = null;
@@ -93,7 +93,7 @@ describe("Extension launch flow", () => {
     });
 
     it('Should return ApplicationClient in offline mode', async () => {
-        const client = await fdk_instance.getApplicationClient('000000000000000000000001', 'BSBXcYPP');
+        const client = await fdk_instance.getApplicationClient(applicationId, applicationToken);
         expect(client.cart).toBeDefined();
     });
 
@@ -106,7 +106,7 @@ describe("Extension launch flow", () => {
 
     it('/fp/install redirect url should contains application id', async () => {
         let response = await request
-            .get('/fp/install?company_id=1&install_event=true&application_id=000000000000000000000001')
+            .get(`/fp/install?company_id=1&install_event=true&application_id=${applicationId}`)
             .send();
         let redirectUrl = response.headers['location'].split('?')[1];
         expect(redirectUrl).toContain('application_id');

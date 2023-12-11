@@ -4,7 +4,8 @@ module.exports = {
     "webhook_url": "http://localdev.fyndx0.de/v1/webhooks",
     "association": {
         "company_id": 1,
-        "criteria": "ALL"
+        "criteria": "ALL",
+        "application_id": ["000000000000000000000001"]
     },
     "status": "active",
     "auth_meta": {
