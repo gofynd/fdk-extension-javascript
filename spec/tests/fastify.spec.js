@@ -2,38 +2,58 @@
 
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
-const request = require("../helpers/server");
 const { SESSION_COOKIE_NAME } = require("../../constants");
 const { userHeaders, applicationHeaders, applicationId, applicationToken } = require("./constants");
+const request = require('../helpers/fastify_server');
+const fastify = require("fastify");
 
-describe("Extension launch flow", () => {
+describe("Fastify --> Extension launch flow", () => {
     let webhookConfig = null;
     let cookie = "";
     let queryParams = ""
     let fdk_instance;
     beforeAll(async () => {
-        fdk_instance = await fdkHelper.initializeFDK({
+        fdk_instance = await fdkHelper.initializeFastifyFDK({
             access_mode: "offline",
+            framework: 'fastfy',
             webhook_config: webhookConfig,
             debug: true,
         });
-        request.app.restApp.use(fdk_instance.fdkHandler);
-        let apiRouter = request.app.express.Router();
-        let applicationRouter = request.app.express.Router();
 
-        let apiRoutes = fdk_instance.apiRoutes;
-        let applicationProxyRoutes = fdk_instance.applicationProxyRoutes;
-        apiRouter.use('/api/*', apiRoutes);
-        apiRouter.get('/api/applications', async function view(req, res, next) {
-            return res.send('My extension routes');
-        });
-        applicationRouter.get('/applications', async function (req, res, next) {
-            return res.status(200).json({ user_id: req.user.user_id })
-        });
+        const apiRoutes = async (fastify, options) => {
+            fastify.addHook('preHandler', async (req, res) => {
+                try {
+                    const companyId = req.headers['x-company-id'] || req.query['company_id'];
+                    const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
+                    let cookieName = req.cookies[compCookieName] || '';
+                    let sessionId = req.unsignCookie(cookieName).value;
+                    req.fdkSession = await fdk_instance.middlewares.isAuthorized(sessionId);
+                    if (!req.fdkSession) {
+                        return res.status(401).json({ "message": "unauthorized" });
+                    }
+                } catch (error) {
+                    throw error
+                }
+            });
 
-        applicationProxyRoutes.use('/app', applicationRouter);
-        request.app.restApp.use(apiRouter);
-        request.app.restApp.use(applicationProxyRoutes);
+            fastify.get("/api/applications", async (req, res) => {
+                return res.send('My extension routes');
+            });
+        };
+
+        const applicationProxyRoutes = async (fastify, options) => {
+            fastify.register(fdk_instance.applicationProxyRoutes);
+
+            fastify.get('/app/applications', async function (req, res, next) {
+                return res.status(200).send({ user_id: req.user.user_id })
+            });
+        };
+
+
+        request.app.register(fdk_instance.fdkHandler);
+        request.app.register(apiRoutes);
+        request.app.register(applicationProxyRoutes);
+        await request.app.listen({ port: 5001 });
     });
 
     afterAll(async () => {
@@ -137,12 +157,14 @@ describe("Extension launch flow", () => {
     });
 
     it('Online mode: /fp/install should return redirect url', async () => {
-        let online_fdk_instance = await fdkHelper.initializeFDK({
+        const app1 = fastify();
+        let online_fdk_instance = await fdkHelper.initializeFastifyFDK({
             access_mode: "online",
             webhook_config: webhookConfig,
             debug: true,
         });
-        request.app.restApp.use(online_fdk_instance.fdkHandler);
+        app1.register(online_fdk_instance.fdkHandler);
+
 
         let response = await request
             .get('/fp/install?company_id=1&install_event=true')
@@ -164,4 +186,5 @@ describe("Extension launch flow", () => {
         const client = await fdk_instance.getPlatformClient(1, fdkHelper.getSession());
         expect(client.analytics).toBeDefined();
     });
+
 });
