@@ -16,7 +16,10 @@ async function setupRoutes(fastify, options){
             const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
             res.header['x-company-id'] = companyId;
             res.setCookie(compCookieName, fdkSession.id, {
+                domain: req.hostname,
+                path: '/',
                 secure: true,
+                expires: fdkSession.expires,
                 httpOnly: true,
                 signed: true,
                 sameSite: "None"
@@ -39,6 +42,8 @@ async function setupRoutes(fastify, options){
             const { redirectUrl, fdkSession } = await handlers.fpAuth(reqObj, req.query.state, req.query.code, extension, req.fdkSession?.id);
             res.header['x-company-id'] = companyId;
             res.setCookie(compCookieName, fdkSession.id, {
+                domain: req.hostname,
+                path: '/',
                 secure: true,
                 httpOnly: true,
                 expires: fdkSession.expires,
