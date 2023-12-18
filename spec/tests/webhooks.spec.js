@@ -32,7 +32,7 @@ describe("Webhook Integrations", () => {
                 },
             }
         }
-        this.fdk_instance = await fdkHelper.initializeSDK({
+        this.fdk_instance = await fdkHelper.initializeFDK({
             access_mode: "offline",
             debug: true,
             webhook_config: webhookConfig
@@ -327,7 +327,7 @@ describe("Webhook Integrations", () => {
                 },
             }
         }
-        new_fdk_instance = await fdkHelper.initializeSDK({
+        new_fdk_instance = await fdkHelper.initializeFDK({
             access_mode: "offline",
             api_key: "NEW_API_KEY",
             api_secret: "NEW_API_SECRET",

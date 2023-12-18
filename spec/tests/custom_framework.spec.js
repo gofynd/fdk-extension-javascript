@@ -15,7 +15,7 @@ describe("Custom framework integration as express - Extension launch flow", () =
   let queryParams = "";
   let fdk_instance;
   beforeAll(async () => {
-    fdk_instance = await fdkHelper.initializeSDK({
+    fdk_instance = await fdkHelper.initializeFDK({
       access_mode: "offline",
       webhook_config: webhookConfig,
     });

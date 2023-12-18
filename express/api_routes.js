@@ -1,7 +1,7 @@
 'use strict';
-const { extension } = require('./extension');
+const { extension } = require('../extension');
 const express = require('express');
-const { sessionMiddleware, getApplicationConfig } = require('./middleware/session_middleware');
+const { sessionMiddleware, getApplicationConfig } = require('../middleware/session_middleware');
 
 function setupProxyRoutes() {
     const apiRoutes = express.Router({  mergeParams: true });
