@@ -16,6 +16,7 @@ describe("Webhook Integrations", () => {
     let webhookConfig = null;
     let cookie = "";
     let new_fdk_instance = ""
+    let fdk_instance = null;
     beforeAll(async () => {
         webhookConfig = {
             api_path: '/v1/webhooks',
@@ -32,16 +33,16 @@ describe("Webhook Integrations", () => {
                 },
             }
         }
-        this.fdk_instance = await fdkHelper.initializeFDK({
+        fdk_instance = await fdkHelper.initializeFDK({
             access_mode: "offline",
             debug: true,
             webhook_config: webhookConfig
         });
-        request.app.restApp.use(this.fdk_instance.fdkHandler);
+        request.app.restApp.use(fdk_instance.fdkHandler);
         request.app.restApp.post('/v1/webhooks', async (req, res, next)=>{
             let status = 404;
             try {
-                await this.fdk_instance.webhookRegistry.processWebhook(req);
+                await fdk_instance.webhookRegistry.processWebhook(req);
                 status = 200;
             }
             catch(err) {
@@ -212,13 +213,13 @@ describe("Webhook Integrations", () => {
     });
     
     it('Should enable webhook for saleschannel' ,async() =>{
-        const platformClient = await this.fdk_instance.getPlatformClient('1');
-        await this.fdk_instance.webhookRegistry.enableSalesChannelWebhook(platformClient, '000000000000000000000002');
+        const platformClient = await fdk_instance.getPlatformClient('1');
+        await fdk_instance.webhookRegistry.enableSalesChannelWebhook(platformClient, '000000000000000000000002');
     });
     
     it('Should disable webhook for saleschannel' ,async() =>{
-        const platformClient = await this.fdk_instance.getPlatformClient('1');
-        await this.fdk_instance.webhookRegistry.disableSalesChannelWebhook(platformClient, applicationId);
+        const platformClient = await fdk_instance.getPlatformClient('1');
+        await fdk_instance.webhookRegistry.disableSalesChannelWebhook(platformClient, applicationId);
     })
 
     it("Sync webhooks: Add new", async () => {
@@ -234,8 +235,8 @@ describe("Webhook Integrations", () => {
             }
         }
         const handlerFn = spyOn(newMap.event_map['application/coupon/create'], 'handler');
-        const platformClient = await this.fdk_instance.getPlatformClient('1');
-        await this.fdk_instance.webhookRegistry.syncEvents(platformClient, newMap);
+        const platformClient = await fdk_instance.getPlatformClient('1');
+        await fdk_instance.webhookRegistry.syncEvents(platformClient, newMap);
         const res = await request
             .post(`/v1/webhooks`)
             .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
@@ -280,8 +281,8 @@ describe("Webhook Integrations", () => {
     
     it('Enable sales channel webhook --> Should throw error if subscribed_saleschannel is not set to specific' ,async() =>{
         try{
-            const platformClient = await this.fdk_instance.getPlatformClient('1');
-            await this.fdk_instance.webhookRegistry.enableSalesChannelWebhook(platformClient, applicationId);
+            const platformClient = await fdk_instance.getPlatformClient('1');
+            await fdk_instance.webhookRegistry.enableSalesChannelWebhook(platformClient, applicationId);
         }
         catch(error)
         {
@@ -302,8 +303,8 @@ describe("Webhook Integrations", () => {
     
     it('Disable sales channel webhook --> Should throw error if subscribed_saleschannel is not set to specific' ,async() =>{
         try{
-            const platformClient = await this.fdk_instance.getPlatformClient('1');
-            await this.fdk_instance.webhookRegistry.disableSalesChannelWebhook(platformClient, applicationId);
+            const platformClient = await fdk_instance.getPlatformClient('1');
+            await fdk_instance.webhookRegistry.disableSalesChannelWebhook(platformClient, applicationId);
         }
         catch(error){
             expect(error.message).toBe('`subscribed_saleschannel` is not set to `specific` in webhook config');

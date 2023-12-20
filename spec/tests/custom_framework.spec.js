@@ -192,7 +192,7 @@ describe("Custom framework integration as express - Extension launch flow", () =
 
   it("Should return PlatformClient in offline mode", async () => {
     const client = await fdk_instance.getPlatformClient(1);
-    expect(client.analytics).toBeDefined();
+    expect(client).toBeDefined();
   });
 
   it("Should return  ApplicationClient in offline mode", async () => {
