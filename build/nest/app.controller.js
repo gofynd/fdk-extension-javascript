@@ -11,7 +11,7 @@ const { SESSION_COOKIE_NAME } = require('../constants');
 const SessionStorage = require("../session/session_storage");
 const handlers = require('../handlers');
 const { formRequestObject } = require('../utils');
-const { Controller, Post, Get, Bind, Res, Req, Next } = require('@nestjs/common');
+const { Controller, Post, Get, Bind, Res, Req, Next, HttpCode } = require('@nestjs/common');
 const { extension } = require('../extension');
 let AppController = class AppController {
     async install(req, res, next) {
@@ -94,6 +94,7 @@ __decorate([
 ], AppController.prototype, "auth", null);
 __decorate([
     Post('auto_install'),
+    HttpCode(200),
     Bind(Req(), Res(), Next()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
@@ -101,6 +102,7 @@ __decorate([
 ], AppController.prototype, "autoInstall", null);
 __decorate([
     Post('uninstall'),
+    HttpCode(200),
     Bind(Req(), Res(), Next()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
