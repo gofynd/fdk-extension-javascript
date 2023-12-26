@@ -1,11 +1,5 @@
 {
   "dependencies": {
-    "@babel/core": "^7.23.6",
-    "@babel/plugin-transform-runtime": "^7.23.6",
-    "@babel/register": "^7.22.15",
-    "@nestjs/common": "^10.3.0",
-    "@nestjs/core": "^10.3.0",
-    "@nestjs/platform-express": "^10.3.0",
     "axios": "^0.21.1",
     "crypto-js": "^4.0.0",
     "querystring": "^0.2.1",
@@ -16,10 +10,13 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.23.6",
+    "@babel/plugin-transform-runtime": "^7.23.6",
     "@babel/preset-env": "^7.23.6",
     "@babel/preset-typescript": "^7.23.3",
+    "@babel/register": "^7.22.15",
     "@fastify/cookie": "^9.2.0",
     "@gofynd/fdk-client-javascript": "^1.1.0",
+    "@nestjs/testing": "^10.3.0",
     "axios-mock-adapter": "^1.18.1",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
