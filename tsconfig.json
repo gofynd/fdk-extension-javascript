@@ -19,11 +19,12 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "include": [
-    "nest/**/*"
-  ],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "coverage",
+    "spec",
+    "spec.js",
+    "examples"
   ]
 }
