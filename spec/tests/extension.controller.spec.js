@@ -2,7 +2,7 @@ require("@babel/register");
 const { Test, TestingModule } = require("@nestjs/testing");
 const { INestApplication } = require("@nestjs/common");
 const superTest = require("supertest");
-const { AppModule } = require("../../nest/extension.module");
+const { ExtensionModule } = require("../../nest/extension.module");
 const fdkHelper = require("../helpers/fdk");
 const cookieParser = require("cookie-parser");
 const { SESSION_COOKIE_NAME } = require("../../constants");
@@ -37,7 +37,7 @@ describe("Nestjs --> Extension launch flow", () => {
       debug: true,
     });
     const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [ExtensionModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();

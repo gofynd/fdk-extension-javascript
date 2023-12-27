@@ -6,7 +6,7 @@ const { Controller, Post ,Get, Bind, Res, Req, Next, HttpCode } = require('@nest
 const { extension } = require('../extension');
 
 @Controller('fp')
-class AppController {
+class ExtensionController {
     @Get('install')
     @Bind(Req(), Res(), Next())
     async install(req, res, next) {
@@ -86,4 +86,4 @@ class AppController {
 }
 
 
-module.exports = AppController;
+module.exports = ExtensionController;

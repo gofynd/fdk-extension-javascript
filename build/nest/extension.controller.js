@@ -13,7 +13,7 @@ const handlers = require('../handlers');
 const { formRequestObject } = require('../utils');
 const { Controller, Post, Get, Bind, Res, Req, Next, HttpCode } = require('@nestjs/common');
 const { extension } = require('../extension');
-let AppController = class AppController {
+let ExtensionController = class ExtensionController {
     async install(req, res, next) {
         try {
             let companyId = parseInt(req.query.company_id);
@@ -84,14 +84,14 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
-], AppController.prototype, "install", null);
+], ExtensionController.prototype, "install", null);
 __decorate([
     Get('auth'),
     Bind(Req(), Res(), Next()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
-], AppController.prototype, "auth", null);
+], ExtensionController.prototype, "auth", null);
 __decorate([
     Post('auto_install'),
     HttpCode(200),
@@ -99,7 +99,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
-], AppController.prototype, "autoInstall", null);
+], ExtensionController.prototype, "autoInstall", null);
 __decorate([
     Post('uninstall'),
     HttpCode(200),
@@ -107,9 +107,9 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
-], AppController.prototype, "unInstall", null);
-AppController = __decorate([
+], ExtensionController.prototype, "unInstall", null);
+ExtensionController = __decorate([
     Controller('fp')
-], AppController);
-module.exports = AppController;
+], ExtensionController);
+module.exports = ExtensionController;
 //# sourceMappingURL=extension.controller.js.map

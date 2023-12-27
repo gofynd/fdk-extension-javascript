@@ -1,8 +1,8 @@
 const { Module } = require('@nestjs/common');
-const AppController = require('./extension.controller');
+const ExtensionController = require('./extension.controller');
 
 @Module({
   imports: [],
-  controllers: [AppController],
+  controllers: [ExtensionController],
 })
-export class AppModule {}
+export class ExtensionModule {}
