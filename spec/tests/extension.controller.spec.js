@@ -1,12 +1,12 @@
 require("@babel/register");
-const { Test, TestingModule } = require("@nestjs/testing");
-const { INestApplication } = require("@nestjs/common");
+const { Test } = require("@nestjs/testing");
 const superTest = require("supertest");
-const { ExtensionModule } = require("../../nest/extension.module");
+const { TestModule } = require("./nest/test.module");
 const fdkHelper = require("../helpers/fdk");
 const cookieParser = require("cookie-parser");
 const { SESSION_COOKIE_NAME } = require("../../constants");
 const { clearData } = require("../helpers/setup_db");
+const { userHeaders, applicationHeaders } = require("./constants");
 
 describe("Nestjs --> Extension launch flow", () => {
   let app;
@@ -37,7 +37,7 @@ describe("Nestjs --> Extension launch flow", () => {
       debug: true,
     });
     const moduleFixture = await Test.createTestingModule({
-      imports: [ExtensionModule],
+      imports: [TestModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -79,4 +79,17 @@ describe("Nestjs --> Extension launch flow", () => {
     let response = await request.post("/fp/uninstall").send({ company_id: 1 });
     expect(response.status).toBe(200);
   });
+  
+  it('Should set user and application configs in request object while using applicationProxyroutes', async () => {
+    let response = await request
+        .get('/app/applications')
+        .set('x-company-id', 1)
+        .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
+        .set(userHeaders)
+        .set(applicationHeaders)
+        .send();
+    expect(response.status).toBe(200);
+    expect(response.body.user_id).toBe('5e199e6998cfe1776f1385dc');
+  });
+
 });
