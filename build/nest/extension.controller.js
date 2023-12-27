@@ -112,4 +112,4 @@ AppController = __decorate([
     Controller('fp')
 ], AppController);
 module.exports = AppController;
-//# sourceMappingURL=app.controller.js.map
+//# sourceMappingURL=extension.controller.js.map

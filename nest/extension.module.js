@@ -1,5 +1,5 @@
 const { Module } = require('@nestjs/common');
-const AppController = require('./app.controller');
+const AppController = require('./extension.controller');
 
 @Module({
   imports: [],

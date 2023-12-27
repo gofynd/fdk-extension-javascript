@@ -2,7 +2,7 @@ require("@babel/register");
 const { Test, TestingModule } = require("@nestjs/testing");
 const { INestApplication } = require("@nestjs/common");
 const superTest = require("supertest");
-const { AppModule } = require("../../nest/app.module");
+const { AppModule } = require("../../nest/extension.module");
 const fdkHelper = require("../helpers/fdk");
 const cookieParser = require("cookie-parser");
 const { SESSION_COOKIE_NAME } = require("../../constants");
