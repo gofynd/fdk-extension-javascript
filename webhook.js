@@ -274,25 +274,23 @@ class WebhookRegistry {
         }
     }
 
-    verifySignature(req) {
-        const reqSignature = req.headers['x-fp-signature'];
-        const { body } = req;
+    verifySignature(body, headers) {
+        const reqSignature = headers['x-fp-signature'];
         const calcSignature = hmacSHA256(JSON.stringify(body), this._fdkConfig.api_secret).toString();
         if (reqSignature !== calcSignature) {
             throw new FdkInvalidHMacError(`Signature passed does not match calculated body signature`);
         }
     }
 
-    async processWebhook(req) {
+    async processWebhook({ body, headers }) {
         if (!this.isInitialized){
             throw new FdkInvalidWebhookConfig('Webhook registry not initialized');
         }
         try {
-            const { body } = req;
             if (body.event.name === TEST_WEBHOOK_EVENT_NAME) {
                 return;
             }
-            this.verifySignature(req);
+            this.verifySignature(body, headers);
             const eventName = `${body.event.name}/${body.event.type}`;
             let categoryEventName = eventName;
             if (body.event.category) {
@@ -303,8 +301,8 @@ class WebhookRegistry {
             const extHandler = eventHandlerMap.handler;
 
             if (typeof extHandler === 'function') {
-                logger.debug(`Webhook event received for company: ${req.body.company_id}, application: ${req.body.application_id || ''}, event name: ${eventName}`);
-                await extHandler(eventName, req.body, req.body.company_id, req.body.application_id);
+                logger.debug(`Webhook event received for company: ${body.company_id}, application: ${body.application_id || ''}, event name: ${eventName}`);
+                await extHandler(eventName, body, body.company_id, body.application_id);
             }
             else {
                 throw new FdkWebhookHandlerNotFound(`Webhook handler not assigned: ${categoryEventName}`);

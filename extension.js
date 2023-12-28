@@ -6,7 +6,7 @@ const { PlatformConfig, PlatformClient } = require("@gofynd/fdk-client-javascrip
 const { WebhookRegistry } = require('./webhook');
 const logger = require('./logger');
 const { fdkAxios } = require('@gofynd/fdk-client-javascript/sdk/common/AxiosHelper');
-const { version } = require('./../package.json');
+const { version } = require('./package.json');
 
 class Extension {
     constructor() {

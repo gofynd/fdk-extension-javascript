@@ -1,0 +1,67 @@
+'use strict';
+
+const { extension } = require('./extension');
+const setupRoutes = require("./routes");
+const { setupProxyRoutes } = require("./api_routes");
+const Session = require("./session/session");
+const SessionStorage = require("./session/session_storage");
+const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const { SESSION_COOKIE_NAME } = require('./constants');
+const logger = require('./logger');
+const { isAuthorized, getApplicationConfig } = require('./middleware/session_middleware');
+const routerHandlers = require('./handlers')
+
+function setupFdk(data, syncInitialization) {
+    if (data.debug) {
+        logger.transports[0].level = 'debug';
+    }
+    const promiseInit = extension.initialize(data)
+        .catch(err=>{
+            logger.error(err);
+            throw err;
+        });
+    let router = setupRoutes(extension);
+    let { apiRoutes, applicationProxyRoutes } = setupProxyRoutes();
+
+    async function getPlatformClient(companyId, sessionId) {
+        let client = null;
+        let sid = sessionId;
+        if (!extension.isOnlineAccessMode()) {
+            sid = Session.generateSessionId(false, {
+                cluster: extension.cluster,
+                companyId: companyId
+            });
+        }
+        let session = await SessionStorage.getSession(sid);
+        client = await extension.getPlatformClient(companyId, session);
+        return client;
+    }
+
+    async function getApplicationClient(applicationId, applicationToken) {
+        let applicationConfig = new ApplicationConfig({
+            applicationID: applicationId,
+            applicationToken: applicationToken,
+            domain: extension.cluster
+        });
+        let applicationClient = new ApplicationClient(applicationConfig);
+        return applicationClient;
+    }
+
+    const configInstance =  {
+        fdkHandler: router,
+        extension: extension,
+        apiRoutes: apiRoutes,
+        webhookRegistry: extension.webhookRegistry,
+        applicationProxyRoutes: applicationProxyRoutes,
+        getPlatformClient: getPlatformClient,
+        getApplicationClient: getApplicationClient,
+        middlewares: { isAuthorized, getApplicationConfig },
+        routerHandlers: routerHandlers
+    };
+
+    return syncInitialization? promiseInit.then(()=>configInstance).catch(()=>configInstance): configInstance;
+}
+
+module.exports = {
+    setupFdk: setupFdk
+};
