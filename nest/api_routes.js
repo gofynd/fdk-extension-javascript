@@ -3,7 +3,7 @@ const { extension } = require('../extension');
 const { getApplicationConfig } = require('../middleware/session_middleware');
 
 @Injectable()
-class ApplicationProxyroutes {
+class ApplicationProxyRoutes {
   async use(req, res, next) {
     try {
       const { user, application, applicationConfig, applicationClient } = await getApplicationConfig(req.headers["x-user-data"], req.headers["x-application-data"], extension)
@@ -19,5 +19,5 @@ class ApplicationProxyroutes {
 }
 
 module.exports = {
-  applicationProxyroutes: ApplicationProxyroutes
+  applicationProxyRoutes: ApplicationProxyRoutes
 }

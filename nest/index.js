@@ -2,6 +2,7 @@
 
 const { extension } = require('../extension');
 const logger = require('../logger');
+const { applicationProxyRoutes } = require("./api_routes");
 const { isAuthorized, getApplicationConfig } = require('../middleware/session_middleware');
 const routerHandlers = require('../handlers');
 const { getApplicationClient, getPlatformClient } = require('../utils');
@@ -19,6 +20,7 @@ function setupFdk(data, syncInitialization) {
     const configInstance =  {
         extension: extension,
         webhookRegistry: extension.webhookRegistry,
+        applicationProxyRoutes: applicationProxyRoutes,
         getPlatformClient: getPlatformClient,
         getApplicationClient: getApplicationClient,
         middlewares: { isAuthorized, getApplicationConfig },
