@@ -20,6 +20,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         getExtensionDetails(): Promise<any>;
     };
     webhookRegistry: import("../webhook").WebhookRegistry;
+    applicationProxyRoutes: any;
     getPlatformClient: typeof getPlatformClient;
     getApplicationClient: typeof getApplicationClient;
     middlewares: {
@@ -65,6 +66,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         getExtensionDetails(): Promise<any>;
     };
     webhookRegistry: import("../webhook").WebhookRegistry;
+    applicationProxyRoutes: any;
     getPlatformClient: typeof getPlatformClient;
     getApplicationClient: typeof getApplicationClient;
     middlewares: {
