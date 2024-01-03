@@ -15,7 +15,6 @@ describe("Fastify --> Extension launch flow", () => {
     beforeAll(async () => {
         fdk_instance = await fdkHelper.initializeFastifyFDK({
             access_mode: "offline",
-            framework: 'fastfy',
             webhook_config: webhookConfig,
             debug: true,
         });
