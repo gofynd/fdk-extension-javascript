@@ -1,13 +1,15 @@
 'use strict';
 const { extension } = require('../extension');
 const express = require('express');
-const { sessionMiddleware, getApplicationConfig } = require('../middleware/session_middleware');
+const { sessionMiddleware } = require('../middleware/session_middleware');
+const { getApplicationConfig, getUserData } = require('../utils');
 function setupProxyRoutes() {
     const apiRoutes = express.Router({ mergeParams: true });
     const applicationProxyRoutes = express.Router({ mergeParams: true });
     applicationProxyRoutes.use(async (req, res, next) => {
         try {
-            const { user, application, applicationConfig, applicationClient } = await getApplicationConfig(req.headers["x-user-data"], req.headers["x-application-data"], extension);
+            const user = await getUserData(req.headers["x-user-data"]);
+            const { application, applicationConfig, applicationClient } = await getApplicationConfig(req.headers["x-application-data"], extension);
             req.user = user;
             req.application = application;
             req.applicationConfig = applicationConfig;

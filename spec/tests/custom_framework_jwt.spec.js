@@ -94,7 +94,7 @@ describe("Custom framework integration as express with jwt token - Extension lau
         const token = req.headers['x-token']; 
         const sessionData = jwt.verify(token, JWT_SECRET_KEY)
         let sessionId = sessionData.id;
-        req.fdkSession = await fdk_instance.middlewares.isAuthorized(sessionId);
+        req.fdkSession = await fdk_instance.getSessionData(sessionId);
         if (!req.fdkSession) {
           return res.status(401).json({ message: "User is unauthorized" });
         }
@@ -110,13 +110,18 @@ describe("Custom framework integration as express with jwt token - Extension lau
     applicationRouter.get(
       "/applications",
       async (req, res, next) => {
-        const { user, application, applicationConfig, applicationClient } =
-          await fdk_instance.middlewares.getApplicationConfig(
-            req.headers["x-user-data"],
+        const user = await fdk_instance.getUserData(req.headers["x-user-data"]);
+        req.user = user;
+        
+        const { application, applicationConfig, applicationClient } =
+          await fdk_instance.getApplicationConfig(
             req.headers["x-application-data"],
             fdk_instance.extension
           );
-        req.user = user;
+
+        req.application = application;
+        req.applicationConfig = applicationConfig;
+        req.applicationClient = applicationClient;
         next();
       },
       async (req, res, next) => {

@@ -39,8 +39,47 @@ function formRequestObject(req){
     }
 }
 
+async function getSessionData(session_id) {
+    let fdkSession = await SessionStorage.getSession(session_id);
+    if(!fdkSession) {
+        return false;
+    }
+    return fdkSession;
+}
+
+async function getApplicationConfig (applicationData, extension){
+    let application, applicationConfig, applicationClient;
+    if(applicationData) {
+        application = JSON.parse(applicationData);
+        applicationConfig = new ApplicationConfig({
+            applicationID: application._id,
+            applicationToken: application.token,
+            domain: extension.cluster
+        });
+        applicationClient = new ApplicationClient(applicationConfig);
+    }
+    return{
+        application,
+        applicationConfig,
+        applicationClient
+    }
+};
+
+async function getUserData (userData){
+    let user;
+    if(userData) {
+        user = JSON.parse(userData);
+        user.user_id = user._id;
+    }
+    
+    return user;
+}
+
 module.exports = {
     formRequestObject,
     getPlatformClient,
-    getApplicationClient
+    getApplicationClient,
+    getSessionData,
+    getApplicationConfig,
+    getUserData
 }

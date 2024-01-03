@@ -23,15 +23,9 @@ export function setupFdk(data: any, syncInitialization: any): {
     applicationProxyRoutes: any;
     getPlatformClient: typeof getPlatformClient;
     getApplicationClient: typeof getApplicationClient;
-    middlewares: {
-        isAuthorized: (session_id: any) => Promise<any>;
-        getApplicationConfig: (userData: any, applicationData: any, extension: any) => Promise<{
-            user: any;
-            application: any;
-            applicationConfig: import("@gofynd/fdk-client-javascript/sdk/application/ApplicationConfig");
-            applicationClient: import("@gofynd/fdk-client-javascript/sdk/application/ApplicationClient");
-        }>;
-    };
+    getSessionData: typeof getSessionData;
+    getApplicationConfig: typeof getApplicationConfig;
+    getUserData: typeof getUserData;
     routerHandlers: {
         fpAuth: (reqObj: any, state: any, code: any, ext: any, sessionId: any) => Promise<{
             redirectUrl: any;
@@ -69,15 +63,9 @@ export function setupFdk(data: any, syncInitialization: any): {
     applicationProxyRoutes: any;
     getPlatformClient: typeof getPlatformClient;
     getApplicationClient: typeof getApplicationClient;
-    middlewares: {
-        isAuthorized: (session_id: any) => Promise<any>;
-        getApplicationConfig: (userData: any, applicationData: any, extension: any) => Promise<{
-            user: any;
-            application: any;
-            applicationConfig: import("@gofynd/fdk-client-javascript/sdk/application/ApplicationConfig");
-            applicationClient: import("@gofynd/fdk-client-javascript/sdk/application/ApplicationClient");
-        }>;
-    };
+    getSessionData: typeof getSessionData;
+    getApplicationConfig: typeof getApplicationConfig;
+    getUserData: typeof getUserData;
     routerHandlers: {
         fpAuth: (reqObj: any, state: any, code: any, ext: any, sessionId: any) => Promise<{
             redirectUrl: any;
@@ -93,3 +81,6 @@ export function setupFdk(data: any, syncInitialization: any): {
 }>;
 import { getPlatformClient } from "../utils";
 import { getApplicationClient } from "../utils";
+import { getSessionData } from "../utils";
+import { getApplicationConfig } from "../utils";
+import { getUserData } from "../utils";

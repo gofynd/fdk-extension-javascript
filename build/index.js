@@ -3,7 +3,7 @@ const { extension } = require('./extension');
 const setupRoutes = require("./express/routes");
 const { setupProxyRoutes } = require("./express/api_routes");
 const logger = require('./logger');
-const { isAuthorized, getApplicationConfig } = require('./middleware/session_middleware');
+const { getSessionData, getApplicationConfig, getUserData } = require('./utils');
 const routerHandlers = require('./handlers');
 const { getApplicationClient, getPlatformClient } = require('./utils');
 function setupFdk(data, syncInitialization) {
@@ -25,7 +25,9 @@ function setupFdk(data, syncInitialization) {
         applicationProxyRoutes: applicationProxyRoutes,
         getPlatformClient: getPlatformClient,
         getApplicationClient: getApplicationClient,
-        middlewares: { isAuthorized, getApplicationConfig },
+        getSessionData,
+        getApplicationConfig,
+        getUserData,
         routerHandlers: routerHandlers
     };
     return syncInitialization ? promiseInit.then(() => configInstance).catch(() => configInstance) : configInstance;

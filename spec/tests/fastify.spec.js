@@ -26,7 +26,7 @@ describe("Fastify --> Extension launch flow", () => {
                     const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
                     let cookieName = req.cookies[compCookieName] || '';
                     let sessionId = req.unsignCookie(cookieName).value;
-                    req.fdkSession = await fdk_instance.middlewares.isAuthorized(sessionId);
+                    req.fdkSession = await fdk_instance.getSessionData(sessionId);
                     if (!req.fdkSession) {
                         return res.status(401).json({ "message": "unauthorized" });
                     }
