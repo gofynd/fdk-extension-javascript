@@ -31,8 +31,14 @@ const initializeFastifyFDK = (settings) => {
     return setupFdk({...fdkConfig, ...settings})
 };
 
+const initializNestFDK = (settings) => {
+    const { setupFdk } = require("../../nest");
+    return setupFdk({...fdkConfig, ...settings})
+};
+
 module.exports = {
     initializeFDK,
     initializeFastifyFDK,
+    initializNestFDK,
     getSession
 }

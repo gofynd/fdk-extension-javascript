@@ -8,5 +8,6 @@ module.exports = {
     applicationHeaders: {
         "x-application-data":'{"channel_type":"fynd","internal":false,"is_active":true,"_id":"000000000000000000000001", "token": "BSBXcYPP","name":"Fynd","meta":[{"name":"fynd","value":"true"}],"owner":"5df20abc369fd0781ea1c377","company_id":1}',
         'Content-Type': 'application/json',
-    }
+    },
+    jwtTokenData: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU1MDRlNTgxLTZiNDMtNGM3NC1hYjA4LTBiZTlkOWY3YmJhZCIsImNvbXBhbnlfaWQiOjEsInN0YXRlIjoiOWFmYjBhMzItNGU1YS00NmZjLTllNTUtYWZkYWVkNTVmM2Y3Iiwic2NvcGUiOlsiY29tcGFueS9wcm9kdWN0cyJdLCJleHBpcmVzIjoiMjAyNC0wMS0wM1QwNzozMjozOC44NDhaIiwiZXhwaXJlc19pbiI6bnVsbCwiYWNjZXNzX3Rva2VuX3ZhbGlkaXR5IjpudWxsLCJhY2Nlc3NfbW9kZSI6Im9ubGluZSIsImFjY2Vzc190b2tlbiI6bnVsbCwiY3VycmVudF91c2VyIjpudWxsLCJyZWZyZXNoX3Rva2VuIjpudWxsLCJpc05ldyI6dHJ1ZSwiZXh0ZW5zaW9uX2lkIjoiQVBJX0tFWSIsImlhdCI6MTcwNDI2NjI1OH0._HgqFkNyaC3AdaPWk0odMezrT4NNy-wgQQ5VFimQWEg"
 }

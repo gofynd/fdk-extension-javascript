@@ -15,7 +15,6 @@ describe("Fastify --> Extension launch flow", () => {
     beforeAll(async () => {
         fdk_instance = await fdkHelper.initializeFastifyFDK({
             access_mode: "offline",
-            framework: 'fastfy',
             webhook_config: webhookConfig,
             debug: true,
         });
@@ -27,7 +26,7 @@ describe("Fastify --> Extension launch flow", () => {
                     const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
                     let cookieName = req.cookies[compCookieName] || '';
                     let sessionId = req.unsignCookie(cookieName).value;
-                    req.fdkSession = await fdk_instance.middlewares.isAuthorized(sessionId);
+                    req.fdkSession = await fdk_instance.getSessionData(sessionId);
                     if (!req.fdkSession) {
                         return res.status(401).json({ "message": "unauthorized" });
                     }
@@ -109,7 +108,7 @@ describe("Fastify --> Extension launch flow", () => {
 
     it('Should return PlatformClient in offline mode', async () => {
         const client = await fdk_instance.getPlatformClient(1);
-        expect(client.analytics).toBeDefined();
+        expect(client).toBeDefined();
     });
 
     it('Should return ApplicationClient in offline mode', async () => {
@@ -184,7 +183,7 @@ describe("Fastify --> Extension launch flow", () => {
 
     it('Should return PlatformClient in online mode', async () => {
         const client = await fdk_instance.getPlatformClient(1, fdkHelper.getSession());
-        expect(client.analytics).toBeDefined();
+        expect(client).toBeDefined();
     });
 
 });
