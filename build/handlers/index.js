@@ -3,7 +3,7 @@ const SessionStorage = require("../session/session_storage");
 const { v4: uuidv4 } = require("uuid");
 const logger = require("../logger");
 const { FdkSessionNotFoundError, FdkInvalidOAuthError, } = require("../error_code");
-const fpInstall = async (company_id, application_id, ext) => {
+const fpInstall = async function fpInstall(company_id, application_id, ext) {
     let companyId = parseInt(company_id);
     let platformConfig = ext.getPlatformConfig(companyId);
     let session;
@@ -40,7 +40,7 @@ const fpInstall = async (company_id, application_id, ext) => {
         fdkSession: session,
     };
 };
-const fpAuth = async (reqObj, state, code, ext, sessionId) => {
+const fpAuth = async function fpAuth(reqObj, state, code, ext, sessionId) {
     const fdkSession = await SessionStorage.getSession(sessionId);
     if (!fdkSession) {
         throw new FdkSessionNotFoundError("Can not complete oauth process as session not found");
@@ -94,7 +94,7 @@ const fpAuth = async (reqObj, state, code, ext, sessionId) => {
         fdkSession: fdkSession,
     };
 };
-const fpAutoInstall = async (reqObj, company_id, code, ext) => {
+const fpAutoInstall = async function fpAutoInstall(reqObj, company_id, code, ext) {
     logger.debug(`Extension auto install started for company: ${company_id} on company creation.`);
     let platformConfig = ext.getPlatformConfig(company_id);
     let sid = Session.generateSessionId(false, {
@@ -133,7 +133,7 @@ const fpAutoInstall = async (reqObj, company_id, code, ext) => {
     }
     return;
 };
-const fpUninstall = async (reqObj, company_id, ext) => {
+const fpUninstall = async function fpUninstall(reqObj, company_id, ext) {
     let sid;
     if (!ext.isOnlineAccessMode()) {
         sid = Session.generateSessionId(false, {

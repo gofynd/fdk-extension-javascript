@@ -73,7 +73,7 @@
   "scripts": {
     "test": "./node_modules/.bin/nyc node spec.js",
     "start": "babel-node nest/main.js",
-    "build": "rm -rf dist && tsc"
+    "build": "rm -rf build && tsc"
   },
   "repository": {
     "type": "git",
