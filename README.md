@@ -9,7 +9,7 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const { setupFdk } = require("fdk-extension-javascript/express");
-const { RedisStorage } = require("fdk-extension-javascript/express/storage");
+const { RedisStorage } = require("fdk-extension-javascript/express/storage"); //RedisStorage class is provided by default. If you have implemented custom storage class, use <YourCustomStorageClass> here.
 const Redis = require("ioredis");
 
 const app = express();
@@ -152,3 +152,25 @@ After webhook config is passed to setupFdk whenever extension is launched to any
 > Any update to webhook config will not automatically update subscriber data on Fynd Platform for a company until extension is opened atleast once after the update. 
 
 Other way to update webhook config manually for a company is to call `syncEvents` function of webhookRegistery.   
+
+
+#### How to create custom storage class?
+Custom storage classes expand data storage options beyond default choices like Redis and in-memory storage. You would required to create a custom storage class by extending the base storage class provided by fdk extension javascript library and implementing required methods as per your chosen database.
+
+```javascript
+const BaseStorage = require('fdk-extension-javascript');
+
+class MyCustomStorage extends BaseStorage {
+    constructor(client, prefixKey) {
+        super(prefixKey);
+        this.client = client;
+    }
+    async get(key) {
+        return await this.client.get(this.prefixKey + key);
+    }
+    .
+    .
+    .
+    // All of the below methods need to be implemented as per your chosen databse
+}
+```
