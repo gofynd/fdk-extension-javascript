@@ -18,9 +18,11 @@ class Extension {
         this.cluster = "https://api.fynd.com";
         this.webhookRegistry = null;
         this._isInitialized = false;
+        this._isDebug = 'ERROR';
     }
     async initialize(data) {
         this._isInitialized = false;
+        this._isDebug = data.debug ? 'DEBUG' : this._isDebug;
         this.storage = data.storage;
         if (!data.api_key) {
             throw new FdkInvalidExtensionConfig("Invalid api_key");
@@ -85,7 +87,8 @@ class Extension {
             domain: this.cluster,
             apiKey: this.api_key,
             apiSecret: this.api_secret,
-            useAutoRenewTimer: false
+            useAutoRenewTimer: false,
+            logLevel: this._isDebug
         });
         return platformConfig;
     }

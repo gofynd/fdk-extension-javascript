@@ -9,6 +9,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         cluster: string;
         webhookRegistry: import("../webhook").WebhookRegistry;
         _isInitialized: boolean;
+        _isDebug: string;
         initialize(data: any): Promise<void>;
         scopes: any;
         readonly isInitialized: boolean;
@@ -49,6 +50,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         cluster: string;
         webhookRegistry: import("../webhook").WebhookRegistry;
         _isInitialized: boolean;
+        _isDebug: string;
         initialize(data: any): Promise<void>;
         scopes: any;
         readonly isInitialized: boolean;

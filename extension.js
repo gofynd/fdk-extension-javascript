@@ -19,11 +19,14 @@ class Extension {
         this.cluster = "https://api.fynd.com";
         this.webhookRegistry = null;
         this._isInitialized = false;
+        this._isDebug = 'ERROR'; // default mode as per SDK configuration
     }
 
     async initialize(data) {
 
         this._isInitialized = false;
+        this._isDebug = data.debug ? 'DEBUG' : this._isDebug;
+
 
         this.storage = data.storage;
 
@@ -105,7 +108,8 @@ class Extension {
             domain: this.cluster,
             apiKey: this.api_key,
             apiSecret: this.api_secret,
-            useAutoRenewTimer: false
+            useAutoRenewTimer: false,
+            logLevel: this._isDebug
         });
         return platformConfig;
         

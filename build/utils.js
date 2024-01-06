@@ -19,7 +19,8 @@ async function getApplicationClient(applicationId, applicationToken) {
     let applicationConfig = new ApplicationConfig({
         applicationID: applicationId,
         applicationToken: applicationToken,
-        domain: extension.cluster
+        domain: extension.cluster,
+        logLevel: extension._isDebug
     });
     let applicationClient = new ApplicationClient(applicationConfig);
     return applicationClient;
@@ -49,7 +50,8 @@ async function getApplicationConfig(applicationData, extension) {
         applicationConfig = new ApplicationConfig({
             applicationID: application._id,
             applicationToken: application.token,
-            domain: extension.cluster
+            domain: extension.cluster,
+            logLevel: extension._isDebug
         });
         applicationClient = new ApplicationClient(applicationConfig);
     }

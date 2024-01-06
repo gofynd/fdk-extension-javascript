@@ -9,6 +9,7 @@ declare class Extension {
     cluster: string;
     webhookRegistry: WebhookRegistry;
     _isInitialized: boolean;
+    _isDebug: string;
     initialize(data: any): Promise<void>;
     scopes: any;
     get isInitialized(): boolean;
