@@ -176,7 +176,7 @@ class MyCustomStorage extends BaseStorage {
     }
 
     async del(key) {
-        // Implementation of a get method
+        // Implementation of a del method
     }
 
     async setex(key, value, ttl) {
