@@ -168,9 +168,31 @@ class MyCustomStorage extends BaseStorage {
     async get(key) {
         return await this.client.get(this.prefixKey + key);
     }
-    .
-    .
-    .
+    
     // All of the below methods need to be implemented as per your chosen databse
+    
+    async set(key, value) {
+        // Implementation of a set method
+    }
+
+    async del(key) {
+        // Implementation of a get method
+    }
+
+    async setex(key, value, ttl) {
+        // Implementation of a setex method
+    }
+
+    async hget(key, hashKey) {
+        // Implementation of a hget method
+    }
+
+    async hset(key, hashKey, value) {
+        // Implementation of a hset method
+    }
+
+    async hgetall(key) {
+        // Implementation of a hgetall method
+    }
 }
 ```
