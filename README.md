@@ -2,14 +2,41 @@
 
 FDK Extension Helper Library
 
+The FDK Extension JavaScript library is designed to streamline the configuration of authentication for accessing Fynd Platform APIs and managing webhook subscriptions. This library offers built-in support for Express, Nest.js, and Fastify frameworks. Additionally, it provides flexibility for developing extensions in your preferred framework beyond the default support.
+
+This readme provides step-by-step guidance on implementing FDK extensions in different frameworks.
+
+# [Express Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/express/README.md)
+Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.
+
+# [Nest.js Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/nest/README.md)
+If you prefer to develop FDK extensions using the Nest.js framework, this readme will serve as a comprehensive guide to help you through the implementation process.
+
+# [Fastify Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/fastify/README.md)
+For developers opting to use the Fastify framework for FDK extension development, this readme contains all the information needed to guide you through the entire implementation process.
+
+# Developing Extensions in Your Preferred Framework
+
+If you wish to develop an extension in a framework other than Express, Nest.js, or Fastify, refer to the documentation below. This guide assumes that the express framework is not supported by the FDK Extension JavaScript library.
+
+>The process of integrating OAuth functionality into an existing extension involves creating specific routes within the extension. These routes, namely `/fp/install`, `/fp/auth`, `/fp/autoinstall`, and `/fp/uninstall`, play a crucial role in OAuth implementation. It is essential to attach a `routerHandler` to each of these created routes, which can be obtained from the `setupfdk` function.
+
+> The `fpInstall` function call requires three parameters: company_id, application_id, and exe data (extension exposed through the setupfdk method). This call will return the redirect URL of an extension consent page and session data that must be sent back.
+
+> The `fpAuth` function call takes five arguments: reqobject, state, code, ext and sessionId. Request object must contain valid sessionId. This call will return the redirect URL of an installed extension and the session data that must be sent back.
+
+> The `fpAutoInstall` function call will take reqObject, companyId, code, and extension data as arguments. This is beneficial for installing the extension whenever a company is created.
+
+> The `fpUninstall` function call will take reqObject, companyId, and extension as arguments. This facilitates the uninstallation of a specific extension.
+
 #### Initial Setup
 
 ```javascript
-const bodyParser = require("body-parser");
 const express = require("express");
+const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const { setupFdk } = require("fdk-extension-javascript/express");
-const { RedisStorage } = require("fdk-extension-javascript/express/storage"); //RedisStorage class is provided by default. If you have implemented custom storage class, use <YourCustomStorageClass> here.
+const { setupFdk } = require("fdk-extension-javascript");
+const { RedisStorage } = require("fdk-extension-javascript/storage"); //RedisStorage class is provided by default. If you have implemented custom storage class, use <YourCustomStorageClass> here.
 const Redis = require("ioredis");
 
 const app = express();
@@ -38,26 +65,123 @@ let fdkClient = setupFdk({
   access_mode: "offline",
   cluster: "https://api.fyndx0.de", // this is optional by default it points to prod.
 });
-app.use(fdkClient.fdkHandler);
 
-app.listen(8080);
+let router = app.express.Router();
+const handlers = fdkClient.routerHandlers; // Functions that constains implementaion of OAuth
+
+router.get("/fp/install", async (req, res, next) => {
+    const { redirectUrl, fdkSession } = await handlers.fpInstall(
+        req.query.company_id,
+        req.query.application_id, // optional
+        fdkClient.extension
+    );
+    // Return redirect url obtained in fpInstall call
+    // Return fdk session (for example in cookies or jwt token or any other form )
+    /*res.cookie(compCookieName, fdkSession.id, {
+        secure: true,
+        httpOnly: true,
+        expires: fdkSession.expires,
+        signed: true,
+        sameSite: "None",
+     });
+    res.redirect(redirectUrl); */
+});
+
+router.get("/fp/auth", async (req, res, next) => {
+    let sessionId = <session_id>; // Get the session id from cookies or jwt token or any other form
+    req.fdkSession = await redis.get(sessionId); // Attach session to request object
+    req.extension = fdkClient.extension; // Attach extension to request object
+    const { redirectUrl, fdkSession } = await handlers.fpAuth(
+        reqObj,
+        req.query.state,
+        req.query.code,
+        fdkClient.extension,
+        sessionId
+    );
+    // Return redirect url obtained in fpInstall call
+    // Return fdk session (for example in cookies or jwt token or any other form )
+    /*res.cookie(compCookieName, fdkSession.id, {
+        secure: true,
+        httpOnly: true,
+        expires: fdkSession.expires,
+        signed: true,
+        sameSite: "None",
+    });
+    res.redirect(redirectUrl); */
+});
+
+router.post("/fp/auto_install", async (req, res, next) => {
+    await handlers.fpAutoInstall(
+        reqObj,
+        req.body.company_id,
+        req.body.code,
+        fdkClient.extension
+    );
+    res.json({ message: "success" });
+});
+
+router.post("/fp/uninstall", async (req, res, next) => {
+    await handlers.fpUninstall(
+        reqObj,
+        req.body.company_id,
+        fdkClient.extension
+    );
+    res.json({ success: true });
+});
+
+app.use(router);
+app.listen(3000);
 ```
+### Parameters of setupFDK function
+Parameter table for `setupFdk` function
+
+| Parameter  | Description | 
+| ------------- | ------------- |
+| api_key  | API Key of an extension for authentication.  |
+| api_secret  | API Secret of an extension for authentication.  |
+| base_url?  | Base URL for extension.  |
+| scopes?  | An array of scopes indicating the specific permissions needed for an extension. |
+| callbacks  | The callback function to handle extension-related tasks. |
+| storage  | An instance of storage (e.g., RedisStorage) for data storage.  |
+| access_mode  | Access mode of an extension. It can be `online` or `offline`.  |
+| cluster  | The API url of the Fynd Platform cluster. |
+| webhook_config  | Necessary configuration for webhooks.  |
+
+Parameter table for `webhook` configuration
+| Parameter  | Description |
+| ------------- | ------------- |
+| api_path  | API endpoint to process webhooks event.  |
+| notification_email  | Email address for webhook related notifications.  |
+| subscribe_on_install?  | Whether to auto subscribe to all webhooks on extension installation. It can be true or false. |
+| subscribed_saleschannel?  | If `specific` then you have to manually subscribe to sales channel/website level events for individual sales channels. Value can be `all` or `optional`. |
+| debug?  | Enable debug logs if it is `true`. Value can be `true` or `false`.  |
+| event_map  | A mapping of events to corresponding handlers for webhook processing.  |
+
+Parameter table for `event_map` object
+| Parameter  | Description |
+| ------------- | ------------- |
+| key  | API endpoint to process webhooks event.  |
+| value  | `version` and `handler`  |
+|   | `version`  -- API version of specified event |
+|   | `handler` -- A handler function when specified event occures|
 
 #### How to call platform apis?
 
-To call platform api you need to have instance of `PlatformClient`. Instance holds methods for SDK classes. All routes registered under `apiRoutes` express router will have `platformClient` under request object which is instance of `PlatformClient`.
-
-> Here `apiRoutes` has middleware attached which allows passing such request which are called after launching extension under any company.
+To call a platform API, you need an instance of `PlatformClient`. You can obtain a `platformClient` instance by using the `getPlatformClient` method of the `setupFDK` function. This instance encompasses methods for SDK classes enabling the invocation of platform APIs.
+> To access the `PlatformClient` instance, a valid `session` is required, retrievable through the `getSessionData` method of an fdkClient. 
+> To enforce this requirement, we propose adding a middleware that allows platform requests only after the extension has been launched under any company.
 
 ```javascript
-fdkClient.apiRoutes.get("/test/routes", async (req, res, next) => {
-  try {
-    let data = await req.platformClient.lead.getTickets();
+let apiRouter = app.express.Router();
+apiRoutes.get("/test/routes", async (req, res, next) => {
+    req.fdkSession = await fdkClient.getSessionData(sessionId); // Get the session id from cookies or jwt token or any other form 
+    if (!req.fdkSession) { // Authorize for valid request
+    return res.status(401).json({ message: "User is unauthorized" });
+    }
+    
+    let platformClient = await fdkClient.getPlatformClient(company_id, req.fdkSession)
+    let data = await platformClient.lead.getTickets();
     res.json(data);
-  } catch (error) {
-    console.error(error);
-    next(error);
-  }
 });
 
 app.use(fdkClient.apiRoutes);
@@ -65,22 +189,39 @@ app.use(fdkClient.apiRoutes);
 
 #### How to call platform apis in background tasks?
 
-Background tasks running under some consumer or webhook or under any queue can get platform client via method `getPlatformClient`. It will return instance of `PlatformClient` as well. 
+Background tasks running under some consumer or webhook or under any queue can get platform client via method `getPlatformClient`.
 
-> Here FdkClient `access_mode` should be **offline**. Cause such client can only access PlatformClient in background task.  
+> Here FdkClient `access_mode` should be **offline**. Cause such client can only access PlatformClient in background task. 
+> To access the `PlatformClient` instance, a valid `session` is required, retrievable through the `getSessionData` method of an fdkClient. 
 
 ```javascript
 function backgroundHandler(companyId) {
-  try {
-    const platformClient = await fdkExtension.getPlatformClient(companyId);
-    let data = await platformClient.lead.getTickets();
-    // Some business logic here
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(404).json({ success: false });
-  }
+  let fdkSession = await fdkClient.getSessionData(sessionId); // Get the session id from cookies or jwt token or any other form 
+
+  let platformClient = await fdkClient.getPlatformClient(company_id, req.fdkSession);
+  let data = await platformClient.lead.getTickets();
+  // Some business logic here
+  res.send({ success: true });
 }
+```
+
+#### How to call application apis?
+
+To call an application API, you need an instance of `ApplicationClient`. Instance holds methods for SDK classes. You can fetch the instance of `ApplicationClient` via `getApplicationClient` method exposed via `fdkClient` instance.
+
+```javascript
+let applicationRouter = app.express.Router();
+applicationRouter.get("/test/routes", async (req, res, next) => {
+    const user = await fdkClient.getUserData(req.headers["x-user-data"]); 
+    const { application, applicationConfig, applicationClient } =
+    await fdkClient.getApplicationConfig(
+        req.headers["x-application-data"],
+        fdkClient.extension
+    );
+    let data = await applicationClient.lead.getTickets();
+    res.send({ success: true });
+});
+app.use(fdkClient.applicationRouter);
 ```
 
 #### How to register for webhook events?
@@ -154,45 +295,6 @@ After webhook config is passed to setupFdk whenever extension is launched to any
 Other way to update webhook config manually for a company is to call `syncEvents` function of webhookRegistery.   
 
 
-#### How to create custom storage class?
-Custom storage classes expand data storage options beyond default choices like Redis and in-memory storage. You would required to create a custom storage class by extending the base storage class provided by fdk extension javascript library and implementing required methods as per your chosen database.
 
-```javascript
-const BaseStorage = require('fdk-extension-javascript');
-
-class MyCustomStorage extends BaseStorage {
-    constructor(client, prefixKey) {
-        super(prefixKey);
-        this.client = client;
-    }
-    async get(key) {
-        return await this.client.get(this.prefixKey + key);
-    }
-    
-    // All of the below methods need to be implemented as per your chosen databse
-    
-    async set(key, value) {
-        // Implementation of a set method
-    }
-
-    async del(key) {
-        // Implementation of a del method
-    }
-
-    async setex(key, value, ttl) {
-        // Implementation of a setex method
-    }
-
-    async hget(key, hashKey) {
-        // Implementation of a hget method
-    }
-
-    async hset(key, hashKey, value) {
-        // Implementation of a hset method
-    }
-
-    async hgetall(key) {
-        // Implementation of a hgetall method
-    }
-}
-```
+# [Custom storage class](https://github.com/gofynd/fdk-extension-javascript/tree/main/storage/README.md)
+The FDK Extension JavaScript library provides built-in support for Redis and in-memory storage options as default choices for session data storage. However, if you require a different storage option, this readme will guide you through the process of implementing a custom storage class.
