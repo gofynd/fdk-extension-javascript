@@ -2,7 +2,7 @@
 const validator = require('validator');
 const { FdkInvalidExtensionConfig } = require("./error_code");
 const urljoin = require('url-join');
-const { PlatformConfig, PlatformClient } = require("@gofynd/fdk-client-javascript");
+const { PlatformConfig, PlatformClient, PartnerConfig, PartnerClient } = require("@gofynd/fdk-client-javascript");
 const { WebhookRegistry } = require('./webhook');
 const logger = require('./logger');
 const { fdkAxios } = require('@gofynd/fdk-client-javascript/sdk/common/AxiosHelper');
@@ -21,6 +21,7 @@ class Extension {
         this.webhookRegistry = null;
         this._isInitialized = false;
         this._retryManager = new RetryManger();
+        this.configData = null;
     }
 
     async initialize(data) {
@@ -83,7 +84,7 @@ class Extension {
         this._isInitialized = true;
     }
 
-    get isInitialized(){
+    get isInitialized() {
         return this._isInitialized;
     }
 
@@ -112,10 +113,11 @@ class Extension {
             domain: this.cluster,
             apiKey: this.api_key,
             apiSecret: this.api_secret,
-            useAutoRenewTimer: false
+            useAutoRenewTimer: false,
+            logLevel: this.configData.debug === true? "debug": null
         });
         return platformConfig;
-        
+
     }
 
     async getPlatformClient(companyId, session) {
@@ -127,7 +129,7 @@ class Extension {
         let platformConfig = await this.getPlatformConfig(companyId);
         platformConfig.oauthClient.setToken(session);
         platformConfig.oauthClient.token_expires_at = session.access_token_validity;
-        
+
         if (session.access_token_validity && session.refresh_token) {
             let ac_nr_expired = ((session.access_token_validity - new Date().getTime()) / 1000) <= 120;
             if (ac_nr_expired) {
@@ -144,6 +146,50 @@ class Extension {
             'x-ext-lib-version': `js/${version}`
         })
         return platformClient;
+    }
+
+    getPartnerConfig(organizationId) {
+        if (!this._isInitialized) {
+            throw new FdkInvalidExtensionConfig("Extension not initialized due to invalid data");
+        }
+
+        let partnerConfig = new PartnerConfig({
+            organizationId: organizationId,
+            domain: this.cluster,
+            apiKey: this.api_key,
+            apiSecret: this.api_secret,
+            useAutoRenewTimer: false,
+            logLevel: this.configData.debug ===  true? "debug": null
+        })
+        return partnerConfig;
+    }
+
+    async getPartnerClient(organizationId, session) {
+        if (!this._isInitialized) {
+            throw new FdkInvalidExtensionConfig('Extension not initialized due to invalid data')
+        }
+        const SessionStorage = require('./session/session_storage');
+
+        let partnerConfig = this.getPartnerConfig(organizationId);
+        partnerConfig.oauthClient.setToken(session);
+        partnerConfig.oauthClient.token_expires_at = session.access_token_validity;
+
+        if (session.access_token_validity && session.refresh_token) {
+            let ac_nr_expired = ((session.access_token_validity - new Date().getTime()) / 1000) <= 120;
+            if (ac_nr_expired) {
+                logger.debug(`Renewing access token for organization ${organizationId} with platform config ${logger.safeStringify(partnerConfig)}`);
+                const renewTokenRes = await partnerConfig.oauthClient.renewAccessToken(session.access_mode === 'offline');
+                renewTokenRes.access_token_validity = partnerConfig.oauthClient.token_expires_at;
+                session.updateToken(renewTokenRes);
+                await SessionStorage.saveSession(session);
+                logger.debug(`Access token renewed for organization ${organizationId} with response ${logger.safeStringify(renewTokenRes)}`);
+            }
+        }
+        let partnerClient = new PartnerClient(partnerConfig);
+        partnerClient.setExtraHeaders({
+            'x-ext-lib-version': `js/${version}`
+        })
+        return partnerClient;
     }
 
     async getExtensionDetails() {
