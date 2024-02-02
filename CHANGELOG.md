@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v0.7.0] - 2024-02-02
 ### Added
 - `partnerApiRoutes` exposed to support launching of extension admin panel insie the partners panel. 
-- partner client is exposed which can be used for calling partners server API
+- `PartnerClient` is exposed which can be used for calling partners server API
 ---
 ## [v0.6.0] - 2024-01-09
 ### Added
