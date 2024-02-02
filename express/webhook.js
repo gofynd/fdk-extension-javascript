@@ -291,6 +291,7 @@ class WebhookRegistry {
         }
         try {
             const { body } = req;
+            const clusterId = req.params.cluster_id;
             if (body.event.name === TEST_WEBHOOK_EVENT_NAME) {
                 return;
             }
@@ -306,7 +307,7 @@ class WebhookRegistry {
 
             if (typeof extHandler === 'function') {
                 logger.debug(`Webhook event received for company: ${req.body.company_id}, application: ${req.body.application_id || ''}, event name: ${eventName}`);
-                await extHandler(eventName, req.body, req.body.company_id, req.body.application_id);
+                await extHandler(eventName, req.body, req.body.company_id, req.body.application_id, clusterId);
             }
             else {
                 throw new FdkWebhookHandlerNotFound(`Webhook handler not assigned: ${categoryEventName}`);

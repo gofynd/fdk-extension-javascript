@@ -7,6 +7,7 @@ const { WebhookRegistry } = require('./webhook');
 const logger = require('./logger');
 const { fdkAxios } = require('@gofynd/fdk-client-javascript/sdk/common/AxiosHelper');
 const { version } = require('./../package.json');
+const SessionStorage = require("./session/session_storage");
 const { RetryManger } = require("./retry_manager")
 
 class Extension {
@@ -19,7 +20,9 @@ class Extension {
         this.access_mode = null;
         this.cluster = "https://api.fynd.com";
         this.webhookRegistry = null;
+        this.sessionStore = null;
         this._isInitialized = false;
+        this._clusterId = null;
         this._retryManager = new RetryManger();
     }
 
@@ -34,6 +37,7 @@ class Extension {
 
         this.storage = data.storage;
 
+        this.sessionStorage = new SessionStorage(this.storage);
         if (!data.api_key) {
             throw new FdkInvalidExtensionConfig("Invalid api_key");
         }
@@ -56,6 +60,7 @@ class Extension {
                 throw new FdkInvalidExtensionConfig("Invalid cluster value. Invalid value: " + data.cluster);
             }
             this.cluster = data.cluster;
+            this._clusterId = this.cluster.replace("https://", "");
         }
         this.webhookRegistry = new WebhookRegistry(this._retryManager);
 
@@ -85,6 +90,10 @@ class Extension {
 
     get isInitialized(){
         return this._isInitialized;
+    }
+
+    get clusterId(){
+        return this._clusterId;
     }
 
     verifyScopes(scopes, extensionData) {
@@ -122,7 +131,6 @@ class Extension {
         if (!this._isInitialized){
             await this.initialize(this.configData);
         }
-        const SessionStorage = require('./session/session_storage');
         
         let platformConfig = await this.getPlatformConfig(companyId);
         platformConfig.oauthClient.setToken(session);
@@ -135,7 +143,7 @@ class Extension {
                 const renewTokenRes = await platformConfig.oauthClient.renewAccessToken(session.access_mode === 'offline');
                 renewTokenRes.access_token_validity = platformConfig.oauthClient.token_expires_at;
                 session.updateToken(renewTokenRes);
-                await SessionStorage.saveSession(session);
+                await this.sessionStorage.saveSession(session);
                 logger.debug(`Access token renewed for company ${companyId} with response ${logger.safeStringify(renewTokenRes)}`);
             }
         }
@@ -188,9 +196,6 @@ class Extension {
     }
 }
 
-
-const extension = new Extension();
-
 module.exports = {
-    extension
+    Extension
 };

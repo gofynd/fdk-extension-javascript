@@ -1,16 +1,20 @@
 'use strict';
-const { extension } = require('./extension');
 const express = require('express');
 const { sessionMiddleware } = require('./middleware/session_middleware');
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const { ExtensionFactory } = require('./extension_factory');
 
 
-function setupProxyRoutes() {
+function setupProxyRoutes(extension) {
     const apiRoutes = express.Router({  mergeParams: true });
     const applicationProxyRoutes = express.Router({  mergeParams: true });
 
-    applicationProxyRoutes.use(async (req, res, next) => {
+    applicationProxyRoutes.use(["/:cluster_id", "/"],async (req, res, next) => {
         try {
+            const clusterId = req.params.cluster_id;
+            if (clusterId) {
+                extension = ExtensionFactory.getExtension(clusterId)
+            }
             if(req.headers["x-user-data"]) {
                 req.user = JSON.parse(req.headers["x-user-data"]);
                 req.user.user_id = req.user._id;
@@ -30,8 +34,12 @@ function setupProxyRoutes() {
         }
     });
     
-    apiRoutes.use(sessionMiddleware(true), async (req, res, next) => {
+    apiRoutes.use(["/:cluster_id", "/"], sessionMiddleware(extension, true), async (req, res, next) => {
         try {
+            const clusterId = req.params.cluster_id;
+            if (clusterId) {
+                extension = ExtensionFactory.getExtension(clusterId)
+            }
             const client = await extension.getPlatformClient(req.fdkSession.company_id, req.fdkSession);
             req.platformClient = client;
             req.extension = extension;
