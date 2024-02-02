@@ -21,6 +21,7 @@ class Extension {
         this.webhookRegistry = null;
         this._isInitialized = false;
         this._retryManager = new RetryManger();
+        this.configData = null;
     }
 
     async initialize(data) {
@@ -112,7 +113,8 @@ class Extension {
             domain: this.cluster,
             apiKey: this.api_key,
             apiSecret: this.api_secret,
-            useAutoRenewTimer: false
+            useAutoRenewTimer: false,
+            logLevel: this.configData.debug === true? "debug": null
         });
         return platformConfig;
 
@@ -156,7 +158,8 @@ class Extension {
             domain: this.cluster,
             apiKey: this.api_key,
             apiSecret: this.api_secret,
-            useAutoRenewTimer: false
+            useAutoRenewTimer: false,
+            logLevel: this.configData.debug ===  true? "debug": null
         })
         return partnerConfig;
     }

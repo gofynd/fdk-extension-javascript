@@ -18,7 +18,7 @@ function setupFdk(data, syncInitialization) {
             throw err;
         });
     let router = setupRoutes(extension);
-    let { apiRoutes, applicationProxyRoutes, partnerApiRoutes } = setupProxyRoutes();
+    let { apiRoutes, applicationProxyRoutes, partnerApiRoutes } = setupProxyRoutes(data);
 
     async function getPlatformClient(companyId) {
         let client = null;
@@ -37,7 +37,8 @@ function setupFdk(data, syncInitialization) {
         let applicationConfig = new ApplicationConfig({
             applicationID: applicationId,
             applicationToken: applicationToken,
-            domain: extension.cluster
+            domain: extension.cluster,
+            logLevel: data.debug ===  true? "debug": null
         });
         let applicationClient = new ApplicationClient(applicationConfig);
         return applicationClient;

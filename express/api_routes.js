@@ -5,7 +5,7 @@ const { sessionMiddleware, partnerSessionMiddleware } = require('./middleware/se
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
 
 
-function setupProxyRoutes() {
+function setupProxyRoutes(configData) {
     const apiRoutes = express.Router({ mergeParams: true });
     const applicationProxyRoutes = express.Router({ mergeParams: true });
     const partnerApiRoutes = express.Router({ mergeParams: true });
@@ -21,7 +21,8 @@ function setupProxyRoutes() {
                 req.applicationConfig = new ApplicationConfig({
                     applicationID: req.application._id,
                     applicationToken: req.application.token,
-                    domain: extension.cluster
+                    domain: extension.cluster,
+                    logLevel: configData.debug ===  true? "debug": null
                 });
                 req.applicationClient = new ApplicationClient(req.applicationConfig);
             }
