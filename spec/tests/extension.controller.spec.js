@@ -4,7 +4,7 @@ const superTest = require("supertest");
 const { TestModule } = require("./nest/test.module");
 const fdkHelper = require("../helpers/fdk");
 const cookieParser = require("cookie-parser");
-const { SESSION_COOKIE_NAME } = require("../../constants");
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../constants");
 const { clearData } = require("../helpers/setup_db");
 const { userHeaders, applicationHeaders } = require("./constants");
 
@@ -13,6 +13,10 @@ describe("Nestjs --> Extension launch flow", () => {
   let webhookConfig = null;
   let request;
   let fdk_instance;
+  let cookie= "";
+  let queryParams = "";
+  let admCookie = "";
+  let admQueryParams = ""
   beforeAll(async () => {
     webhookConfig = {
       api_path: "/v1/webhooks",
@@ -90,6 +94,24 @@ describe("Nestjs --> Extension launch flow", () => {
         .send();
     expect(response.status).toBe(200);
     expect(response.body.user_id).toBe('5e199e6998cfe1776f1385dc');
+  });
+  
+  it('/adm/install should return redirect url', async () => {
+    let response = await request
+        .get('/adm/install?organization_id=1&install_event=true')
+        .send();
+    
+    admCookie = response.headers['set-cookie'][0].split(",")[0].split("=")[1];
+    admQueryParams = response.headers['location'].split('?')[1];
+    expect(response.status).toBe(302);
+  });
+  
+  it('/adm/auth should return redirect url', async () => {
+    let response = await request
+        .get(`/adm/auth?organization_id=1&install_event=true&${admQueryParams}`)
+        .set('cookie', `${ADMIN_SESSION_COOKIE_NAME}=${admCookie}`)
+        .send();
+    expect(response.status).toBe(302);
   });
 
 });

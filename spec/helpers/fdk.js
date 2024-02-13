@@ -19,6 +19,7 @@ const fdkConfig = {
     storage: new RedisStorage(redisConnection, "test_fdk"),
     access_mode: "online",
     cluster: "http://localdev.fyndx0.de",
+    debug: true,
 }
 
 const initializeFDK = (settings) => {

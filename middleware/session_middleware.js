@@ -1,5 +1,5 @@
 'use strict';
-const { SESSION_COOKIE_NAME } = require('../constants');
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('./../constants');
 const { getSessionData } = require('../utils');
 function sessionMiddleware(strict) {
     return async (req, res, next) => {
@@ -18,6 +18,22 @@ function sessionMiddleware(strict) {
     };
 }
 
+function partnerSessionMiddleware() {
+    return async (req, res, next) => {
+        try {
+            let sessionId = req.signedCookies[ADMIN_SESSION_COOKIE_NAME];
+            req.fdkSession = await getSessionData(sessionId);  
+            if (!req.fdkSession) {
+                return res.status(401).json({"message": "Unauthorized"});
+            }
+            next();
+        } catch(error) {
+            next(error);
+        }
+    }
+}
+
 module.exports = {
     sessionMiddleware: sessionMiddleware,
+    partnerSessionMiddleware: partnerSessionMiddleware
 };

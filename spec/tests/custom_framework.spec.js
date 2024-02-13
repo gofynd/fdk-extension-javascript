@@ -10,7 +10,23 @@ const { userHeaders, applicationHeaders, applicationId, applicationToken  } = re
 const { formRequestObject } = require('../../utils');
 
 describe("Custom framework integration as express - Extension launch flow", () => {
-  let webhookConfig = null;
+  let webhookConfig = {
+    api_path: "/v1/webhooks",
+    notification_email: "test@abc.com",
+    subscribed_saleschannel: "specific",
+    event_map: {
+      "company/product/create": {
+        version: "1",
+        handler: function () { },
+      },
+      "application/coupon/create": {
+        version: "1",
+        handler: function () {
+          throw Error("test error");
+        },
+      },
+    },
+  };
   let cookie = "";
   let queryParams = "";
   let fdk_instance;

@@ -6,7 +6,7 @@ const { setupProxyRoutes } = require("./express/api_routes");
 const logger = require('./logger');
 const { getSessionData, getApplicationConfig, getUserData} = require('./utils');
 const routerHandlers = require('./handlers');
-const { getApplicationClient, getPlatformClient } = require('./utils');
+const { getApplicationClient, getPlatformClient, getPartnerClient} = require('./utils');
 
 function setupFdk(data, syncInitialization) {
     if (data.debug) {
@@ -18,7 +18,7 @@ function setupFdk(data, syncInitialization) {
             throw err;
         });
     let router = setupRoutes(extension);
-    let { apiRoutes, applicationProxyRoutes } = setupProxyRoutes();
+    let { apiRoutes, applicationProxyRoutes, partnerApiRoutes } = setupProxyRoutes();
 
     const configInstance =  {
         fdkHandler: router,
@@ -26,7 +26,9 @@ function setupFdk(data, syncInitialization) {
         apiRoutes: apiRoutes,
         webhookRegistry: extension.webhookRegistry,
         applicationProxyRoutes: applicationProxyRoutes,
+        partnerApiRoutes: partnerApiRoutes,
         getPlatformClient: getPlatformClient,
+        getPartnerClient: getPartnerClient,
         getApplicationClient: getApplicationClient,
         getSessionData, 
         getApplicationConfig,

@@ -1,12 +1,15 @@
 'use strict';
 const { extension } = require('../extension');
 const express = require('express');
-const { sessionMiddleware } = require('../middleware/session_middleware');
+const { sessionMiddleware, partnerSessionMiddleware } = require('../middleware/session_middleware');
 const { getApplicationConfig, getUserData } = require('../utils');
+const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
 
-function setupProxyRoutes() {
-    const apiRoutes = express.Router({  mergeParams: true });
-    const applicationProxyRoutes = express.Router({  mergeParams: true });
+
+function setupProxyRoutes(configData) {
+    const apiRoutes = express.Router({ mergeParams: true });
+    const applicationProxyRoutes = express.Router({ mergeParams: true });
+    const partnerApiRoutes = express.Router({ mergeParams: true });
 
     applicationProxyRoutes.use(async (req, res, next) => {
         try {
@@ -32,8 +35,21 @@ function setupProxyRoutes() {
             next(error);
         }
     });
-    
+
+    partnerApiRoutes.use(partnerSessionMiddleware(true), async (req, res, next) => {
+        try {
+            const client = await extension.getPartnerClient(req.fdkSession.organization_id, req.fdkSession);
+            req.partnerClient = client;
+            req.extension = extension;
+            next();
+        } catch (error) {
+            console.log(error)
+            next(error);
+        }
+    });
+
     return {
+        partnerApiRoutes: partnerApiRoutes,
         platformApiRoutes: apiRoutes,
         apiRoutes: apiRoutes, // this is deprecated use platformApiRoutes
         applicationProxyRoutes: applicationProxyRoutes

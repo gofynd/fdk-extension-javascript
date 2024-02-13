@@ -11,10 +11,26 @@ const jwt = require('jsonwebtoken');
 let JWT_SECRET_KEY = "__jwt_secret_key"
 
 describe("Custom framework integration as express with jwt token - Extension launch flow", () => {
-  let webhookConfig = null;
+  let webhookConfig = {
+    api_path: "/v1/webhooks",
+    notification_email: "test@abc.com",
+    subscribed_saleschannel: "specific",
+    event_map: {
+      "company/product/create": {
+        version: "1",
+        handler: function () { },
+      },
+      "application/coupon/create": {
+        version: "1",
+        handler: function () {
+          throw Error("test error");
+        },
+      },
+    },
+  };
   let jwtToken = "";
   let queryParams = "";
-  let fdk_instance;
+  let fdk_instance = null;
   beforeAll(async () => {
     fdk_instance = await fdkHelper.initializeFDK({
       access_mode: "offline",

@@ -1,5 +1,5 @@
 'use strict';
-const { SESSION_COOKIE_NAME } = require('../constants');
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('../constants');
 const SessionStorage = require("../session/session_storage");
 const handlers = require('../handlers');
 const { formRequestObject } = require('../utils');
@@ -76,6 +76,50 @@ async function setupRoutes(fastify, options){
             res.send({ success: true });
         }
         catch (error) {
+            throw error;
+        }
+    });
+    
+    fastify.get("/adm/install", async (req, res, next) => {
+        try {
+            let organizationId = req.query.organization_id;
+            const { redirectUrl, fdkSession } = await handlers.admInstall(organizationId, extension);
+            req.extension = extension;
+            const cookieName = ADMIN_SESSION_COOKIE_NAME;
+            
+            res.setCookie(cookieName, fdkSession.id, {
+                domain: req.hostname,
+                path: '/',
+                secure: true,
+                httpOnly: true,
+                expires: fdkSession.expires,
+                signed: true,
+                sameSite: "None"
+            });
+            
+            res.redirect(redirectUrl);
+        } catch (error) {
+            throw error;
+        }
+    });
+
+    fastify.get("/adm/auth", async (req, res, next) => {
+        try {
+            let sessionId = req.unsignCookie(req.cookies[ADMIN_SESSION_COOKIE_NAME]).value;
+            req.fdkSession = await SessionStorage.getSession(sessionId);
+            const { redirectUrl, fdkSession } = await handlers.admAuth(req.query.state, req.query.code, extension, req.fdkSession?.id);
+            const cookieName = ADMIN_SESSION_COOKIE_NAME;
+            res.setCookie(cookieName, fdkSession.id, {
+                domain: req.hostname,
+                path: '/',
+                secure: true,
+                httpOnly: true,
+                expires: fdkSession.expires,
+                signed: true,
+                sameSite: "None"
+            });
+            res.redirect(redirectUrl);
+        } catch (error) {
             throw error;
         }
     });

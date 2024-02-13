@@ -8,7 +8,9 @@ const webhook_subscriber = require('../fixtures/webhook_subscriber');
 const mock = new MockAdapter(FdkAxios);
 const CLUSTER_URL = "http://localdev.fyndx0.de";
 const token_url = `${CLUSTER_URL}/service/panel/authentication/v1.0/company/1/oauth/token`;
+const partner_token_url = `${CLUSTER_URL}/service/panel/authentication/v1.0/organization/1/oauth/token`;
 const offline_token_url = `${CLUSTER_URL}/service/panel/authentication/v1.0/company/1/oauth/offline-token`;
+const partner_offline_token_url = `${CLUSTER_URL}/service/panel/authentication/v1.0/organization/1/oauth/offline-token`;
 const webhook_events_url = `${CLUSTER_URL}/service/common/webhook/v1.0/events/query-event-details`;
 const webhook_extension_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/extension/API_KEY/subscriber`;
 const newkey_webhook_extension_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/extension/NEW_API_KEY/subscriber`;
@@ -40,6 +42,28 @@ mock.onPost(offline_token_url).reply(200, {
     "current_user": null
 });
 
+mock.onPost(partner_token_url).reply(200, {
+    "access_token": "oa-f578996c66883edade7889ba4dc86a3f8dfc897a",
+    "token_type": "Bearer",
+    "expires_in": 7199,
+    "scope": [
+        "company/*",
+        "app/*/*"
+    ],
+    "current_user": {
+        "id": "d6da4dcc8fb0b8f20df44fa9"
+    }
+});
+mock.onPost(partner_offline_token_url).reply(200, {
+    "access_token": "oa-f578996c66883edade7889ba4dc86a3f8dfc897b",
+    "token_type": "Bearer",
+    "expires_in": 3599,
+    "scope": [
+        "company/*",
+        "app/*/*"
+    ],
+    "current_user": null
+});
 
 
 mock.onGet(extension_details_url).reply(200, {

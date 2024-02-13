@@ -1,6 +1,6 @@
 'use strict';
 const express = require('express');
-const { SESSION_COOKIE_NAME } = require('../constants');
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('../constants');
 const SessionStorage = require("../session/session_storage");
 const FdkRoutes = express.Router();
 const handlers = require('../handlers');
@@ -77,6 +77,44 @@ function setupRoutes(ext) {
         }
         catch (error) {
             next(error)
+        }
+    });
+
+    FdkRoutes.get("/adm/install", async (req, res, next) => {
+        try {
+            let organizationId = req.query.organization_id;
+            const { redirectUrl, fdkSession } = await handlers.admInstall(organizationId, ext);
+            req.extension = ext;
+            const cookieName = ADMIN_SESSION_COOKIE_NAME;
+            res.cookie(cookieName, fdkSession.id, {
+                secure: true,
+                httpOnly: true,
+                expires: fdkSession.expires,
+                signed: true,
+                sameSite: "none"
+            });
+            res.redirect(redirectUrl);
+        } catch(error) {
+            next(error);
+        }
+    });
+
+    FdkRoutes.get("/adm/auth", async (req, res, next) => {
+        try {
+            let sessionId = req.signedCookies[ADMIN_SESSION_COOKIE_NAME];
+            req.fdkSession = await SessionStorage.getSession(sessionId);
+            const { redirectUrl, fdkSession } = await handlers.admAuth(req.query.state, req.query.code, ext, req.fdkSession?.id);
+            const cookieName = ADMIN_SESSION_COOKIE_NAME;
+            res.cookie(cookieName, fdkSession.id, {
+                secure: true,
+                httpOnly: true, 
+                expires: fdkSession.expires,
+                signed: true,
+                sameSite: 'none'
+            })
+            res.redirect(redirectUrl);
+        } catch(error) {
+            next(error);
         }
     });
 

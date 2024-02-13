@@ -1,13 +1,13 @@
 # fdk-extension-javascript
 
-FDK Extension Helper Library
+This library facilitates seamless configuration of authentication for accessing Fynd Platform APIs and webhook subscription.
 
 #### Initial Setup
 
 ```javascript
 const fastify = require("fastify");
 const { setupFdk } = require("fdk-extension-javascript/fastify");
-const { RedisStorage } = require("fdk-extension-javascript/storage");; //RedisStorage class is provided by default. If you have implemented custom storage class, use <YourCustomStorageClass> here.
+const { RedisStorage } = require("fdk-extension-javascript/storage"); // Import RedisStorage (default storage class). Use your custom class if you have implemented other databases.
 const Redis = require("ioredis");
 const app = fastify({logger: true});
 
@@ -27,14 +27,14 @@ let extensionHandler = {
 };
 
 let fdkClient = setupFdk({
-  api_key: "<API_KEY>",
-  api_secret: "<API_SECRET>",
-  base_url: baseUrl, // this is optional
-  scopes: ["company/products"], // this is optional
-  callbacks: extensionHandler,
-  storage: new RedisStorage(redis),
-  access_mode: "offline",
-  cluster: "https://api.fyndx0.de", // this is optional by default it points to prod.
+  api_key: "<API_KEY>", // API Key of an extension for authentication.
+  api_secret: "<API_SECRET>", // API Secret of an extension for authentication.
+  base_url: baseUrl, // optional. Base URL for extension.
+  scopes: ["company/products"], // optional. An array of scopes indicating the specific permissions needed for an extension.
+  callbacks: extensionHandler, // The callback function to handle extension-related tasks.
+  storage: new RedisStorage(redis), // An instance of storage (e.g., RedisStorage) for data storage.
+  access_mode: "offline", // Access mode of an extension. It can be `online` or `offline`.
+  cluster: "https://api.fyndx0.de", // optional. The API url of the Fynd Platform cluster.
 });
 app.register(fdkExtension.fdkHandler);
 
@@ -47,6 +47,7 @@ Refer to [paramerter](http://linktoreadme) table of a setupFdk function.
 
 To call a platform API, you need an instance of `PlatformClient`. You can obtain a `platformClient` instance by using the `getPlatformClient` method of the `setupFDK` function. This instance encompasses methods for SDK classes enabling the invocation of platform APIs.
 > To access the `PlatformClient` instance, a valid `session` is required, retrievable through the `getSessionData` method of an fdkClient. 
+
 > To enforce this requirement, we propose adding a Fastify `pre-handler` (middleware) hook that allows platform requests only after the extension has been launched under any company.
 
 ```javascript
@@ -82,6 +83,7 @@ app.register(fdkClient.apiRoutes);
 Background tasks running under some consumer or webhook or under any queue can get platform client via method `getPlatformClient`.
 
 > Here FdkClient `access_mode` should be **offline**. Cause such client can only access PlatformClient in background task. 
+
 > To access the `PlatformClient` instance, a valid `session` is required, retrievable through the `getSessionData` method of an fdkClient. 
 
 ```javascript
@@ -116,10 +118,45 @@ const applicationProxyRoutes = async (fastify, options) => {
 };
 ```
 
+#### How to call partner apis?
+
+To call a partner API, you need an instance of `PartnerClient`. You can obtain a `PartnerClient` instance by using the `getPartnerClient` method of the `setupFDK` function. This instance encompasses methods for SDK classes enabling the invocation of partner APIs.
+> To access the `PartnerClient` instance, a valid `session` is required, retrievable through the `getSessionData` method of an fdkClient. 
+
+> To enforce this requirement, we propose adding a Fastify `pre-handler` (middleware) hook that allows partner requests only after the extension has been launched under any company.
+
+```javascript
+const partnerApiRoutes = async (fastify, options) => {
+  
+  // This hook will get called by every api register under partnerApiRoutes scope for authorization of a user request
+  fastify.addHook('preHandler', async (req, res) => {
+      try {
+          req.fdkSession = await fdkClient.getSessionData(sessionId); // Get the session id from cookies or jwt token or any other form 
+          if (!req.fdkSession) {
+            return res.status(401).send({ "message": "unauthorized" });
+          }
+      } catch (error) {
+          throw error
+      }
+  });
+  
+  fastify.register(function (fastify, opts, done) {
+    fastify.get('/test/routes', async function view(req, res) {
+      const partnerClient = await fdkClient.getPartnerClient(organization_id, req.fdkSession);
+      const data = await partnerClient.theme.getThemes();
+      res.send(data);
+    }); 
+    done();
+  }, { prefix: '/api/v1.0' });
+};
+
+app.register(fdkClient.partnerApiRoutes);
+```
 
 #### How to register for webhook events?
 
 Webhook events can be helpful to handle tasks when certain events occur on platform. You can subscribe to such events by passing `webhook_config` in setupFdk function.
+Please refer [webhook documentation](https://partners.fynd.com/help/docs/partners/webhooks/webhook-events/article#payload) to know about event payload and it's structure.
  
 ```javascript
 let fdkClient = setupFdk({
@@ -132,14 +169,14 @@ let fdkClient = setupFdk({
   access_mode: "offline",
   cluster: "https://api.fyndx0.de",
   webhook_config: {
-    api_path: "/api/v1/webhooks", // required
-    notification_email: "test@abc.com", // required
-    subscribe_on_install: false, //optional. Default true
-    subscribed_saleschannel: 'specific', //optional. Default all
+    api_path: "/api/v1/webhooks", // API endpoint to process webhooks event.
+    notification_email: "test@abc.com", // Email address for webhook related notifications.
+    subscribe_on_install: false, // optional. Whether to auto subscribe to all webhooks on extension installation. It can be true or false.
+    subscribed_saleschannel: 'specific', // optional. If `specific` then you have to manually subscribe to sales channel/website level events for individual sales channels. Value can be `all` or `optional`.
     event_map: { // required
-      'company/brand/create': {
-        version: '1',
-        handler: handleBrandCreate
+      'company/brand/create': { // Event topic name follows {category}/{name}/{type} structure. Refer event payload to get 'category', 'name' and 'type' for required events
+        version: '1', // API version of specified event
+        handler: handleBrandCreate // A handler function when specified event occures
       },
       'company/location/update': {
         version: '1',
@@ -151,7 +188,7 @@ let fdkClient = setupFdk({
       }
     }
   },
-  debug: true // optional. Enables debug logs if `true`. Default `false`
+  debug: true // optional. Enable debug logs if it is `true`. Value can be `true` or `false`.
 });
 
 ```

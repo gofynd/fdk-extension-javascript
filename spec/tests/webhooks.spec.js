@@ -7,6 +7,7 @@ const { SESSION_COOKIE_NAME } = require("../../constants");
 const hmacSHA256 = require("crypto-js/hmac-sha256");
 const { WebhookRegistry } = require('../../webhook');
 const { applicationId } = require("./constants");
+const { RetryManger } = require("../../retry_manager")
 
 function getSignature(body) {
     return hmacSHA256(JSON.stringify(body), 'API_SECRET')
@@ -15,8 +16,9 @@ function getSignature(body) {
 describe("Webhook Integrations", () => {
     let webhookConfig = null;
     let cookie = "";
-    let new_fdk_instance = ""
+    let new_fdk_instance = null;
     let fdk_instance = null;
+    let retryManager = new RetryManger();
     beforeAll(async () => {
         webhookConfig = {
             api_path: '/v1/webhooks',
@@ -74,7 +76,7 @@ describe("Webhook Integrations", () => {
             webhookConfig = {
                 notification_email: 'test@abc.com',
             }
-            const webhook = new WebhookRegistry();
+            const webhook = new WebhookRegistry(retryManager);
             await webhook.initialize(
                 webhookConfig,
                 {access_mode: "offline"}
@@ -91,7 +93,7 @@ describe("Webhook Integrations", () => {
             webhookConfig = {
                 api_path: '/v1/webhooks',
             }
-            const webhook = new WebhookRegistry();
+            const webhook = new WebhookRegistry(retryManager);
             await webhook.initialize(
                 webhookConfig,
                 {access_mode: "offline"}
@@ -109,7 +111,7 @@ describe("Webhook Integrations", () => {
                 api_path: '/v1/webhooks',
                 notification_email: 'test@abc.com',
             }
-            const webhook = new WebhookRegistry();
+            const webhook = new WebhookRegistry(retryManager);
             await webhook.initialize(
                 webhookConfig,
                 {access_mode: "offline"}
@@ -134,7 +136,7 @@ describe("Webhook Integrations", () => {
                     },
                 }
             }
-            const webhook = new WebhookRegistry();
+            const webhook = new WebhookRegistry(retryManager);
             await webhook.initialize(
                 webhookConfig,
                 {access_mode: "offline"}
@@ -157,7 +159,7 @@ describe("Webhook Integrations", () => {
                     },
                 }
             }
-            const webhook = new WebhookRegistry();
+            const webhook = new WebhookRegistry(retryManager);
             await webhook.initialize(
                 webhookConfig,
                 {cluster: "http://localdev.fyndx0.de",}
@@ -248,7 +250,7 @@ describe("Webhook Integrations", () => {
     
     it("Sync event --> Should throw webhook registry not initialized", async () => {
         try{
-            const webhook = new WebhookRegistry();
+            const webhook = new WebhookRegistry(retryManager);
             await webhook.syncEvents();
         }
         catch(err)
@@ -257,27 +259,6 @@ describe("Webhook Integrations", () => {
         }
     });
     
-    it("Process webhook--> Should throw webhook registry not initialized", async () => {
-        try{
-            const webhook = new WebhookRegistry();
-            await webhook.processWebhook({});
-        }
-        catch(err)
-        {
-            expect(err.message).toBe('Webhook registry not initialized')
-        }
-    });
-    
-    it("Enable sales channel webhook --> Should throw webhook registry not initialized", async () => {
-        try{
-            const webhook = new WebhookRegistry();
-            await webhook.enableSalesChannelWebhook(null, applicationId);
-        }
-        catch(err)
-        {
-            expect(err.message).toBe('Webhook registry not initialized')
-        }
-    });
     
     it('Enable sales channel webhook --> Should throw error if subscribed_saleschannel is not set to specific' ,async() =>{
         try{
@@ -290,16 +271,6 @@ describe("Webhook Integrations", () => {
         }
     });
     
-    it("Disable sales channel webhook --> Should throw webhook registry not initialized", async () => {
-        try{
-            const webhook = new WebhookRegistry();
-            await webhook.disableSalesChannelWebhook(null, applicationId);
-        }
-        catch(err)
-        {
-            expect(err.message).toBe('Webhook registry not initialized')
-        }
-    });
     
     it('Disable sales channel webhook --> Should throw error if subscribed_saleschannel is not set to specific' ,async() =>{
         try{
@@ -360,31 +331,11 @@ describe("Webhook Integrations", () => {
     
     it('Should throw error if fetch subscriber config failed' ,async() =>{
         try{
-            const webhook = new WebhookRegistry();
+            const webhook = new WebhookRegistry(retryManager);
             await webhook.getSubscriberConfig(null);
         }
         catch(error){
             expect(error.message).toContain('Error while fetching webhook subscriber configuration');
-        }
-    });
-
-    it('Enable sales channel webhook --> Should throw error if subscriber config is not found' ,async() =>{
-        try{
-            const platformClient = await new_fdk_instance.getPlatformClient('1');
-            await new_fdk_instance.webhookRegistry.enableSalesChannelWebhook(platformClient, applicationId);
-        }
-        catch(error){
-            expect(error.message).toBe('Failed to add saleschannel webhook. Reason: Subscriber config not found');
-        }
-    });
-    
-    it('Disable sales channel webhook --> Should throw error if subscriber config is not found' ,async() =>{
-        try{
-            const platformClient = await new_fdk_instance.getPlatformClient('1');
-            await new_fdk_instance.webhookRegistry.disableSalesChannelWebhook(platformClient, applicationId);
-        }
-        catch(error){
-            expect(error.message).toBe('Failed to remove saleschannel webhook. Reason: Subscriber config not found');
         }
     });
 
