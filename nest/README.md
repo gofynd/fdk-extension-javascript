@@ -51,7 +51,7 @@ import ExtensionController = require('fdk-extension-javascript/build/nest/extens
 export class AppModule {}
 ```
 
-Refer to [paramerter](http://linktoreadme) table of a setupFdk function.
+Refer to [paramerter](https://github.com/gofynd/fdk-extension-javascript/blob/fpco-26696/README.md#parameters-of-setupfdk-function) table of a setupFdk function.
 
 #### How to call platform apis?
 
