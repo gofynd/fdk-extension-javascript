@@ -360,13 +360,10 @@ class WebhookRegistry {
                 return;
             }
             this.verifySignature(req);
-            const eventName = `${body.event.name}/${body.event.type}`;
-            let categoryEventName = eventName;
-            if (body.event.category) {
-                categoryEventName = `${body.event.category}/${eventName}`
-            }
+            //TODO: Please verify this changes properly
+            const eventName = `${body.event.category}/${body.event.name}/${body.event.type}/v${body.event.version}`;
 
-            const eventHandlerMap = (this._handlerMap[categoryEventName] || this._handlerMap[eventName] || {});
+            const eventHandlerMap = (this._handlerMap[eventName] || {});
             const extHandler = eventHandlerMap.handler;
 
             if (typeof extHandler === 'function') {
@@ -392,7 +389,15 @@ class WebhookRegistry {
         }
 
         try {
-            return await platformClient.webhook.registerSubscriberToEventV2({body: subscriberConfig});
+            const rawRequest = {
+                method: "post",
+                url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
+                data: subscriberConfig,
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            }
+            return await fdkAxios.request(rawRequest);
         } catch(err) {
             if (
                 RetryManger.shouldRetryOnError(err)
@@ -418,7 +423,15 @@ class WebhookRegistry {
         }
 
         try {
-            return await platformClient.webhook.updateSubscriberV2({body: subscriberConfig});
+            const rawRequest = {
+                method: "put",
+                url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
+                data: subscriberConfig,
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            }
+            return await fdkAxios.request(rawRequest);
         } catch(err) {
             if (
                 RetryManger.shouldRetryOnError(err)
@@ -444,14 +457,21 @@ class WebhookRegistry {
         }
 
         try {
-            const subscriberConfigResponse = await platformClient.webhook.getSubscribersByExtensionId({ extensionId: this._fdkConfig.api_key });
+            const rawRequest = {
+                method: "get",
+                url: `${this._fdkConfig.cluster}/service/platform/webhook/v1.0/company/${platformClient.config.companyId}/extension/${this._fdkConfig.api_key}/subscriber`,
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            }
+            const subscriberConfigResponse = await fdkAxios.request(rawRequest);
             
             const subscriberConfig = {};
             subscriberConfigResponse.items.forEach((config) => {
                 if(config.provider === 'kafka'){
                     subscriberConfig['kafka'] = config;
                 }
-                else if(config.provider === 'rest'){
+                else{
                     subscriberConfig['rest'] = config;
                 }
             })

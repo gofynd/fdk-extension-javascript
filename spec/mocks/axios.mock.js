@@ -11,7 +11,7 @@ const token_url = `${CLUSTER_URL}/service/panel/authentication/v1.0/company/1/oa
 const offline_token_url = `${CLUSTER_URL}/service/panel/authentication/v1.0/company/1/oauth/offline-token`;
 const webhook_events_url = `${CLUSTER_URL}/service/common/webhook/v1.0/events/query-event-details`;
 const webhook_extension_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/extension/API_KEY/subscriber`;
-const webhook_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/subscriber`;
+const webhook_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v2.0/company/1/subscriber`;
 const extension_details_url = `${CLUSTER_URL}/service/panel/partners/v1.0/extensions/details/API_KEY`;
 
 

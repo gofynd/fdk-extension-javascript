@@ -124,15 +124,17 @@ let fdkClient = setupFdk({
     event_map: { // required
       'company/brand/create': {
         version: '1',
-        handler: handleBrandCreate
+        handler: handleBrandCreate,
+        provider: 'rest' // if not provided, Default is `rest`
       },
       'company/location/update': {
         version: '1',
-        handler: handleLocationUpdate
+        handler: handleLocationUpdate,
       },
       'application/coupon/create': {
         version: '1',
-        handler: handleCouponCreate
+        topic: 'coupon_create_kafka_topic'
+        provider: 'kafka'
       }
     }
   },

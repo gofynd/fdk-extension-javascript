@@ -11,6 +11,7 @@ module.exports = {
         "type": "hmac",
         "secret": "abc"
     },
+    "provider": 'rest',
     "email_id": "brijeshgajjar@gofynd.com",
     "created_on": "2021-08-30T13:28:28.223Z",
     "updated_on": "2021-08-30T13:28:28.223Z",
