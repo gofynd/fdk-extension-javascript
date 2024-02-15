@@ -272,7 +272,8 @@ class WebhookRegistry {
             if (Object.keys(subscriberConfigList).length === 0) {
                 throw new FdkWebhookRegistrationError(`Subscriber config not found`);
             }
-            for(const subscriberConfig of subscriberConfigList) {
+            for(const subscriberConfigType in subscriberConfigList) {
+                const subscriberConfig = subscriberConfigList[subscriberConfigType];
                 const { id, name, webhook_url, provider, association, status, auth_meta, event_configs, email_id } = subscriberConfig;
                 subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
                 subscriberConfig.events = event_configs.map(event => {
@@ -312,7 +313,8 @@ class WebhookRegistry {
             if (Object.keys(subscriberConfigList).length == 0) {
                 throw new FdkWebhookRegistrationError(`Subscriber config not found`);
             }
-            for(const subscriberConfig of subscriberConfigList) {
+            for(const subscriberConfigType in subscriberConfigList) {
+                const subscriberConfig = subscriberConfigList[subscriberConfigType];
                 const { id, name, webhook_url, provider, association, status, auth_meta, event_configs, email_id } = subscriberConfig;
                 subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
                 subscriberConfig.events = event_configs.map(event => {
