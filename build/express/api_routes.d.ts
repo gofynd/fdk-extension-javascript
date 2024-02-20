@@ -1,1 +1,1 @@
-export function setupProxyRoutes(): any;
+export function setupProxyRoutes(configData: any): any;

@@ -24,7 +24,7 @@ function setupProxyRoutes(configData) {
             next(error);
         }
     });
-    
+
     apiRoutes.use(sessionMiddleware(true), async (req, res, next) => {
         try {
             const client = await extension.getPlatformClient(req.fdkSession.company_id, req.fdkSession);
@@ -43,7 +43,6 @@ function setupProxyRoutes(configData) {
             req.extension = extension;
             next();
         } catch (error) {
-            console.log(error)
             next(error);
         }
     });

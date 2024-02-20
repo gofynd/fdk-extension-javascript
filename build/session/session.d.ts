@@ -5,6 +5,7 @@ declare class Session {
     constructor(id: any, isNew?: boolean);
     id: any;
     company_id: any;
+    organization_id: any;
     state: any;
     scope: any;
     expires: any;
@@ -18,6 +19,7 @@ declare class Session {
     extension_id: any;
     toJSON(): {
         company_id: any;
+        organization_id: any;
         state: any;
         scope: any;
         expires: any;

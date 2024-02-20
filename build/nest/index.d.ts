@@ -9,20 +9,25 @@ export function setupFdk(data: any, syncInitialization: any): {
         cluster: string;
         webhookRegistry: import("../webhook").WebhookRegistry;
         _isInitialized: boolean;
-        _isDebug: string;
+        _retryManager: import("../retry_manager").RetryManger;
+        configData: any;
         initialize(data: any): Promise<void>;
         scopes: any;
         readonly isInitialized: boolean;
         verifyScopes(scopes: any, extensionData: any): any;
         getAuthCallback(): any;
         isOnlineAccessMode(): boolean;
-        getPlatformConfig(companyId: any): import("@gofynd/fdk-client-javascript/sdk/platform/PlatformConfig");
+        getPlatformConfig(companyId: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformConfig")>;
         getPlatformClient(companyId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformClient")>;
+        getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
+        getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
         getExtensionDetails(): Promise<any>;
+        extensionData: any;
     };
     webhookRegistry: import("../webhook").WebhookRegistry;
     applicationProxyRoutes: any;
     getPlatformClient: typeof getPlatformClient;
+    getPartnerClient: typeof getPartnerClient;
     getApplicationClient: typeof getApplicationClient;
     getSessionData: typeof getSessionData;
     getApplicationConfig: typeof getApplicationConfig;
@@ -38,6 +43,14 @@ export function setupFdk(data: any, syncInitialization: any): {
         }>;
         fpAutoInstall: (reqObj: any, company_id: any, code: any, ext: any) => Promise<void>;
         fpUninstall: (reqObj: any, company_id: any, ext: any) => Promise<void>;
+        admInstall: (organization_id: any, ext: any) => Promise<{
+            redirectUrl: any;
+            fdkSession: import("../session/session");
+        }>;
+        admAuth: (state: any, code: any, ext: any, sessionId: any) => Promise<{
+            redirectUrl: any;
+            fdkSession: any;
+        }>;
     };
 } | Promise<{
     extension: {
@@ -50,20 +63,25 @@ export function setupFdk(data: any, syncInitialization: any): {
         cluster: string;
         webhookRegistry: import("../webhook").WebhookRegistry;
         _isInitialized: boolean;
-        _isDebug: string;
+        _retryManager: import("../retry_manager").RetryManger;
+        configData: any;
         initialize(data: any): Promise<void>;
         scopes: any;
         readonly isInitialized: boolean;
         verifyScopes(scopes: any, extensionData: any): any;
         getAuthCallback(): any;
         isOnlineAccessMode(): boolean;
-        getPlatformConfig(companyId: any): import("@gofynd/fdk-client-javascript/sdk/platform/PlatformConfig");
+        getPlatformConfig(companyId: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformConfig")>;
         getPlatformClient(companyId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformClient")>;
+        getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
+        getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
         getExtensionDetails(): Promise<any>;
+        extensionData: any;
     };
     webhookRegistry: import("../webhook").WebhookRegistry;
     applicationProxyRoutes: any;
     getPlatformClient: typeof getPlatformClient;
+    getPartnerClient: typeof getPartnerClient;
     getApplicationClient: typeof getApplicationClient;
     getSessionData: typeof getSessionData;
     getApplicationConfig: typeof getApplicationConfig;
@@ -79,9 +97,18 @@ export function setupFdk(data: any, syncInitialization: any): {
         }>;
         fpAutoInstall: (reqObj: any, company_id: any, code: any, ext: any) => Promise<void>;
         fpUninstall: (reqObj: any, company_id: any, ext: any) => Promise<void>;
+        admInstall: (organization_id: any, ext: any) => Promise<{
+            redirectUrl: any;
+            fdkSession: import("../session/session");
+        }>;
+        admAuth: (state: any, code: any, ext: any, sessionId: any) => Promise<{
+            redirectUrl: any;
+            fdkSession: any;
+        }>;
     };
 }>;
 import { getPlatformClient } from "../utils";
+import { getPartnerClient } from "../utils";
 import { getApplicationClient } from "../utils";
 import { getSessionData } from "../utils";
 import { getApplicationConfig } from "../utils";

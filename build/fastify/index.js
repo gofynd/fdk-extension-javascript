@@ -5,7 +5,7 @@ const { applicationProxyRoutes } = require("./api_routes");
 const logger = require('../logger');
 const { getSessionData, getApplicationConfig, getUserData } = require('../utils');
 const routerHandlers = require('../handlers');
-const { getApplicationClient, getPlatformClient } = require('../utils');
+const { getApplicationClient, getPlatformClient, getPartnerClient } = require('../utils');
 function setupFdk(data, syncInitialization) {
     if (data.debug) {
         logger.transports[0].level = 'debug';
@@ -21,6 +21,7 @@ function setupFdk(data, syncInitialization) {
         webhookRegistry: extension.webhookRegistry,
         applicationProxyRoutes: applicationProxyRoutes,
         getPlatformClient: getPlatformClient,
+        getPartnerClient: getPartnerClient,
         getApplicationClient: getApplicationClient,
         getSessionData,
         getApplicationConfig,

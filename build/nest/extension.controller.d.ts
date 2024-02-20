@@ -4,4 +4,6 @@ declare class ExtensionController {
     auth(req: any, res: any, next: any): Promise<void>;
     autoInstall(req: any, res: any, next: any): Promise<void>;
     unInstall(req: any, res: any, next: any): Promise<void>;
+    admInstall(req: any, res: any, next: any): Promise<void>;
+    admAuth(req: any, res: any, next: any): Promise<void>;
 }

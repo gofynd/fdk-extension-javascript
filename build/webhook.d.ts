@@ -1,7 +1,9 @@
 export class WebhookRegistry {
+    constructor(retryManager: any);
     _handlerMap: {};
     _config: any;
     _fdkConfig: any;
+    _retryManager: any;
     initialize(config: any, fdkConfig: any): Promise<void>;
     get isInitialized(): boolean;
     get isSubscribeOnInstall(): any;
@@ -18,6 +20,8 @@ export class WebhookRegistry {
         body: any;
         headers: any;
     }): Promise<void>;
+    registerSubscriberConfig(platformClient: any, subscriberConfig: any): Promise<any>;
+    updateSubscriberConfig(platformClient: any, subscriberConfig: any): Promise<any>;
     getSubscriberConfig(platformClient: any): Promise<any>;
     getEventConfig(handlerConfig: any): Promise<any>;
 }

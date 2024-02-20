@@ -66,14 +66,13 @@
     },
     "name": "fdk-extension-javascript",
     "description": "FDK Extension Helper Library",
-    "version": "0.6.0-beta.3",
+    "version": "0.7.0",
     "main": "index.js",
     "directories": {
         "example": "examples"
     },
     "scripts": {
         "test": "./node_modules/.bin/nyc node spec.js",
-        "start": "babel-node nest/main.js",
         "build": "rm -rf build && tsc"
     },
     "repository": {

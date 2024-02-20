@@ -85,8 +85,9 @@ router.get("/fp/install", async (req, res, next) => {
     res.redirect(redirectUrl); */
 });
 
+
 router.get("/fp/auth", async (req, res, next) => {
-    let sessionId = <session_id>; // Get the session id from cookies or jwt token or any other form
+    let sessionId = session_id; // Get the session id from cookies or jwt token or any other form
     req.fdkSession = await redis.get(sessionId); // Attach session to request object
     req.extension = fdkClient.extension; // Attach extension to request object
     const { redirectUrl, fdkSession } = await handlers.fpAuth(
@@ -263,7 +264,6 @@ let fdkClient = setupFdk({
   callbacks: extensionHandler,
   storage: new RedisStorage(redis),
   access_mode: "offline",
-  cluster: "https://api.fyndx0.de",
   webhook_config: {
     api_path: "/api/v1/webhooks", // API endpoint to process webhooks event.
     notification_email: "test@abc.com", // Email address for webhook related notifications.

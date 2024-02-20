@@ -8,6 +8,7 @@ export function formRequestObject(req: any): {
     params: any;
 };
 export function getPlatformClient(companyId: any, sessionId: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformClient")>;
+export function getPartnerClient(organizationId: any, sessionId: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
 export function getApplicationClient(applicationId: any, applicationToken: any): Promise<import("@gofynd/fdk-client-javascript/sdk/application/ApplicationClient")>;
 export function getSessionData(session_id: any): Promise<any>;
 export function getApplicationConfig(applicationData: any, extension: any): Promise<{

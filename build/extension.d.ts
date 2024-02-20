@@ -9,16 +9,21 @@ declare class Extension {
     cluster: string;
     webhookRegistry: WebhookRegistry;
     _isInitialized: boolean;
-    _isDebug: string;
+    _retryManager: RetryManger;
+    configData: any;
     initialize(data: any): Promise<void>;
     scopes: any;
     get isInitialized(): boolean;
     verifyScopes(scopes: any, extensionData: any): any;
     getAuthCallback(): any;
     isOnlineAccessMode(): boolean;
-    getPlatformConfig(companyId: any): import("@gofynd/fdk-client-javascript/sdk/platform/PlatformConfig");
+    getPlatformConfig(companyId: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformConfig")>;
     getPlatformClient(companyId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformClient")>;
+    getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
+    getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
     getExtensionDetails(): Promise<any>;
+    extensionData: any;
 }
 import { WebhookRegistry } from "./webhook";
+import { RetryManger } from "./retry_manager";
 export {};

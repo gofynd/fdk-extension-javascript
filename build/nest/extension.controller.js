@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-const { SESSION_COOKIE_NAME } = require('../constants');
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('../constants');
 const SessionStorage = require("../session/session_storage");
 const handlers = require('../handlers');
 const { formRequestObject } = require('../utils');
@@ -77,23 +77,62 @@ let ExtensionController = class ExtensionController {
             next(error);
         }
     }
+    async admInstall(req, res, next) {
+        try {
+            let organizationId = req.query.organization_id;
+            const { redirectUrl, fdkSession } = await handlers.admInstall(organizationId, extension);
+            req.extension = extension;
+            const cookieName = ADMIN_SESSION_COOKIE_NAME;
+            res.cookie(cookieName, fdkSession.id, {
+                secure: true,
+                httpOnly: true,
+                expires: fdkSession.expires,
+                signed: true,
+                sameSite: "none"
+            });
+            res.redirect(redirectUrl);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async admAuth(req, res, next) {
+        var _a;
+        try {
+            let sessionId = req.signedCookies[ADMIN_SESSION_COOKIE_NAME];
+            req.fdkSession = await SessionStorage.getSession(sessionId);
+            const { redirectUrl, fdkSession } = await handlers.admAuth(req.query.state, req.query.code, extension, (_a = req.fdkSession) === null || _a === void 0 ? void 0 : _a.id);
+            const cookieName = ADMIN_SESSION_COOKIE_NAME;
+            res.cookie(cookieName, fdkSession.id, {
+                secure: true,
+                httpOnly: true,
+                expires: fdkSession.expires,
+                signed: true,
+                sameSite: 'none'
+            });
+            res.redirect(redirectUrl);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
 };
 __decorate([
-    Get('install'),
+    Get('fp/install'),
     Bind(Req(), Res(), Next()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ExtensionController.prototype, "install", null);
 __decorate([
-    Get('auth'),
+    Get('fp/auth'),
     Bind(Req(), Res(), Next()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ExtensionController.prototype, "auth", null);
 __decorate([
-    Post('auto_install'),
+    Post('fp/auto_install'),
     HttpCode(200),
     Bind(Req(), Res(), Next()),
     __metadata("design:type", Function),
@@ -101,15 +140,29 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ExtensionController.prototype, "autoInstall", null);
 __decorate([
-    Post('uninstall'),
+    Post('fp/uninstall'),
     HttpCode(200),
     Bind(Req(), Res(), Next()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ExtensionController.prototype, "unInstall", null);
+__decorate([
+    Get('adm/install'),
+    Bind(Req(), Res(), Next()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], ExtensionController.prototype, "admInstall", null);
+__decorate([
+    Get('adm/auth'),
+    Bind(Req(), Res(), Next()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], ExtensionController.prototype, "admAuth", null);
 ExtensionController = __decorate([
-    Controller('fp')
+    Controller()
 ], ExtensionController);
 module.exports = ExtensionController;
 //# sourceMappingURL=extension.controller.js.map

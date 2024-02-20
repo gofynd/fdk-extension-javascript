@@ -8,11 +8,24 @@ async function getPlatformClient(companyId, sessionId) {
     if (!extension.isOnlineAccessMode()) {
         sid = Session.generateSessionId(false, {
             cluster: extension.cluster,
-            companyId: companyId
+            id: companyId
         });
     }
     let session = await SessionStorage.getSession(sid);
     client = await extension.getPlatformClient(companyId, session);
+    return client;
+}
+async function getPartnerClient(organizationId, sessionId) {
+    let client = null;
+    let sid = sessionId;
+    if (!extension.isOnlineAccessMode()) {
+        sid = Session.generateSessionId(false, {
+            cluster: extension.cluster,
+            id: organizationId
+        });
+    }
+    let session = await SessionStorage.getSession(sid);
+    client = await extension.getPartnerClient(organizationId, session);
     return client;
 }
 async function getApplicationClient(applicationId, applicationToken) {
@@ -20,7 +33,7 @@ async function getApplicationClient(applicationId, applicationToken) {
         applicationID: applicationId,
         applicationToken: applicationToken,
         domain: extension.cluster,
-        logLevel: extension._isDebug
+        logLevel: extension.configData.debug === true ? "debug" : null
     });
     let applicationClient = new ApplicationClient(applicationConfig);
     return applicationClient;
@@ -51,7 +64,7 @@ async function getApplicationConfig(applicationData, extension) {
             applicationID: application._id,
             applicationToken: application.token,
             domain: extension.cluster,
-            logLevel: extension._isDebug
+            logLevel: extension.configData.debug === true ? "debug" : null
         });
         applicationClient = new ApplicationClient(applicationConfig);
     }
@@ -73,6 +86,7 @@ async function getUserData(userData) {
 module.exports = {
     formRequestObject,
     getPlatformClient,
+    getPartnerClient,
     getApplicationClient,
     getSessionData,
     getApplicationConfig,
