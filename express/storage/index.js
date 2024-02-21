@@ -1,3 +1,4 @@
+// required backward compatiblity
 'use strict';
 
 const BaseStorage = require('./base_storage');

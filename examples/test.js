@@ -4,7 +4,7 @@ const cookieParser = require('cookie-parser');
 const {
     setupFdk
 } = require("../express");
-const { RedisStorage } = require("./../express/storage");
+const { RedisStorage } = require("./../storage");
 const extensionHandler = require("./extension.handler");
 const Redis = require("ioredis");
 

@@ -6,7 +6,7 @@ const { PlatformConfig, PlatformClient, PartnerConfig, PartnerClient } = require
 const { WebhookRegistry } = require('./webhook');
 const logger = require('./logger');
 const { fdkAxios } = require('@gofynd/fdk-client-javascript/sdk/common/AxiosHelper');
-const { version } = require('./../package.json');
+const { version } = require('./package.json');
 const { RetryManger } = require("./retry_manager")
 
 class Extension {
@@ -21,6 +21,7 @@ class Extension {
         this.webhookRegistry = null;
         this._isInitialized = false;
         this._retryManager = new RetryManger();
+        this.configData = null;
     }
 
     async initialize(data) {
@@ -30,6 +31,7 @@ class Extension {
         }
 
         this._isInitialized = false;
+
         this.configData = data;
 
         this.storage = data.storage;
@@ -112,7 +114,8 @@ class Extension {
             domain: this.cluster,
             apiKey: this.api_key,
             apiSecret: this.api_secret,
-            useAutoRenewTimer: false
+            useAutoRenewTimer: false,
+            logLevel: this.configData.debug === true? "debug": null
         });
         return platformConfig;
 
@@ -156,7 +159,8 @@ class Extension {
             domain: this.cluster,
             apiKey: this.api_key,
             apiSecret: this.api_secret,
-            useAutoRenewTimer: false
+            useAutoRenewTimer: false,
+            logLevel: this.configData.debug ===  true? "debug": null
         })
         return partnerConfig;
     }
