@@ -384,7 +384,7 @@ class WebhookRegistry {
 
     async registerSubscriberConfig(platformClient, subscriberConfig) {
         const uniqueKey = `registerSubscriberToEvent_${platformClient.config.companyId}_${this._fdkConfig.api_key}`;
-
+        const token = await platformClient.config.oauthClient.getAccessToken();
         const retryInfo = this._retryManager.retryInfoMap.get(uniqueKey);
         if (retryInfo && !retryInfo.isRetry) {
             this._retryManager.resetRetryState(uniqueKey);
@@ -396,6 +396,7 @@ class WebhookRegistry {
                 url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
                 data: subscriberConfig,
                 headers: {
+                    Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 }
             }
@@ -418,7 +419,7 @@ class WebhookRegistry {
 
     async updateSubscriberConfig(platformClient, subscriberConfig) {
         const uniqueKey = `updateSubscriberConfig_${platformClient.config.companyId}_${this._fdkConfig.api_key}`;
-
+        const token = await platformClient.config.oauthClient.getAccessToken();
         const retryInfo = this._retryManager.retryInfoMap.get(uniqueKey);
         if (retryInfo && !retryInfo.isRetry) {
             this._retryManager.resetRetryState(uniqueKey);
@@ -430,6 +431,7 @@ class WebhookRegistry {
                 url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
                 data: subscriberConfig,
                 headers: {
+                    Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 }
             }
@@ -452,7 +454,7 @@ class WebhookRegistry {
 
     async getSubscriberConfig(platformClient) {
         const uniqueKey = `getSubscribersByExtensionId_${platformClient.config.companyId}_${this._fdkConfig.api_key}`;
-
+        const token = await platformClient.config.oauthClient.getAccessToken();
         const retryInfo = this._retryManager.retryInfoMap.get(uniqueKey);
         if (retryInfo && !retryInfo.isRetry) {
             this._retryManager.resetRetryState(uniqueKey);
@@ -463,6 +465,7 @@ class WebhookRegistry {
                 method: "get",
                 url: `${this._fdkConfig.cluster}/service/platform/webhook/v1.0/company/${platformClient.config.companyId}/extension/${this._fdkConfig.api_key}/subscriber`,
                 headers: {
+                    Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 }
             }
