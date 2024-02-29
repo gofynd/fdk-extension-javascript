@@ -8,7 +8,7 @@ class ExtensionFactory {
     static getExtension(clusterId) {
         const clusterExt = ExtensionFactory._extensionMap[clusterId]
         if (clusterId !== null && !clusterExt) {
-            throw FdkInvalidCluster(`Extension instance not found for clusterId ${clusterId}`);
+            throw new FdkInvalidCluster(`Extension instance not found for clusterId ${clusterId}`);
         }
         return clusterExt;
     }
@@ -27,7 +27,8 @@ class ExtensionFactory {
             if (!ExtensionFactory._defaultExt) {
                 ExtensionFactory._defaultExt = extInstance;
             }
-            ExtensionFactory._extensionMap[extConfig.cluster_id] = extInstance;
+            const cluster_id = clusterId || extConfig.cluster.replace("https://", "").replace("http://", "");
+            ExtensionFactory._extensionMap[cluster_id] = extInstance;
             promises.push(extInstance.initialize(extConfig))
         }
         return Promise.all(promises);

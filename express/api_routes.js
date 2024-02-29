@@ -9,9 +9,9 @@ function setupProxyRoutes(extension) {
     const apiRoutes = express.Router({  mergeParams: true });
     const applicationProxyRoutes = express.Router({  mergeParams: true });
 
-    applicationProxyRoutes.use(["/:cluster_id", "/"],async (req, res, next) => {
+    applicationProxyRoutes.use( "/" ,async (req, res, next) => {
         try {
-            const clusterId = req.params.cluster_id;
+            const clusterId = req.query.cluster_origin;
             if (clusterId) {
                 extension = ExtensionFactory.getExtension(clusterId)
             }
@@ -34,9 +34,9 @@ function setupProxyRoutes(extension) {
         }
     });
     
-    apiRoutes.use(["/:cluster_id", "/"], sessionMiddleware(extension, true), async (req, res, next) => {
+    apiRoutes.use( "/" , sessionMiddleware(extension, true), async (req, res, next) => {
         try {
-            const clusterId = req.params.cluster_id;
+            const clusterId = req.query.cluster_origin;
             if (clusterId) {
                 extension = ExtensionFactory.getExtension(clusterId)
             }
