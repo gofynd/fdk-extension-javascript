@@ -42,6 +42,7 @@ class WebhookRegistry {
             if (eventName.split('/').length !== 3) {
                 throw new FdkInvalidWebhookConfig(`Invalid webhook event map key. Invalid key: ${eventName}`)
             }
+            // TODO: Earlier this is not mandatory
             if(!eventData.hasOwnProperty('version')){
                 throw new FdkInvalidWebhookConfig(`Missing version in webhook event ${eventName}`);
             }
@@ -193,7 +194,7 @@ class WebhookRegistry {
         }
         else {
             logger.debug(`Webhook ${configType} config on platform side for company id ${platformClient.config.companyId}: ${JSON.stringify(subscriberConfig)}`)
-            const { id, name, webhook_url, provider, association, status, auth_meta, event_configs, email_id } = subscriberConfig
+            const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig
             subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
             subscriberConfig.events = [];
             existingEvents = event_configs.map(event => {
@@ -274,7 +275,7 @@ class WebhookRegistry {
             }
             for(const subscriberConfigType in subscriberConfigList) {
                 const subscriberConfig = subscriberConfigList[subscriberConfigType];
-                const { id, name, webhook_url, provider, association, status, auth_meta, event_configs, email_id } = subscriberConfig;
+                const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig;
                 subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
                 subscriberConfig.events = event_configs.map(event => {
                     const eventObj = {
@@ -315,7 +316,7 @@ class WebhookRegistry {
             }
             for(const subscriberConfigType in subscriberConfigList) {
                 const subscriberConfig = subscriberConfigList[subscriberConfigType];
-                const { id, name, webhook_url, provider, association, status, auth_meta, event_configs, email_id } = subscriberConfig;
+                const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig;
                 subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
                 subscriberConfig.events = event_configs.map(event => {
                     const eventObj = {
@@ -391,16 +392,50 @@ class WebhookRegistry {
         }
 
         try {
-            const rawRequest = {
-                method: "post",
-                url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
-                data: subscriberConfig,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
+            try{
+                const rawRequest = {
+                    method: "post",
+                    url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
+                    data: subscriberConfig,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    }
                 }
+                return await fdkAxios.request(rawRequest);
             }
-            return await fdkAxios.request(rawRequest);
+            catch(err){
+                if(subscriberConfig.provider !== "rest"){
+                    logger.debug(`Webhook Subscriber Config type ${subscriberConfig.provider} is not supported with current fp version`)
+                    return;
+                }
+                if(err.code !== '404'){
+                    throw err;
+                }
+
+                const eventsList = subscriberConfig.events;
+                delete subscriberConfig.events;
+                const provider = subscriberConfig.provider;
+                delete subscriberConfig.provider;
+                subscriberConfig.event_id = [];
+                eventsList.forEach((event) => {
+                    subscriberConfig.event_id.push(eventConfig.eventsMap[event.slug]);
+                })
+
+                const rawRequest = {
+                    method: "post",
+                    url: `${this._fdkConfig.cluster}/service/platform/webhook/v1.0/company/${platformClient.config.companyId}/subscriber`,
+                    data: subscriberConfig,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    }
+                }
+                const response = await fdkAxios.request(rawRequest);
+                subscriberConfig.events = eventsList;
+                subscriberConfig.provider = provider;
+                return response;
+            }
         } catch(err) {
             if (
                 RetryManger.shouldRetryOnError(err)
@@ -426,16 +461,49 @@ class WebhookRegistry {
         }
 
         try {
-            const rawRequest = {
-                method: "put",
-                url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
-                data: subscriberConfig,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
+            try{
+                const rawRequest = {
+                    method: "put",
+                    url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
+                    data: subscriberConfig,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    }
                 }
+                return await fdkAxios.request(rawRequest);
             }
-            return await fdkAxios.request(rawRequest);
+            catch(err){
+                if(subscriberConfig.provider !== "rest"){
+                    logger.debug(`Webhook Subscriber Config type ${subscriberConfig.provider} is not supported with current fp version`)
+                    return;
+                }
+                if(err.code != '404'){
+                    throw err;
+                }
+                const eventsList = subscriberConfig.events;
+                delete subscriberConfig.events;
+                const provider = subscriberConfig.provider;
+                delete subscriberConfig.provider;
+                subscriberConfig.event_id = [];
+                eventsList.forEach((event) => {
+                    subscriberConfig.event_id.push(eventConfig.eventsMap[event.slug]);
+                })
+
+                const rawRequest = {
+                    method: "put",
+                    url: `${this._fdkConfig.cluster}/service/platform/webhook/v1.0/company/${platformClient.config.companyId}/subscriber`,
+                    data: subscriberConfig,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    }
+                }
+                const response = await fdkAxios.request(rawRequest);
+                subscriberConfig.events = eventsList;
+                subscriberConfig.provider = provider;
+                return response;
+            }
         } catch(err) {
             if (
                 RetryManger.shouldRetryOnError(err)
