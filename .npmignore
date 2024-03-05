@@ -1,5 +1,7 @@
-./github
-./vscode
-./examples
-./CHANGELOG.md
-./.gitignore
+.github
+.vscode
+examples
+CHANGELOG.md
+.gitignore
+.jshintrc
+.node_modules
