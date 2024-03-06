@@ -392,6 +392,9 @@ class WebhookRegistry {
         }
 
         try {
+            if(subscriberConfig.events.length == 0){
+                subscriberConfig.status = 'inactive';
+            }
             try{
                 const rawRequest = {
                     method: "post",
@@ -461,6 +464,9 @@ class WebhookRegistry {
         }
 
         try {
+            if(subscriberConfig.events.length == 0){
+                subscriberConfig.status = 'inactive';
+            }
             try{
                 const rawRequest = {
                     method: "put",
