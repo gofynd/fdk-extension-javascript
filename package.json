@@ -54,7 +54,7 @@
   "peerDependencies": {
     "@gofynd/fdk-client-javascript": "^1.1.0"
   },
-  "name": "fdk-extension-javascript",
+  "name": "@gofynd/fdk-extension-javascript",
   "description": "FDK Extension Helper Library",
   "version": "0.7.0",
   "main": "index.js",
