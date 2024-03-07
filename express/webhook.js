@@ -412,7 +412,7 @@ class WebhookRegistry {
                     logger.debug(`Webhook Subscriber Config type ${subscriberConfig.provider} is not supported with current fp version`)
                     return;
                 }
-                if(err.code !== '404'){
+                if(err.code != '404'){
                     throw err;
                 }
 
@@ -451,8 +451,9 @@ class WebhookRegistry {
                     subscriberConfig
                 )
             }
+            throw new FdkWebhookRegistrationError(`Error while registering webhook subscriber configuration, Reason: ${err.message}`);
         }
-        throw new FdkWebhookRegistrationError(`Error while registering webhook subscriber configuration, Reason: ${err.message}`);
+        
     }
 
     async updateSubscriberConfig(platformClient, subscriberConfig) {
