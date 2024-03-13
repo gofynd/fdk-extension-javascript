@@ -199,11 +199,12 @@ class WebhookRegistry {
             subscriberConfig.events = [];
             existingEvents = event_configs.map(event => {
                 return {
-                    'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`
+                    'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`,
+                    'topic': event.subscriber_event_mapping.topic
                 }
             });
             // Checking Configuration Updates
-            if (auth_meta.secret !== this._fdkConfig.api_secret) {
+            if (provider == 'rest' && (auth_meta.secret !== this._fdkConfig.api_secret)) {
                 auth_meta.secret = this._fdkConfig.api_secret;
                 configUpdated = true;
             }
@@ -247,10 +248,21 @@ class WebhookRegistry {
                     ...existingEvents.filter(event => !subscriberConfig.events.find(item => item.slug === event.slug))
                 ]
 
+                // Check if only topic is changed for same kafka events
+                if(configType === 'kafka' && !configUpdated){
+                    for(const event of subscriberConfig.events){
+                        const existingEvent = existingEvents.find(e => e.slug === event.slug);
+                        if(existingEvent && !(event.topic === existingEvent.topic)){
+                            configUpdated = true
+                            break;
+                        }
+                    }
+                }
+
                 if (eventDiff.length || configUpdated) {
                     await this.updateSubscriberConfig(platformClient, subscriberConfig);
                     if (this._fdkConfig.debug) {
-                        subscriberConfig.events = subscriberConfig.events.map(event => event.slug); 
+                        subscriberConfig.events = subscriberConfig.events?.map(event => event.slug); 
                         logger.debug(`Webhook ${configType} config updated for company: ${platformClient.config.companyId}, config: ${JSON.stringify(subscriberConfig)}`);
                     }
                 }
@@ -392,9 +404,6 @@ class WebhookRegistry {
         }
 
         try {
-            if(subscriberConfig.events.length == 0){
-                subscriberConfig.status = 'inactive';
-            }
             try{
                 const rawRequest = {
                     method: "post",
@@ -467,6 +476,7 @@ class WebhookRegistry {
         try {
             if(subscriberConfig.events.length == 0){
                 subscriberConfig.status = 'inactive';
+                delete subscriberConfig.events
             }
             try{
                 const rawRequest = {
@@ -493,7 +503,7 @@ class WebhookRegistry {
                 const provider = subscriberConfig.provider;
                 delete subscriberConfig.provider;
                 subscriberConfig.event_id = [];
-                eventsList.forEach((event) => {
+                eventsList?.forEach((event) => {
                     subscriberConfig.event_id.push(eventConfig.eventsMap[event.slug]);
                 })
 
