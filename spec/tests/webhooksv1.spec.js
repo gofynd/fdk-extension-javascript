@@ -3,7 +3,7 @@
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server")();
-const axiosMock = require("./../mocks/axios.mock.js");
+const axiosMock = require("./../mocks/axiosv1.mock.js");
 const { SESSION_COOKIE_NAME } = require("../../express/constants");
 const hmacSHA256 = require("crypto-js/hmac-sha256");
 
@@ -11,7 +11,7 @@ function getSignature(body) {
     return hmacSHA256(JSON.stringify(body), 'API_SECRET')
 }
 
-describe("Webhook Integrations", () => {
+describe("Webhook Integrations for v1", () => {
     let webhookConfig = null;
     let cookie = "";
     beforeEach(async () => {
