@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [v0.7.1] - 2024-02-21
+## [v0.7.4-beta.1] - 2024-06-04
 ### Added
 - Added support for new frameworks such as Fastify and NestJS.
 - Enabled integration of extension library into any user-preferred framework.
@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated README documentation to include instructions for integrating the extension library within frameworks such as Fastify, NestJS, or any other preferred frameworks.
 - Updated README documentation to include guidelines for implementing custom storage classes, enabling the integration of extension storage into the user's preferred database.
+---
+## [v0.7.3] - 2024-04-30
+### Changed
+Updated axios version from "^0.21.1" to "^1.6.4" to resolve vulnerability.
+Updated crypto-js version from "^4.0.0" to "^4.2.0" to resolve vulnerability.
 ---
 ## [v0.7.0] - 2024-02-02
 ### Added

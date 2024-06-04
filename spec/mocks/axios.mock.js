@@ -12,9 +12,9 @@ const partner_token_url = `${CLUSTER_URL}/service/panel/authentication/v1.0/orga
 const offline_token_url = `${CLUSTER_URL}/service/panel/authentication/v1.0/company/1/oauth/offline-token`;
 const partner_offline_token_url = `${CLUSTER_URL}/service/panel/authentication/v1.0/organization/1/oauth/offline-token`;
 const webhook_events_url = `${CLUSTER_URL}/service/common/webhook/v1.0/events/query-event-details`;
-const webhook_extension_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/extension/API_KEY/subscriber`;
-const newkey_webhook_extension_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/extension/NEW_API_KEY/subscriber`;
-const webhook_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/subscriber`;
+const webhook_extension_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/extension/API_KEY/subscriber/`;
+const newkey_webhook_extension_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/extension/NEW_API_KEY/subscriber/`;
+const webhook_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/subscriber/`;
 const extension_details_url = `${CLUSTER_URL}/service/panel/partners/v1.0/extensions/details/API_KEY`;
 const newkey_extension_details_url = `${CLUSTER_URL}/service/panel/partners/v1.0/extensions/details/NEW_API_KEY`;
 

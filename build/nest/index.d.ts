@@ -22,7 +22,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
         getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
         getExtensionDetails(): Promise<any>;
-        extensionData: any;
+        extensionData: import("axios").AxiosResponse<any, any>;
     };
     webhookRegistry: import("../webhook").WebhookRegistry;
     applicationProxyRoutes: any;
@@ -76,7 +76,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
         getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
         getExtensionDetails(): Promise<any>;
-        extensionData: any;
+        extensionData: import("axios").AxiosResponse<any, any>;
     };
     webhookRegistry: import("../webhook").WebhookRegistry;
     applicationProxyRoutes: any;

@@ -22,7 +22,7 @@ declare class Extension {
     getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
     getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
     getExtensionDetails(): Promise<any>;
-    extensionData: any;
+    extensionData: import("axios").AxiosResponse<any, any>;
 }
 import { WebhookRegistry } from "./webhook";
 import { RetryManger } from "./retry_manager";
