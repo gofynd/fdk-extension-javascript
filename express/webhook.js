@@ -291,7 +291,7 @@ class WebhookRegistry {
         }
         try {
             const { body } = req;
-            const clusterId = body.referer || req.query.cluster_origin;
+            const clusterId = body.referer || req.query.cluster_domain;
             if (body.event.name === TEST_WEBHOOK_EVENT_NAME) {
                 return;
             }

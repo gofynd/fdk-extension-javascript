@@ -5,7 +5,7 @@ const { SESSION_COOKIE_NAME } = require('./../constants');
 function sessionMiddleware(extension, strict) {
     return async (req, res, next) => {
         try {
-            const clusterId = req.query.cluster_origin;
+            const clusterId = req.query.cluster_domain;
             if (clusterId) {
                 extension = ExtensionFactory.getExtension(clusterId)
             }

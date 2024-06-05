@@ -15,7 +15,7 @@ function setupRoutes(ext) {
     FdkRoutes.get("/fp/install", async (req, res, next) => {
         // ?company_id=1&client_id=123313112122
         try {
-            const cluster_id = req.query.cluster_origin;
+            const cluster_id = req.query.cluster_domain;
             if (cluster_id) {
                 ext = ExtensionFactory.getExtension(cluster_id)
             }
@@ -94,7 +94,7 @@ function setupRoutes(ext) {
     FdkRoutes.get("/fp/auth", sessionMiddleware(ext, false), async (req, res, next) => {
         // ?code=ddjfhdsjfsfh&client_id=jsfnsajfhkasf&company_id=1&state=jashoh
         try {
-            const cluster_id = req.query.cluster_origin;
+            const cluster_id = req.query.cluster_domain;
             if (cluster_id) {
                 ext = ExtensionFactory.getExtension(cluster_id)
             }
@@ -177,7 +177,7 @@ function setupRoutes(ext) {
         try {
 
             let { company_id, code } = req.body;
-            const cluster_id = req.query.cluster_origin;
+            const cluster_id = req.query.cluster_domain;
             if (cluster_id) {
                 ext = ExtensionFactory.getExtension(cluster_id)
             }
@@ -230,7 +230,7 @@ function setupRoutes(ext) {
     FdkRoutes.post("/fp/uninstall", async (req, res, next) => {
         try {
             let { company_id } = req.body;
-            const cluster_id = req.query.cluster_origin;
+            const cluster_id = req.query.cluster_domain;
             if (cluster_id) {
                 ext = ExtensionFactory.getExtension(cluster_id)
             }
