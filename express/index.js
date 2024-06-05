@@ -9,7 +9,7 @@ const logger = require('./logger');
 
 function setupFdk(data, syncInitialization) {
     const multiClusterMode = data.cluster_config !== undefined;
-    const clusterId = data.cluster.replace("https://", "").replace("http://", "");
+    const clusterId = data.cluster?.replace("https://", "").replace("http://", "");
     if (data.debug) {
         logger.transports[0].level = 'debug';
     }

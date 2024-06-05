@@ -11,7 +11,7 @@ function setupProxyRoutes(extension) {
 
     applicationProxyRoutes.use( "/" ,async (req, res, next) => {
         try {
-            const clusterId = req.query.cluster_domain;
+            const clusterId = req.query.cluster_domain || req.query.cluster_url?.replace("https://", "").replace("http://", "");
             if (clusterId) {
                 extension = ExtensionFactory.getExtension(clusterId)
             }
@@ -36,7 +36,7 @@ function setupProxyRoutes(extension) {
     
     apiRoutes.use( "/" , sessionMiddleware(extension, true), async (req, res, next) => {
         try {
-            const clusterId = req.query.cluster_domain;
+            const clusterId = req.query.cluster_domain || req.query.cluster_url?.replace("https://", "").replace("http://", "");
             if (clusterId) {
                 extension = ExtensionFactory.getExtension(clusterId)
             }
