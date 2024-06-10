@@ -1,7 +1,7 @@
 'use strict';
 const { extension } = require('./extension');
 const express = require('express');
-const { sessionMiddleware, partnerSessionMiddleware } = require('./middleware/session_middleware');
+const { sessionMiddleware } = require('./middleware/session_middleware');
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
 
 
@@ -43,7 +43,7 @@ function setupProxyRoutes(configData) {
         }
     });
 
-    partnerApiRoutes.use(partnerSessionMiddleware(true), async (req, res, next) => {
+    partnerApiRoutes.use(sessionMiddleware(true), async (req, res, next) => {
         try {
             const client = await extension.getPartnerClient(req.fdkSession.organization_id, req.fdkSession);
             req.partnerClient = client;

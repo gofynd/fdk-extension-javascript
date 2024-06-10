@@ -7,9 +7,10 @@ class SessionStorage {
     constructor() {
     }
 
-    static async saveSession(session) {
-        if(session.expires) {
-            let ttl = (new Date() - session.expires) / 1000;
+    static async saveSession(session, isTempToken) {
+        const expires = isTempToken ? session.temp_token_expires : session.expires;
+        if(expires) {
+            let ttl = (new Date() - expires) / 1000;
             ttl = Math.abs(Math.round(Math.min(ttl, 0)));
             return extension.storage.setex(session.id, JSON.stringify(session.toJSON()), ttl);
         } else {
