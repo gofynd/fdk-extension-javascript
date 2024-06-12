@@ -7,13 +7,11 @@ FDK Extension Helper Library
 ```javascript
 const bodyParser = require("body-parser");
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const { setupFdk } = require("fdk-extension-javascript/express");
 const { RedisStorage } = require("fdk-extension-javascript/express/storage");
 const Redis = require("ioredis");
 
 const app = express();
-app.use(cookieParser("ext.session"));
 app.use(bodyParser.json({ limit: "2mb" }));
 
 const redis = new Redis();
@@ -41,6 +39,14 @@ app.use(fdkClient.fdkHandler);
 
 app.listen(8080);
 ```
+
+#### How to fetch session(JWT) token?
+
+After launching extension, you'll receive a temporary token included as a string within the provided auth callback URL. This temporary token acts like a one-time key and expires within a short timeframe, typically 30 seconds. To establish a secure session, you'll need to exchange this temporary token for a longer-lasting session token (represented as a JWT or JSON Web Token).
+
+The exchange process involves sending a request to your application's backend API `/fp/session_token`. Include the temporary token from the callback URL within the request's authorization header.
+
+If successful, the backend responds with the actual session token (JWT) that you can then store securely on the frontend for future authenticated requests. Remember, this session token also has an expiry, so to maintain access after it expires, you'll need to repeat the process of acquiring a new temporary token and exchanging it for a fresh session token.
 
 #### How to call platform apis?
 

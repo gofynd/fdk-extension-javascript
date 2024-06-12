@@ -2,14 +2,15 @@
 const Session = require("./session");
 const { extension } = require("./../extension");
 const logger = require("../logger");
-
+const tempTokenExpiresIn = 30 // 30 sec of expiry
 class SessionStorage {
     constructor() {
     }
 
-    static async saveSession(session) {
-        if(session.expires) {
-            let ttl = (new Date() - session.expires) / 1000;
+    static async saveSession(session, isTempToken) {
+        const expires = isTempToken ? new Date(Date.now() + tempTokenExpiresIn * 1000) : session.expires;
+        if(expires) {
+            let ttl = (new Date() - expires) / 1000;
             ttl = Math.abs(Math.round(Math.min(ttl, 0)));
             return extension.storage.setex(session.id, JSON.stringify(session.toJSON()), ttl);
         } else {
