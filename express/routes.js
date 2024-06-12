@@ -31,13 +31,9 @@ function setupRoutes(ext) {
             
             let session;
             session = new Session(token);
-            let tempTokenExpiresIn = 30;
-            let tempTokenExpires = new Date(Date.now() + tempTokenExpiresIn * 1000);
             if (session.isNew) {
                 session.company_id = companyId;
                 session.scope = ext.scopes;
-                session.temp_token_expires = tempTokenExpires;
-                session.temp_token_expires_in = tempTokenExpiresIn;
                 session.access_mode = 'online'; // Always generate online mode token for extension launch
                 session.extension_id = ext.api_key;
             } else {
@@ -86,8 +82,6 @@ function setupRoutes(ext) {
             await platformConfig.oauthClient.verifyCallback(req.query);
 
             let token = platformConfig.oauthClient.raw_token;
-            let tempSessionExpires = new Date(Date.now() + req.fdkSession.temp_token_expires_in * 1000);
-            req.fdkSession.temp_token_expires = tempSessionExpires;
             let sessionExpires = new Date(Date.now() + token.expires_in * 1000);
 
             req.fdkSession.expires = sessionExpires;
@@ -139,11 +133,16 @@ function setupRoutes(ext) {
         }
     });
 
-    FdkRoutes.get("/fp/get_session_token", sessionMiddleware(true) ,async (req, res, next) => {
-        delete req.fdkSession.temp_token_expires;
-        delete req.fdkSession.temp_token_expires_in;
-        const jwtToken = jwt.sign({...req.fdkSession}, ext.api_secret);
+    FdkRoutes.get(["/fp/session_token", "/adm/session_token"], sessionMiddleware(true) ,async (req, res, next) => {
+        let payload = {
+            current_user: req.fdkSession.current_user,
+            extension_id: req.fdkSession.extension_id
+        }
+        req.fdkSession.company_id ?
+            payload['company_id'] = req.fdkSession.company_id
+            : payload['organization_id'] = req.fdkSession.organization_id;
         
+        const jwtToken = jwt.sign(payload, ext.api_secret);
         req.fdkSession.id = jwtToken;
         req.fdkSession.expires = new Date(Date.now() + req.fdkSession.expires_in * 1000);
         await SessionStorage.saveSession(req.fdkSession);
@@ -237,13 +236,9 @@ function setupRoutes(ext) {
             const token = jwt.sign(payload, ext.api_secret);
             let session;
             session = new Session(token);
-            let tempTokenExpiresIn = 30;
-            let tempTokenExpires = new Date(Date.now() + tempTokenExpiresIn * 1000);
             if (session.isNew) {
                 session.organization_id = organizationId;
                 session.scope = ext.scopes;
-                session.temp_token_expires = tempTokenExpires;
-                session.temp_token_expires_in = tempTokenExpiresIn;
                 session.access_mode = 'online';
                 session.extension_id = ext.api_key;
             } else {
@@ -289,8 +284,6 @@ function setupRoutes(ext) {
             await partnerConfig.oauthClient.verifyCallback(req.query);
 
             let token = partnerConfig.oauthClient.raw_token;
-            let tempSessionExpires = new Date(Date.now() + req.fdkSession.temp_token_expires_in * 1000);
-            req.fdkSession.temp_token_expires = tempSessionExpires;
             let sessionExpires = new Date(Date.now() + token.expires_in * 1000);
             
             req.fdkSession.expires = sessionExpires;

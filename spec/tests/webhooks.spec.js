@@ -58,7 +58,7 @@ describe("Webhook Integrations", () => {
             .send();
         expect(response.status).toBe(302);
         response = await request
-            .get(`/fp/get_session_token?token`)
+            .get(`/fp/session_token`)
             .set({
                 authorization:token
             })
@@ -195,9 +195,9 @@ describe("Extension launch flow", () => {
         expect(response.status).toBe(302);
     });
     
-    it('/fp/get_session_token should return jwt token', async () => {
+    it('/fp/session_token should return jwt token', async () => {
         let response = await request
-            .get(`/fp/get_session_token`)
+            .get(`/fp/session_token`)
             .set({
                 authorization:tempToken
             })
@@ -313,9 +313,9 @@ describe("Extension launch flow", () => {
         expect(response.status).toBe(401);
     });
     
-    it('/fp/get_session_token should return jwt token for admin routes', async () => {
+    it('/adm/session_token should return jwt token for admin routes', async () => {
         let response = await request
-            .get(`/fp/get_session_token`)
+            .get(`/adm/session_token`)
             .set({
                 authorization:amdTempToken
             })
