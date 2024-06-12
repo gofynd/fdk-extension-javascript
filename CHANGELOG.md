@@ -3,7 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
+---
+## [v1.0.0] - 2024-06-12
+### Breaking changes
+- Session cookie support for extension launch has been removed. This functionality is replaced with a temporary authorization token and a JWT (JSON Web Token) flow. 
+### Added
+- Added a new route `/fp/get_session_token` which can be used to get session token in exchange of temporary token. This session token will be used by Fynd Platform extensions to fetch data from fynd platform.
 ---
 ## [v0.7.0] - 2024-02-02
 ### Added

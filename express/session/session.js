@@ -18,6 +18,8 @@ class Session {
         this.refresh_token = null;
         this.isNew = isNew;
         this.extension_id = null;
+        /* The expiry of the first temporary token issued during the /fp/install call needs to be tracked separately. 
+        This is because we must store the actual, longer-lasting JWT expiry time issued to the user after the temporary token is exchanged. */
         this.temp_token_expires = null;
         this.temp_token_expires_in = null;
     }
