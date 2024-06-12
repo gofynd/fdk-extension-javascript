@@ -135,7 +135,7 @@ function setupRoutes(ext) {
 
     FdkRoutes.get(["/fp/session_token", "/adm/session_token"], sessionMiddleware(true) ,async (req, res, next) => {
         let payload = {
-            current_user: req.fdkSession.current_user,
+            current_user: req.fdkSession.current_user.id,
             extension_id: req.fdkSession.extension_id
         }
         req.fdkSession.company_id ?

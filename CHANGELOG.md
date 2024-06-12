@@ -8,11 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking changes
 - Session cookie support for extension launch has been removed. This functionality is replaced with a temporary authorization token and a JWT (JSON Web Token) flow. 
 ### Added
-- Added a new route `/fp/session_token` which can be used to get session token in exchange of temporary token. This session token will be used by Fynd Platform extensions to fetch data from fynd platform.
+- Added a new routes `/fp/session_token` and `/adm/session_token` which can be used to get session token in exchange of temporary token. This session token will be used by Fynd Platform extensions to fetch data from fynd platform.
+- These changes are applicable to both platform and admin panel extension launching flow.
 ---
 ## [v0.7.0] - 2024-02-02
 ### Added
-- Added `partnerApiRoutes` to support launching of extension admin panel insie the partners panel. 
+- Added `partnerApiRoutes` to support launching of extension admin panel inside the partners panel. 
 - Added `PartnerClient` which can be used for calling partners server API
 - Added support of passing log level `debug` to SDK from `setupFDK` debug true. This enables curl printing of API calls made from SDK. 
 ---
