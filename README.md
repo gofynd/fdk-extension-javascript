@@ -42,9 +42,10 @@ app.listen(8080);
 
 #### How to fetch session(JWT) token?
 
-After launching extension, you'll receive a temporary token included as a string within the provided auth callback URL. This temporary token acts like a one-time key and expires within a short timeframe, typically 30 seconds. To establish a secure session, you'll need to exchange this temporary token for a longer-lasting session token (represented as a JWT or JSON Web Token).
+After launching extension, you'll receive a temporary token included as a query params within the provided auth callback URL. This temporary token acts like a one-time key and expires within 30 seconds.
+example: `<EXTENSION_BASE_URL>/company/:company_id?token=<TEMP_TOKEN>`
 
-The exchange process involves sending a request to your application's backend API `/fp/session_token`. Include the temporary token from the callback URL within the request's authorization header.
+To establish a secure session, you'll need to exchange this temporary token for a longer-lasting session token (represented as a JWT or JSON Web Token). This exchange process involves sending a request to your application's backend API `/fp/session_token`. Include the temporary token recieved from the callback URL(`<EXTENSION_BASE_URL>/company/:company_id?token=<TEMP_TOKEN>`) within the request's authorization header.
 
 If successful, the backend responds with the actual session token (JWT) that you can then store securely on the frontend for future authenticated requests. Remember, this session token also has an expiry, so to maintain access after it expires, you'll need to repeat the process of acquiring a new temporary token and exchanging it for a fresh session token.
 

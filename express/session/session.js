@@ -18,10 +18,6 @@ class Session {
         this.refresh_token = null;
         this.isNew = isNew;
         this.extension_id = null;
-        /* The expiry of the first temporary token issued during the /fp/install call needs to be tracked separately. 
-        This is because we must store the actual, longer-lasting JWT expiry time issued to the user after the temporary token is exchanged. */
-        this.temp_token_expires = null;
-        this.temp_token_expires_in = null;
     }
 
     static cloneSession(id, session, isNew=true) {
@@ -44,8 +40,6 @@ class Session {
             expires_in: this.expires_in,
             extension_id: this.extension_id,
             access_token_validity: this.access_token_validity,
-            temp_token_expires: this.temp_token_expires,
-            temp_token_expires_in: this.temp_token_expires_in,
         };
     }
 
