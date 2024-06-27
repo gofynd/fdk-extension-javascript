@@ -236,6 +236,9 @@ class WebhookRegistry {
 
         try {
             if (registerNew) {
+                if(subscriberConfig.events.length == 0){
+                    return;
+                }
                 await this.registerSubscriberConfig(platformClient, subscriberConfig);
                 if (this._fdkConfig.debug) {
                     subscriberConfig.events = subscriberConfig.events.map(event => event.slug);
