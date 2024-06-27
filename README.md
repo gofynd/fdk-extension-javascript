@@ -113,7 +113,14 @@ let fdkClient = setupFdk({
   api_secret: "<API_SECRET>",
   base_url: baseUrl, // this is optional
   scopes: ["company/products"], // this is optional
-  callbacks: extensionHandler,
+  callbacks: {
+    auth: async function (data) {
+      console.log("called auth callback");
+    },
+    uninstall: async function (data) {
+      console.log("called uninstall callback");
+    },
+  },
   storage: new RedisStorage(redis),
   access_mode: "offline",
   webhook_config: {
@@ -133,7 +140,7 @@ let fdkClient = setupFdk({
       },
       'application/coupon/create': {
         version: '1',
-        topic: 'coupon_create_kafka_topic'
+        topic: 'coupon_create_kafka_topic',
         provider: 'kafka'
       }
     }
