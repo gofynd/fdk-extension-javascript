@@ -237,6 +237,7 @@ class WebhookRegistry {
         try {
             if (registerNew) {
                 if(subscriberConfig.events.length == 0){
+                    logger.debug(`Skipped registerSubscriber API call as no ${configType} based events found`);
                     return;
                 }
                 await this.registerSubscriberConfig(platformClient, subscriberConfig);
