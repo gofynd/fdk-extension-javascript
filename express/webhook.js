@@ -2,6 +2,7 @@
 
 const hmacSHA256 = require("crypto-js/hmac-sha256");
 const { fdkAxios } = require("@gofynd/fdk-client-javascript/sdk/common/AxiosHelper");
+const { version } = require('./../package.json');
 const { TEST_WEBHOOK_EVENT_NAME, ASSOCIATION_CRITERIA } = require("./constants");
 const { FdkWebhookProcessError, FdkWebhookHandlerNotFound, FdkWebhookRegistrationError, FdkInvalidHMacError, FdkInvalidWebhookConfig } = require("./error_code");
 const logger = require("./logger");
@@ -236,6 +237,10 @@ class WebhookRegistry {
 
         try {
             if (registerNew) {
+                if(subscriberConfig.events.length == 0){
+                    logger.debug(`Skipped registerSubscriber API call as no ${configType} based events found`);
+                    return;
+                }
                 await this.registerSubscriberConfig(platformClient, subscriberConfig);
                 if (this._fdkConfig.debug) {
                     subscriberConfig.events = subscriberConfig.events.map(event => event.slug);
@@ -412,6 +417,7 @@ class WebhookRegistry {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
+                        "x-ext-lib-version": `js/${version}`
                     }
                 }
                 return await fdkAxios.request(rawRequest);
@@ -441,6 +447,7 @@ class WebhookRegistry {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
+                        "x-ext-lib-version": `js/${version}`
                     }
                 }
                 const response = await fdkAxios.request(rawRequest);
@@ -486,6 +493,7 @@ class WebhookRegistry {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
+                        "x-ext-lib-version": `js/${version}`
                     }
                 }
                 return await fdkAxios.request(rawRequest);
@@ -514,6 +522,7 @@ class WebhookRegistry {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
+                        "x-ext-lib-version": `js/${version}`
                     }
                 }
                 const response = await fdkAxios.request(rawRequest);
@@ -552,6 +561,7 @@ class WebhookRegistry {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
+                    "x-ext-lib-version": `js/${version}`
                 }
             }
             const subscriberConfigResponse = await fdkAxios.request(rawRequest);
@@ -611,6 +621,7 @@ class WebhookRegistry {
                 data: data,
                 headers: {
                     "Content-Type": "application/json",
+                    "x-ext-lib-version": `js/${version}`
                 },
             };
             let responseData = await fdkAxios.request(rawRequest);
