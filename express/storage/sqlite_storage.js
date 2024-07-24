@@ -14,7 +14,7 @@ class SQLiteStorage extends BaseStorage {
         const query = `
             CREATE TABLE IF NOT EXISTS storage (
                 key TEXT PRIMARY KEY,
-                value TEXT
+                value TEXT,
                 ttl INTEGER
             )`;
         await this.dbClient.run(query);
@@ -29,7 +29,15 @@ class SQLiteStorage extends BaseStorage {
     }
 
     async get(key) {
-        const row = await this.dbClient.get(`SELECT value FROM storage WHERE key = ?`, [this.prefixKey + key]);
+        const row = await new Promise((resolve, reject) => {
+            this.dbClient.get(`SELECT value FROM storage WHERE key = ?`, [this.prefixKey + key], (err, results) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(results);
+              }
+            });
+          });
         return row ? row.value : null;
     }
 
