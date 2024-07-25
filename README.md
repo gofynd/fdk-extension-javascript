@@ -36,7 +36,6 @@ let fdkClient = setupFdk({
   callbacks: extensionHandler,
   storage: new RedisStorage(redis),
   access_mode: "offline",
-  cluster: "https://api.fyndx0.de", // this is optional by default it points to prod.
 });
 app.use(fdkClient.fdkHandler);
 
@@ -45,12 +44,12 @@ app.listen(8080);
 
 #### How to call platform apis?
 
-To call platform api you need to have instance of `PlatformClient`. Instance holds methods for SDK classes. All routes registered under `apiRoutes` express router will have `platformClient` under request object which is instance of `PlatformClient`.
+To call platform api you need to have instance of `PlatformClient`. Instance holds methods for SDK classes. All routes registered under `platformApiRoutes` express router will have `platformClient` under request object which is instance of `PlatformClient`.
 
-> Here `apiRoutes` has middleware attached which allows passing such request which are called after launching extension under any company.
+> Here `platformApiRoutes` has middleware attached which allows passing such request which are called after launching extension under any company.
 
 ```javascript
-fdkClient.apiRoutes.get("/test/routes", async (req, res, next) => {
+fdkClient.platformApiRoutes.get("/test/routes", async (req, res, next) => {
   try {
     let data = await req.platformClient.lead.getTickets();
     res.json(data);
@@ -60,7 +59,7 @@ fdkClient.apiRoutes.get("/test/routes", async (req, res, next) => {
   }
 });
 
-app.use(fdkClient.apiRoutes);
+app.use(fdkClient.platformApiRoutes);
 ```
 
 #### How to call platform apis in background tasks?
@@ -83,6 +82,26 @@ function backgroundHandler(companyId) {
 }
 ```
 
+#### How to call partner apis?
+
+To call partner api you need to have instance of `PartnerClient`. Instance holds methods for SDK classes. All routes registered under `partnerApiRoutes` express router will have `partnerClient` under request object which is instance of `PartnerClient`.
+
+> Here `partnerApiRoutes` has middleware attached which allows passing such request which are called after launching extension under any company.
+
+```javascript
+fdkClient.partnerApiRoutes.get("/test/routes", async (req, res, next) => {
+  try {
+    let data = await req.partnerClient.lead.getTickets();
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+app.use(fdkClient.partnerApiRoutes);
+```
+
 #### How to register for webhook events?
 
 Webhook events can be helpful to handle tasks when certan events occur on platform. You can subscribe to such events by passing `webhook_config` in setupFdk function.
@@ -94,10 +113,16 @@ let fdkClient = setupFdk({
   api_secret: "<API_SECRET>",
   base_url: baseUrl, // this is optional
   scopes: ["company/products"], // this is optional
-  callbacks: extensionHandler,
+  callbacks: {
+    auth: async function (data) {
+      console.log("called auth callback");
+    },
+    uninstall: async function (data) {
+      console.log("called uninstall callback");
+    },
+  },
   storage: new RedisStorage(redis),
   access_mode: "offline",
-  cluster: "https://api.fyndx0.de",
   webhook_config: {
     api_path: "/api/v1/webhooks", // required
     notification_email: "test@abc.com", // required
@@ -106,15 +131,17 @@ let fdkClient = setupFdk({
     event_map: { // required
       'company/brand/create': {
         version: '1',
-        handler: handleBrandCreate
+        handler: handleBrandCreate,
+        provider: 'rest' // if not provided, Default is `rest`
       },
       'company/location/update': {
         version: '1',
-        handler: handleLocationUpdate
+        handler: handleLocationUpdate,
       },
       'application/coupon/create': {
         version: '1',
-        handler: handleCouponCreate
+        topic: 'coupon_create_kafka_topic',
+        provider: 'kafka'
       }
     }
   },

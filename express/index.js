@@ -18,14 +18,14 @@ function setupFdk(data, syncInitialization) {
             throw err;
         });
     let router = setupRoutes(extension);
-    let { apiRoutes, applicationProxyRoutes } = setupProxyRoutes();
+    let { apiRoutes, platformApiRoutes, applicationProxyRoutes, partnerApiRoutes } = setupProxyRoutes(data);
 
     async function getPlatformClient(companyId) {
         let client = null;
         if (!extension.isOnlineAccessMode()) {
             let sid = Session.generateSessionId(false, {
                 cluster: extension.cluster,
-                companyId: companyId
+                id: companyId
             });
             let session = await SessionStorage.getSession(sid);
             client = await extension.getPlatformClient(companyId, session);
@@ -37,7 +37,8 @@ function setupFdk(data, syncInitialization) {
         let applicationConfig = new ApplicationConfig({
             applicationID: applicationId,
             applicationToken: applicationToken,
-            domain: extension.cluster
+            domain: extension.cluster,
+            logLevel: data.debug ===  true? "debug": null
         });
         let applicationClient = new ApplicationClient(applicationConfig);
         return applicationClient;
@@ -47,6 +48,8 @@ function setupFdk(data, syncInitialization) {
         fdkHandler: router,
         extension: extension,
         apiRoutes: apiRoutes,
+        platformApiRoutes: platformApiRoutes,
+        partnerApiRoutes: partnerApiRoutes,
         webhookRegistry: extension.webhookRegistry,
         applicationProxyRoutes: applicationProxyRoutes,
         getPlatformClient: getPlatformClient,

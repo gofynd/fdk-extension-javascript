@@ -4,7 +4,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
+## [v0.7.7] - 2024-07-19
+### Changed
+- Handle refresh token not working for token which has expiry as `null`. 
+---
+## [v0.7.6] - 2024-07-11
+### Changed
+- Exported `apiRoutes` as `platformApiRoutes`. The `apiRoutes` export will be deprecated in the next major release.
+- Optimized webhook subscription by reducing unnecessary API calls.
+---
+## [v0.7.5] - 2024-06-19
+### Changed
+- Fixed a variable reassignment bug
+---
+## [v0.7.4] - 2024-06-19
+### Added
+- Added Support for kafka based webhook event
+---
+## [v0.7.0] - 2024-02-02
+### Added
+- Added `partnerApiRoutes` to support launching of extension admin panel insie the partners panel. 
+- Added `PartnerClient` which can be used for calling partners server API
+- Added support of passing log level `debug` to SDK from `setupFDK` debug true. This enables curl printing of API calls made from SDK. 
+---
+## [v0.6.0] - 2024-01-09
+### Added
+- Added retry mechanism for APIs getting used inside extension library if Fynd Platform server is down.
 ---
 ## [v0.5.4] - 2023-03-03
 ### Changed
@@ -89,6 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial draft of extension creation library
 ---
+[v0.7.0]: https://github.com/gofynd/fdk-extension-javascript/releases/tag/v0.7.0
+[v0.6.0]: https://github.com/gofynd/fdk-extension-javascript/releases/tag/v0.6.0
 [v0.5.4]: https://github.com/gofynd/fdk-extension-javascript/releases/tag/v0.5.4
 [v0.5.3]: https://github.com/gofynd/fdk-extension-javascript/releases/tag/v0.5.3
 [v0.5.2]: https://github.com/gofynd/fdk-extension-javascript/releases/tag/v0.5.2
