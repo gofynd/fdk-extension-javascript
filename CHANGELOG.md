@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v0.7.7] - 2024-07-19
 ### Changed
 - Handle refresh token not working for token which has expiry as `null`. 
+- Added support for passing `redirect_path` as a query paramater to the launch url of the extension.
 ---
 ## [v0.7.6] - 2024-07-11
 ### Changed
