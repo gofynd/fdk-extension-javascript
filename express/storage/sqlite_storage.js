@@ -7,7 +7,8 @@ class SQLiteStorage extends BaseStorage {
         super(prefixKey);
         this.dbClient = dbClient;
         this.initializeTable();
-        this.setupTTLChecker()
+        this.setupTTLChecker();
+        this.ttlCheckerInterval = null;
     }
 
     async initializeTable() {
@@ -21,23 +22,26 @@ class SQLiteStorage extends BaseStorage {
     }
 
     setupTTLChecker() {
-        setInterval(async () => {
-            const now = Math.floor(Date.now() / 1000);
-            const deleteQuery = `DELETE FROM storage WHERE ttl < ? AND ttl IS NOT NULL`;
-            await this.dbClient.run(deleteQuery, [now]);
-        }, 10000);
+        if (!this.ttlCheckerInterval) {
+            this.ttlCheckerInterval =
+                setInterval(async () => {
+                    const now = Math.floor(Date.now() / 1000);
+                    const deleteQuery = `DELETE FROM storage WHERE ttl < ? AND ttl IS NOT NULL`;
+                    await this.dbClient.run(deleteQuery, [now]);
+                }, 10000);
+        }
     }
 
     async get(key) {
         const row = await new Promise((resolve, reject) => {
             this.dbClient.get(`SELECT value FROM storage WHERE key = ?`, [this.prefixKey + key], (err, results) => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve(results);
-              }
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
             });
-          });
+        });
         return row ? row.value : null;
     }
 
