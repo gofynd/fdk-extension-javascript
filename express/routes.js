@@ -22,6 +22,7 @@ function setupRoutes(ext) {
             let companyId = parseInt(req.query.company_id);
             let platformConfig = await ext.getPlatformConfig(companyId);
             let session;
+            let redirectPath = req.query.redirect_path;
 
             session = new Session(Session.generateSessionId(true));
 
@@ -33,6 +34,7 @@ function setupRoutes(ext) {
                 session.expires = sessionExpires;
                 session.access_mode = 'online'; // Always generate online mode token for extension launch
                 session.extension_id = ext.api_key;
+                session.redirect_path = redirectPath;
             } else {
                 if (session.expires) {
                     session.expires = new Date(session.expires);
@@ -146,6 +148,9 @@ function setupRoutes(ext) {
                 });
             }
             let redirectUrl = await ext.callbacks.auth(req);
+            if(req.fdkSession.redirect_path){
+                redirectUrl = req.fdkSession.redirect_path;
+            }
             logger.debug(`Redirecting after auth callback to url: ${redirectUrl}`);
             res.redirect(redirectUrl);
         } catch (error) {
