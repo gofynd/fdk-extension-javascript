@@ -4,15 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.7.7] - 2024-08-20
+## [v0.7.9] - 2024-08-20
 ### Changed
 - Use api.fynd.com as default cluster domain for webhooks.
-
+---
+## [v0.7.8] - 2024-07-31
+### Added
+- `SQLiteStorage` storage class added for storing extension session data in SQLite database.
+---
+## [v0.7.7] - 2024-07-19
+### Changed
+- Handle refresh token not working for token which has expiry as `null`. 
+- Added support for passing `redirect_path` as a query paramater to the launch url of the extension.
+---
 ## [v0.7.6] - 2024-07-11
 ### Changed
 - Exported `apiRoutes` as `platformApiRoutes`. The `apiRoutes` export will be deprecated in the next major release.
 - Optimized webhook subscription by reducing unnecessary API calls.
-
 ---
 ## [v0.7.5] - 2024-06-19
 ### Changed
