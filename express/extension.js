@@ -58,6 +58,8 @@ class Extension {
             }
             this.cluster = data.cluster;
         }
+        else
+            data.cluster = this.cluster;
         this.webhookRegistry = new WebhookRegistry(this._retryManager);
 
         await this.getExtensionDetails();
