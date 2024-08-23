@@ -261,7 +261,14 @@ let fdkClient = setupFdk({
   api_secret: "<API_SECRET>",
   base_url: baseUrl, // this is optional
   scopes: ["company/products"], // this is optional
-  callbacks: extensionHandler,
+  callbacks: {
+    auth: async function (data) {
+      console.log("called auth callback");
+    },
+    uninstall: async function (data) {
+      console.log("called uninstall callback");
+    },
+  },
   storage: new RedisStorage(redis),
   access_mode: "offline",
   webhook_config: {
@@ -272,15 +279,17 @@ let fdkClient = setupFdk({
     event_map: { // required
       'company/brand/create': { // Event topic name follows {category}/{name}/{type} structure. Refer event payload to get 'category', 'name' and 'type' for required events
         version: '1', // API version of specified event
-        handler: handleBrandCreate // A handler function when specified event occures
+        handler: handleBrandCreate // A handler function when specified event occures,
+        provider: 'rest' // if not provided, Default is `rest`
       },
       'company/location/update': {
         version: '1',
-        handler: handleLocationUpdate
+        handler: handleLocationUpdate,
       },
       'application/coupon/create': {
         version: '1',
-        handler: handleCouponCreate
+        topic: 'coupon_create_kafka_topic',
+        provider: 'kafka'
       }
     }
   },

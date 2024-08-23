@@ -27,7 +27,8 @@ describe("Webhook Integrations", () => {
             event_map: {
                 'company/product/create': {
                     version: '1',
-                    handler: function () { }
+                    handler: function () { },
+                    provider: 'rest'
                 },
                 'application/coupon/create': {
                     version: '1',
@@ -69,6 +70,11 @@ describe("Webhook Integrations", () => {
 
     afterAll(async () => {
         await clearData();
+        this.fdk_instance.extension._isInitialized = false;
+    });
+
+    afterAll(() => {
+        request.app.shutdown();
     });
     
     it('Should throw error on missing api path', async () => {
@@ -172,7 +178,7 @@ describe("Webhook Integrations", () => {
     });
     
     it("Register webhooks", async () => {
-        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "product", "type": "create", "category": "company"} };
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "product", "type": "create", "category": "company", "version": '1'} };
         const res = await request
             .post(`/v1/webhooks`)
             .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
@@ -194,7 +200,7 @@ describe("Webhook Integrations", () => {
     });
 
     it("Invalid webhook path", async () => {
-        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "update", "category": "application"} };
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "update", "category": "application", "version": '1'} };
         const res = await request
             .post(`/v1/webhooks`)
             .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
@@ -204,7 +210,7 @@ describe("Webhook Integrations", () => {
     });
 
     it("Failed webhook handler execution", async () => {
-        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application"} };
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application", "version": '1'} };
         const res = await request
             .post(`/v1/webhooks`)
             .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
@@ -225,7 +231,7 @@ describe("Webhook Integrations", () => {
     })
 
     it("Sync webhooks: Add new", async () => {
-        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application"} };
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application", "version": '1'} };
         const newMap = {
             api_path: '/v1/webhooks',
             notification_email: 'test@abc.com',
