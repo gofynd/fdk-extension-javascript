@@ -15,7 +15,8 @@ function setupRoutes(ext) {
         try {
             // ?company_id=1&client_id=123313112122
             let companyId = parseInt(req.query.company_id);
-            const { redirectUrl, fdkSession } = await handlers.fpInstall(req.query.company_id, req.query.application_id, ext);
+            let redirectPath = req.query.redirect_path;
+            const { redirectUrl, fdkSession } = await handlers.fpInstall(req.query.company_id, req.query.application_id, redirectPath, ext);
             
             const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
             res.header['x-company-id'] = companyId;
@@ -26,7 +27,7 @@ function setupRoutes(ext) {
                 signed: true,
                 sameSite: "None"
             });
-            res.redirect(redirectUrl);
+            return res.redirect(redirectUrl);
         } catch (error) {
             next(error);
         }
@@ -50,7 +51,7 @@ function setupRoutes(ext) {
                 signed: true,
                 sameSite: "None"
             });
-            res.redirect(redirectUrl);
+            return res.redirect(redirectUrl);
         }
         catch (error) {
             next(error)
@@ -62,7 +63,7 @@ function setupRoutes(ext) {
         try {
             const reqObj = formRequestObject(req);
             await handlers.fpAutoInstall(reqObj ,req.body.company_id, req.body.code, ext);
-            res.json({ message: "success" });
+            return res.json({ message: "success" });
         }
         catch (error) {
             next(error)
@@ -73,7 +74,7 @@ function setupRoutes(ext) {
         try {
             const reqObj = formRequestObject(req);
             await handlers.fpUninstall(reqObj, req.body.company_id, ext);
-            res.json({ success: true });
+            return res.json({ success: true });
         }
         catch (error) {
             next(error)
@@ -93,7 +94,7 @@ function setupRoutes(ext) {
                 signed: true,
                 sameSite: "none"
             });
-            res.redirect(redirectUrl);
+            return res.redirect(redirectUrl);
         } catch(error) {
             next(error);
         }
@@ -112,7 +113,7 @@ function setupRoutes(ext) {
                 signed: true,
                 sameSite: 'none'
             })
-            res.redirect(redirectUrl);
+            return res.redirect(redirectUrl);
         } catch(error) {
             next(error);
         }

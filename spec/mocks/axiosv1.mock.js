@@ -14,6 +14,7 @@ const partner_offline_token_url = `${CLUSTER_URL}/service/panel/authentication/v
 const webhook_events_url = `${CLUSTER_URL}/service/common/webhook/v1.0/events/query-event-details`;
 const webhook_extension_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/extension/API_KEY/subscriber`;
 const newkey_webhook_extension_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/extension/NEW_API_KEY/subscriber`;
+const webhook_subscriber_url = `${CLUSTER_URL}/service/platform/webhook/v1.0/company/1/subscriber`;
 const webhook_subscriber_url_v2 = `${CLUSTER_URL}/service/platform/webhook/v2.0/company/1/subscriber`;
 const extension_details_url = `${CLUSTER_URL}/service/panel/partners/v1.0/extensions/details/API_KEY`;
 const newkey_extension_details_url = `${CLUSTER_URL}/service/panel/partners/v1.0/extensions/details/NEW_API_KEY`;
@@ -81,7 +82,26 @@ mock.onGet(newkey_extension_details_url).reply(200, {
 mock.onPost(webhook_events_url).reply(200, webhook_event_configs);
 mock.onGet(webhook_extension_subscriber_url).reply(200, {items: [webhook_subscriber]});
 mock.onGet(newkey_webhook_extension_subscriber_url).reply(200, {items: []});
-mock.onPost(webhook_subscriber_url_v2).reply(200, webhook_subscriber);
-mock.onPut(webhook_subscriber_url_v2).reply(200, webhook_subscriber);
+mock.onPost(webhook_subscriber_url).reply(200, webhook_subscriber);
+mock.onPut(webhook_subscriber_url).reply(200, webhook_subscriber);
+
+mock.onPost(webhook_subscriber_url_v2).reply(404, {
+  name: "FDKServerResponseError",
+  stackTrace: undefined,
+  status: "Not Found",
+  code: 404,
+  details: {
+    message: "not found",
+  },
+});
+mock.onPut(webhook_subscriber_url_v2).reply(404, {
+  name: "FDKServerResponseError",
+  stackTrace: undefined,
+  status: "Not Found",
+  code: 404,
+  details: {
+    message: "not found",
+  },
+});
 
 module.exports = mock;

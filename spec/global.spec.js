@@ -3,7 +3,6 @@
 // global mock import should be always first to work mocking.
 // const globalMock = require("./mocks/global.mock");
 
-const axiosMock = require("./mocks/axios.mock");
 const logger = require("./utils/logger");
 
 const db = require("./helpers/setup_db");

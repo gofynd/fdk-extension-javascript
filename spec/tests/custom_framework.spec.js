@@ -16,9 +16,10 @@ describe("Custom framework integration as express - Extension launch flow", () =
     subscribed_saleschannel: "specific",
     event_map: {
       "company/product/create": {
-        version: "1",
+        version: '1',
         handler: function () { },
-      },
+        provider: 'rest'
+    },
       "application/coupon/create": {
         version: "1",
         handler: function () {
@@ -44,6 +45,7 @@ describe("Custom framework integration as express - Extension launch flow", () =
       const { redirectUrl, fdkSession } = await handlers.fpInstall(
         companyId,
         req.query.application_id,
+        'test', // redirect path
         fdk_instance.extension
       );
 

@@ -17,9 +17,10 @@ describe("Custom framework integration as express with jwt token - Extension lau
     subscribed_saleschannel: "specific",
     event_map: {
       "company/product/create": {
-        version: "1",
+        version: '1',
         handler: function () { },
-      },
+        provider: 'rest'
+    },
       "application/coupon/create": {
         version: "1",
         handler: function () {
@@ -45,11 +46,12 @@ describe("Custom framework integration as express with jwt token - Extension lau
       const { redirectUrl, fdkSession } = await handlers.fpInstall(
         companyId,
         req.query.application_id,
+        'test', // redirect path
         fdk_instance.extension
       );
       const jwtToken = jwt.sign({...fdkSession}, JWT_SECRET_KEY); 
       res.header('x-token', jwtToken);
-      res.redirect(redirectUrl);
+      return res.redirect(redirectUrl);
     });
 
     router.get("/fp/auth", async (req, res, next) => {
@@ -69,7 +71,7 @@ describe("Custom framework integration as express with jwt token - Extension lau
         );
         const jwtToken = jwt.sign({...fdkSession}, JWT_SECRET_KEY); 
         res.header('x-token', jwtToken);
-        res.redirect(redirectUrl);
+        return res.redirect(redirectUrl);
       } catch (error) {
         next(error);
       }
@@ -84,7 +86,7 @@ describe("Custom framework integration as express with jwt token - Extension lau
           req.body.code,
           fdk_instance.extension
         );
-        res.json({ message: "success" });
+        return res.json({ message: "success" });
       } catch (error) {
         next(error);
       }
@@ -97,7 +99,7 @@ describe("Custom framework integration as express with jwt token - Extension lau
           req.body.company_id,
           fdk_instance.extension
         );
-        res.json({ success: true });
+        return res.json({ success: true });
       } catch (error) {
         next(error);
       }

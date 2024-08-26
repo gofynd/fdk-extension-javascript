@@ -24,8 +24,9 @@ describe("Nestjs --> Extension launch flow", () => {
       subscribed_saleschannel: "specific",
       event_map: {
         "company/product/create": {
-          version: "1",
+          version: '1',
           handler: function () { },
+          provider: 'rest'
         },
         "application/coupon/create": {
           version: "1",

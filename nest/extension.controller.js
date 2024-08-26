@@ -13,7 +13,8 @@ class ExtensionController {
         try {
             // ?company_id=1&client_id=123313112122
             let companyId = parseInt(req.query.company_id);
-            const { redirectUrl, fdkSession } = await handlers.fpInstall(req.query.company_id, req.query.application_id, extension);
+            let redirectPath = req.query.redirect_path;
+            const { redirectUrl, fdkSession } = await handlers.fpInstall(req.query.company_id, req.query.application_id, redirectPath, extension);
             
             const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
             res.header['x-company-id'] = companyId;

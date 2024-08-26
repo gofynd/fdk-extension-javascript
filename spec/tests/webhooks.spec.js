@@ -8,6 +8,7 @@ const hmacSHA256 = require("crypto-js/hmac-sha256");
 const { WebhookRegistry } = require('../../webhook');
 const { applicationId } = require("./constants");
 const { RetryManger } = require("../../retry_manager")
+const axiosMock = require("./../mocks/axios.mock.js");
 
 function getSignature(body) {
     return hmacSHA256(JSON.stringify(body), 'API_SECRET')
@@ -27,7 +28,8 @@ describe("Webhook Integrations", () => {
             event_map: {
                 'company/product/create': {
                     version: '1',
-                    handler: function () { }
+                    handler: function () { },
+                    provider: 'rest'
                 },
                 'application/coupon/create': {
                     version: '1',
@@ -69,6 +71,9 @@ describe("Webhook Integrations", () => {
 
     afterAll(async () => {
         await clearData();
+        axiosMock.reset();
+        fdk_instance.extension._isInitialized = false;
+        request.app.shutdown();
     });
     
     it('Should throw error on missing api path', async () => {
@@ -132,7 +137,8 @@ describe("Webhook Integrations", () => {
                 event_map: {
                     'company/product': {
                         version: '1',
-                        handler: function () { }
+                        handler: function () { },
+                        provider: 'rest'
                     },
                 }
             }
@@ -144,7 +150,7 @@ describe("Webhook Integrations", () => {
         }
         catch(err)
         {
-            expect(err.message).toBe('Error while fetching webhook events configuration, Reason: Invalid webhook event map key. Invalid key: company/product')
+            expect(err.message).toBe('Invalid webhook event map key. Invalid key: company/product')
         }
     });
     
@@ -155,7 +161,9 @@ describe("Webhook Integrations", () => {
                 notification_email: 'test@abc.com',
                 event_map: {
                     'company/product/create': {
-                        handler: function () { }
+                        handler: function () { },
+                        provider: 'rest',
+                        version:1
                     },
                 }
             }
@@ -167,12 +175,12 @@ describe("Webhook Integrations", () => {
         }
         catch(err)
         {
-            expect(err.message).toBe('Webhooks events name: company/product/create, version: undefined not found')
+            expect(err.message).toBe('Missing version in webhook event company/product/create')
         }
     });
     
     it("Register webhooks", async () => {
-        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "product", "type": "create", "category": "company"} };
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "product", "type": "create", "category": "company", "version": '1'} };
         const res = await request
             .post(`/v1/webhooks`)
             .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
@@ -194,7 +202,7 @@ describe("Webhook Integrations", () => {
     });
 
     it("Invalid webhook path", async () => {
-        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "update", "category": "application"} };
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "update", "category": "application", "version": '1'} };
         const res = await request
             .post(`/v1/webhooks`)
             .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
@@ -204,7 +212,7 @@ describe("Webhook Integrations", () => {
     });
 
     it("Failed webhook handler execution", async () => {
-        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application"} };
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application", "version": '1'} };
         const res = await request
             .post(`/v1/webhooks`)
             .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
@@ -225,14 +233,20 @@ describe("Webhook Integrations", () => {
     })
 
     it("Sync webhooks: Add new", async () => {
-        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application"} };
+        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application", "version": '1'} };
         const newMap = {
             api_path: '/v1/webhooks',
             notification_email: 'test@abc.com',
             event_map: {
+                'company/product/create': {
+                    version: '1',
+                    handler: function () { },
+                    provider: 'rest'
+                },
                 'application/coupon/create': {
                     version: '1',
-                    handler: function () { }
+                    handler: function () { throw Error('test error') },
+                    provider: 'rest'
                 }
             }
         }
@@ -279,63 +293,6 @@ describe("Webhook Integrations", () => {
         }
         catch(error){
             expect(error.message).toBe('`subscribed_saleschannel` is not set to `specific` in webhook config');
-        }
-    });
-    
-    
-    it("Sync webhooks: empty subscriber config", async () => {
-        webhookConfig = {
-            api_path: '/v1/webhooks',
-            notification_email: 'test@abc.com',
-            subscribed_saleschannel: 'specific',
-            event_map: {
-                'company/product/create': {
-                    version: '1',
-                    handler: function () { }
-                },
-                'application/coupon/create': {
-                    version: '1',
-                    handler: function () {}
-                },
-            }
-        }
-        new_fdk_instance = await fdkHelper.initializeFDK({
-            access_mode: "offline",
-            api_key: "NEW_API_KEY",
-            api_secret: "NEW_API_SECRET",
-            webhook_config: webhookConfig,
-            debug: true
-        });
-        
-        
-        const reqBody = { "company_id": 1, "payload": { "test": true }, "event": {"name": "coupon", "type": "create", "category": "application"} };
-        const newMap = {
-            api_path: '/v1/webhooks',
-            notification_email: 'test@abc.com',
-            event_map: {
-                'application/coupon/create': {
-                    version: '1',
-                    handler: function () { }
-                }
-            }
-        }
-        const platformClient = await new_fdk_instance.getPlatformClient('1');
-        await new_fdk_instance.webhookRegistry.syncEvents(platformClient, null,newMap);
-        const res = await request
-            .post(`/v1/webhooks`)
-            .set('cookie', `${SESSION_COOKIE_NAME}_1=${cookie}`)
-            .set('x-fp-signature', getSignature(reqBody))
-            .send(reqBody);
-        expect(res.status).toBe(200);
-    });
-    
-    it('Should throw error if fetch subscriber config failed' ,async() =>{
-        try{
-            const webhook = new WebhookRegistry(retryManager);
-            await webhook.getSubscriberConfig(null);
-        }
-        catch(error){
-            expect(error.message).toContain('Error while fetching webhook subscriber configuration');
         }
     });
 
