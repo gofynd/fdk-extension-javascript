@@ -39,7 +39,7 @@ export function setupFdk(data: any, syncInitialization: any): {
             redirectUrl: any;
             fdkSession: any;
         }>;
-        fpInstall: (company_id: any, application_id: any, ext: any) => Promise<{
+        fpInstall: (company_id: any, application_id: any, redirect_path: any, ext: any) => Promise<{
             redirectUrl: any;
             fdkSession: import("../session/session");
         }>;
@@ -94,7 +94,7 @@ export function setupFdk(data: any, syncInitialization: any): {
             redirectUrl: any;
             fdkSession: any;
         }>;
-        fpInstall: (company_id: any, application_id: any, ext: any) => Promise<{
+        fpInstall: (company_id: any, application_id: any, redirect_path: any, ext: any) => Promise<{
             redirectUrl: any;
             fdkSession: import("../session/session");
         }>;

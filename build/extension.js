@@ -48,6 +48,8 @@ class Extension {
             }
             this.cluster = data.cluster;
         }
+        else
+            data.cluster = this.cluster;
         this.webhookRegistry = new WebhookRegistry(this._retryManager);
         await this.getExtensionDetails();
         if (data.base_url && !validator.isURL(data.base_url)) {
@@ -105,8 +107,8 @@ class Extension {
         let platformConfig = await this.getPlatformConfig(companyId);
         platformConfig.oauthClient.setToken(session);
         platformConfig.oauthClient.token_expires_at = session.access_token_validity;
-        if (session.access_token_validity && session.refresh_token) {
-            let ac_nr_expired = ((session.access_token_validity - new Date().getTime()) / 1000) <= 120;
+        if (!session.access_token_validity || session.refresh_token) {
+            let ac_nr_expired = !session.access_token_validity ? true : ((session.access_token_validity - new Date().getTime()) / 1000) <= 120;
             if (ac_nr_expired) {
                 logger.debug(`Renewing access token for company ${companyId} with platform config ${logger.safeStringify(platformConfig)}`);
                 const renewTokenRes = await platformConfig.oauthClient.renewAccessToken(session.access_mode === 'offline');

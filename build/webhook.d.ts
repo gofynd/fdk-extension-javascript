@@ -1,6 +1,7 @@
 export class WebhookRegistry {
     constructor(retryManager: any);
     _handlerMap: {};
+    _topicMap: {};
     _config: any;
     _fdkConfig: any;
     _retryManager: any;
@@ -13,6 +14,7 @@ export class WebhookRegistry {
     get _webhookUrl(): string;
     _isConfigUpdated(subscriberConfig: any): boolean;
     syncEvents(platformClient: any, config: any, enableWebhooks: any): Promise<void>;
+    syncSubscriberConfig(subscriberConfig: any, configType: any, currentEventMapConfig: any, platformClient: any, enableWebhooks: any): Promise<void>;
     enableSalesChannelWebhook(platformClient: any, applicationId: any): Promise<void>;
     disableSalesChannelWebhook(platformClient: any, applicationId: any): Promise<void>;
     verifySignature(body: any, headers: any): void;

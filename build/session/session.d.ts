@@ -17,6 +17,7 @@ declare class Session {
     refresh_token: any;
     isNew: boolean;
     extension_id: any;
+    redirect_path: any;
     toJSON(): {
         company_id: any;
         organization_id: any;
@@ -30,6 +31,7 @@ declare class Session {
         expires_in: any;
         extension_id: any;
         access_token_validity: any;
+        redirect_path: any;
     };
     updateToken(rawToken: any): void;
 }

@@ -16,7 +16,7 @@ function setupFdk(data, syncInitialization) {
         throw err;
     });
     let router = setupRoutes(extension);
-    let { apiRoutes, applicationProxyRoutes, partnerApiRoutes } = setupProxyRoutes();
+    let { apiRoutes, applicationProxyRoutes, partnerApiRoutes, platformApiRoutes } = setupProxyRoutes();
     const configInstance = {
         fdkHandler: router,
         extension: extension,
@@ -24,6 +24,7 @@ function setupFdk(data, syncInitialization) {
         webhookRegistry: extension.webhookRegistry,
         applicationProxyRoutes: applicationProxyRoutes,
         partnerApiRoutes: partnerApiRoutes,
+        platformApiRoutes: platformApiRoutes,
         getPlatformClient: getPlatformClient,
         getPartnerClient: getPartnerClient,
         getApplicationClient: getApplicationClient,

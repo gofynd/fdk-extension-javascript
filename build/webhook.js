@@ -1,7 +1,7 @@
 'use strict';
 const hmacSHA256 = require("crypto-js/hmac-sha256");
 const { fdkAxios } = require("@gofynd/fdk-client-javascript/sdk/common/AxiosHelper");
-const { version } = require('./../package.json');
+const { version } = require('./package.json');
 const { TEST_WEBHOOK_EVENT_NAME, ASSOCIATION_CRITERIA } = require("./constants");
 const { FdkWebhookProcessError, FdkWebhookHandlerNotFound, FdkWebhookRegistrationError, FdkInvalidHMacError, FdkInvalidWebhookConfig } = require("./error_code");
 const logger = require("./logger");
@@ -32,12 +32,37 @@ class WebhookRegistry {
         this._config = config;
         this._fdkConfig = fdkConfig;
         const handlerConfig = {};
-        for (let [eventName, handlerData] of Object.entries(this._config.event_map)) {
-            handlerConfig[eventName] = handlerData;
+        const topicConfig = {};
+        for (let [eventName, eventData] of Object.entries(this._config.event_map)) {
+            if (eventName.split('/').length !== 3) {
+                throw new FdkInvalidWebhookConfig(`Invalid webhook event map key. Invalid key: ${eventName}`);
+            }
+            if (!eventData.hasOwnProperty('version')) {
+                throw new FdkInvalidWebhookConfig(`Missing version in webhook event ${eventName}`);
+            }
+            if (!eventData.hasOwnProperty("provider")) {
+                eventData.provider = 'rest';
+            }
+            const allowedProviders = ['kafka', 'rest'];
+            if (!allowedProviders.includes(eventData.provider)) {
+                throw new FdkInvalidWebhookConfig(`Invalid provider value in webhook event ${eventName}, allowed values are ${allowedProviders.toString()}`);
+            }
+            if (eventData.provider === 'rest' && !eventData.hasOwnProperty("handler")) {
+                throw new FdkInvalidWebhookConfig(`Missing handler in webhook event ${eventName}`);
+            }
+            else if (eventData.provider === 'kafka' && !eventData.hasOwnProperty("topic")) {
+                throw new FdkInvalidWebhookConfig(`Missing topic in webhook event ${eventName}`);
+            }
+            if (eventData.provider === 'rest') {
+                handlerConfig[eventName + '/v' + eventData.version] = eventData;
+            }
+            if (eventData.provider === 'kafka') {
+                topicConfig[eventName + '/v' + eventData.version] = eventData;
+            }
         }
-        await this.getEventConfig(handlerConfig);
+        await this.getEventConfig(Object.assign(Object.assign({}, handlerConfig), topicConfig));
         eventConfig.eventsMap = this._getEventIdMap(eventConfig.event_configs);
-        this._validateEventsMap(handlerConfig);
+        this._validateEventsMap(Object.assign(Object.assign({}, handlerConfig), topicConfig));
         if (Object.keys(eventConfig.eventsNotFound).length) {
             let errors = [];
             Object.keys(eventConfig.eventsNotFound).forEach((key) => {
@@ -59,8 +84,8 @@ class WebhookRegistry {
         delete eventConfig.eventsNotFound;
         eventConfig.eventsNotFound = {};
         Object.keys(handlerConfig).forEach((key) => {
-            if (!eventConfig.eventsMap.hasOwnProperty(`${key}/${handlerConfig[key].version}`)) {
-                eventConfig.eventsNotFound[key] = handlerConfig[key].version;
+            if (!eventConfig.eventsMap.hasOwnProperty(key)) {
+                eventConfig.eventsNotFound[key.substring(0, key.lastIndexOf('/'))] = handlerConfig[key].version;
             }
         });
     }
@@ -95,7 +120,7 @@ class WebhookRegistry {
             subscriberConfig.email_id = this._config.notification_email;
             updated = true;
         }
-        if (this._webhookUrl !== subscriberConfig.webhook_url) {
+        if (subscriberConfig.provider === 'rest' && this._webhookUrl !== subscriberConfig.webhook_url) {
             logger.debug(`Webhook url updated from ${subscriberConfig.webhook_url} to ${this._webhookUrl}`);
             subscriberConfig.webhook_url = this._webhookUrl;
             updated = true;
@@ -110,7 +135,12 @@ class WebhookRegistry {
             throw new FdkInvalidWebhookConfig('Webhook registry not initialized');
         }
         logger.debug('Webhook sync events started');
-        let subscriberConfig = await this.getSubscriberConfig(platformClient);
+        let subscriberConfigList = await this.getSubscriberConfig(platformClient);
+        await this.syncSubscriberConfig(subscriberConfigList.rest, 'rest', this._handlerMap, platformClient, enableWebhooks);
+        await this.syncSubscriberConfig(subscriberConfigList.kafka, 'kafka', this._topicMap, platformClient, enableWebhooks);
+    }
+    async syncSubscriberConfig(subscriberConfig, configType, currentEventMapConfig, platformClient, enableWebhooks) {
+        var _a;
         let registerNew = false;
         let configUpdated = false;
         let existingEvents = [];
@@ -126,45 +156,52 @@ class WebhookRegistry {
                 "auth_meta": {
                     "type": "hmac",
                     "secret": this._fdkConfig.api_secret
-                }, 
+                },
                 "events": [],
                 "provider": configType,
                 "email_id": this._config.notification_email
             };
+            if (configType === 'rest') {
+                subscriberConfig['webhook_url'] = this._webhookUrl;
+            }
             registerNew = true;
             if (enableWebhooks !== undefined) {
                 subscriberConfig.status = enableWebhooks ? 'active' : 'inactive';
             }
         }
         else {
-            logger.debug(`Webhook config on platform side for company id ${platformClient.config.companyId}: ${JSON.stringify(subscriberConfig)}`);
-            const { id, name, webhook_url, association, status, auth_meta, event_configs, email_id } = subscriberConfig;
-            subscriberConfig = { id, name, webhook_url, association, status, auth_meta, email_id };
-            subscriberConfig.event_id = [];
-            existingEvents = event_configs.map(event => event.id);
-            if (auth_meta.secret !== this._fdkConfig.api_secret) {
+            logger.debug(`Webhook ${configType} config on platform side for company id ${platformClient.config.companyId}: ${JSON.stringify(subscriberConfig)}`);
+            const { id, name, webhook_url, provider = "rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig;
+            subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
+            subscriberConfig.events = [];
+            existingEvents = event_configs.map(event => {
+                return {
+                    'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`,
+                    'topic': event.subscriber_event_mapping.topic
+                };
+            });
+            if (provider == 'rest' && (auth_meta.secret !== this._fdkConfig.api_secret)) {
                 auth_meta.secret = this._fdkConfig.api_secret;
                 configUpdated = true;
             }
             if (enableWebhooks !== undefined) {
                 const newStatus = enableWebhooks ? 'active' : 'inactive';
-                if(newStatus !== subscriberConfig.status){
-                   subscriberConfig.status = newStatus;
-                   configUpdated = true;
-                }                    
+                if (newStatus !== subscriberConfig.status) {
+                    subscriberConfig.status = newStatus;
+                    configUpdated = true;
+                }
             }
             if (this._isConfigUpdated(subscriberConfig)) {
                 configUpdated = true;
             }
         }
-        for (let eventName of Object.keys(this._handlerMap)) {
-            eventName = `${eventName}/${this._handlerMap[eventName].version}`;
+        for (let eventName of Object.keys(currentEventMapConfig)) {
             let event_id = eventConfig.eventsMap[eventName];
             if (event_id) {
                 const event = {
                     slug: eventName
-                }
-                if(currentEventMapConfig[eventName].hasOwnProperty('topic')){
+                };
+                if (currentEventMapConfig[eventName].hasOwnProperty('topic')) {
                     event['topic'] = currentEventMapConfig[eventName].topic;
                 }
                 subscriberConfig.events.push(event);
@@ -172,7 +209,7 @@ class WebhookRegistry {
         }
         try {
             if (registerNew) {
-                if(subscriberConfig.events.length == 0){
+                if (subscriberConfig.events.length == 0) {
                     logger.debug(`Skipped registerSubscriber API call as no ${configType} based events found`);
                     return;
                 }
@@ -184,13 +221,22 @@ class WebhookRegistry {
             }
             else {
                 const eventDiff = [
-                    ...subscriberConfig.event_id.filter(eventId => !existingEvents.includes(eventId)),
-                    ...existingEvents.filter(eventId => !subscriberConfig.event_id.includes(eventId))
+                    ...subscriberConfig.events.filter(event => !existingEvents.find(item => item.slug === event.slug)),
+                    ...existingEvents.filter(event => !subscriberConfig.events.find(item => item.slug === event.slug))
                 ];
+                if (configType === 'kafka' && !configUpdated) {
+                    for (const event of subscriberConfig.events) {
+                        const existingEvent = existingEvents.find(e => e.slug === event.slug);
+                        if (existingEvent && !(event.topic === existingEvent.topic)) {
+                            configUpdated = true;
+                            break;
+                        }
+                    }
+                }
                 if (eventDiff.length || configUpdated) {
                     await this.updateSubscriberConfig(platformClient, subscriberConfig);
                     if (this._fdkConfig.debug) {
-                        subscriberConfig.events = subscriberConfig.events?.map(event => event.slug); 
+                        subscriberConfig.events = (_a = subscriberConfig.events) === null || _a === void 0 ? void 0 : _a.map(event => event.slug);
                         logger.debug(`Webhook ${configType} config updated for company: ${platformClient.config.companyId}, config: ${JSON.stringify(subscriberConfig)}`);
                     }
                 }
@@ -212,16 +258,16 @@ class WebhookRegistry {
             if (Object.keys(subscriberConfigList).length === 0) {
                 throw new FdkWebhookRegistrationError(`Subscriber config not found`);
             }
-            for(const subscriberConfigType in subscriberConfigList) {
+            for (const subscriberConfigType in subscriberConfigList) {
                 let subscriberConfig = subscriberConfigList[subscriberConfigType];
-                const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig;
+                const { id, name, webhook_url, provider = "rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig;
                 subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
                 subscriberConfig.events = event_configs.map(event => {
                     const eventObj = {
                         slug: `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`
-                    }
-                    if(subscriberConfig.provider === 'kafka'){
-                        eventObj['topic'] = event.subscriber_event_mapping.topic
+                    };
+                    if (subscriberConfig.provider === 'kafka') {
+                        eventObj['topic'] = event.subscriber_event_mapping.topic;
                     }
                     return eventObj;
                 });
@@ -248,20 +294,20 @@ class WebhookRegistry {
             throw new FdkWebhookRegistrationError('`subscribed_saleschannel` is not set to `specific` in webhook config');
         }
         try {
-            let subscriberConfig = await this.getSubscriberConfig(platformClient);
-            if (!subscriberConfig) {
+            let subscriberConfigList = await this.getSubscriberConfig(platformClient);
+            if (Object.keys(subscriberConfigList).length == 0) {
                 throw new FdkWebhookRegistrationError(`Subscriber config not found`);
             }
-            for(const subscriberConfigType in subscriberConfigList) {
+            for (const subscriberConfigType in subscriberConfigList) {
                 let subscriberConfig = subscriberConfigList[subscriberConfigType];
-                const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig;
+                const { id, name, webhook_url, provider = "rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig;
                 subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
                 subscriberConfig.events = event_configs.map(event => {
                     const eventObj = {
                         slug: `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`
-                    }
-                    if(subscriberConfig.provider === 'kafka'){
-                        eventObj['topic'] = event.subscriber_event_mapping.topic
+                    };
+                    if (subscriberConfig.provider === 'kafka') {
+                        eventObj['topic'] = event.subscriber_event_mapping.topic;
                     }
                     return eventObj;
                 });
@@ -275,7 +321,7 @@ class WebhookRegistry {
                         logger.debug(`Webhook disabled for saleschannel: ${applicationId}`);
                     }
                 }
-            }            
+            }
         }
         catch (ex) {
             throw new FdkWebhookRegistrationError(`Failed to remove saleschannel webhook. Reason: ${ex.message}`);
@@ -297,19 +343,15 @@ class WebhookRegistry {
                 return;
             }
             this.verifySignature(body, headers);
-            const eventName = `${body.event.name}/${body.event.type}`;
-            let categoryEventName = eventName;
-            if (body.event.category) {
-                categoryEventName = `${body.event.category}/${eventName}`;
-            }
-            const eventHandlerMap = (this._handlerMap[categoryEventName] || this._handlerMap[eventName] || {});
+            const eventName = `${body.event.category}/${body.event.name}/${body.event.type}/v${body.event.version}`;
+            const eventHandlerMap = (this._handlerMap[eventName] || {});
             const extHandler = eventHandlerMap.handler;
             if (typeof extHandler === 'function') {
                 logger.debug(`Webhook event received for company: ${body.company_id}, application: ${body.application_id || ''}, event name: ${eventName}`);
                 await extHandler(eventName, body, body.company_id, body.application_id);
             }
             else {
-                throw new FdkWebhookHandlerNotFound(`Webhook handler not assigned: ${categoryEventName}`);
+                throw new FdkWebhookHandlerNotFound(`Webhook handler not assigned: ${eventName}`);
             }
         }
         catch (err) {
@@ -318,12 +360,56 @@ class WebhookRegistry {
     }
     async registerSubscriberConfig(platformClient, subscriberConfig) {
         const uniqueKey = `registerSubscriberToEvent_${platformClient.config.companyId}_${this._fdkConfig.api_key}`;
+        const token = await platformClient.config.oauthClient.getAccessToken();
         const retryInfo = this._retryManager.retryInfoMap.get(uniqueKey);
         if (retryInfo && !retryInfo.isRetry) {
             this._retryManager.resetRetryState(uniqueKey);
         }
         try {
-            return await platformClient.webhook.registerSubscriberToEvent({ body: subscriberConfig });
+            try {
+                const rawRequest = {
+                    method: "post",
+                    url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
+                    data: subscriberConfig,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                        "x-ext-lib-version": `js/${version}`
+                    }
+                };
+                return await fdkAxios.request(rawRequest);
+            }
+            catch (err) {
+                if (subscriberConfig.provider !== "rest") {
+                    logger.debug(`Webhook Subscriber Config type ${subscriberConfig.provider} is not supported with current fp version`);
+                    return;
+                }
+                if (err.code != '404') {
+                    throw err;
+                }
+                const eventsList = subscriberConfig.events;
+                delete subscriberConfig.events;
+                const provider = subscriberConfig.provider;
+                delete subscriberConfig.provider;
+                subscriberConfig.event_id = [];
+                eventsList.forEach((event) => {
+                    subscriberConfig.event_id.push(eventConfig.eventsMap[event.slug]);
+                });
+                const rawRequest = {
+                    method: "post",
+                    url: `${this._fdkConfig.cluster}/service/platform/webhook/v1.0/company/${platformClient.config.companyId}/subscriber`,
+                    data: subscriberConfig,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                        "x-ext-lib-version": `js/${version}`
+                    }
+                };
+                const response = await fdkAxios.request(rawRequest);
+                subscriberConfig.events = eventsList;
+                subscriberConfig.provider = provider;
+                return response;
+            }
         }
         catch (err) {
             if (RetryManger.shouldRetryOnError(err)
@@ -332,16 +418,63 @@ class WebhookRegistry {
             }
             throw new FdkWebhookRegistrationError(`Error while registering webhook subscriber configuration, Reason: ${err.message}`);
         }
-        
     }
     async updateSubscriberConfig(platformClient, subscriberConfig) {
         const uniqueKey = `updateSubscriberConfig_${platformClient.config.companyId}_${this._fdkConfig.api_key}`;
+        const token = await platformClient.config.oauthClient.getAccessToken();
         const retryInfo = this._retryManager.retryInfoMap.get(uniqueKey);
         if (retryInfo && !retryInfo.isRetry) {
             this._retryManager.resetRetryState(uniqueKey);
         }
         try {
-            return await platformClient.webhook.updateSubscriberConfig({ body: subscriberConfig });
+            if (subscriberConfig.events.length == 0) {
+                subscriberConfig.status = 'inactive';
+                delete subscriberConfig.events;
+            }
+            try {
+                const rawRequest = {
+                    method: "put",
+                    url: `${this._fdkConfig.cluster}/service/platform/webhook/v2.0/company/${platformClient.config.companyId}/subscriber`,
+                    data: subscriberConfig,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                        "x-ext-lib-version": `js/${version}`
+                    }
+                };
+                return await fdkAxios.request(rawRequest);
+            }
+            catch (err) {
+                if (subscriberConfig.provider !== "rest") {
+                    logger.debug(`Webhook Subscriber Config type ${subscriberConfig.provider} is not supported with current fp version`);
+                    return;
+                }
+                if (err.code != '404') {
+                    throw err;
+                }
+                const eventsList = subscriberConfig.events;
+                delete subscriberConfig.events;
+                const provider = subscriberConfig.provider;
+                delete subscriberConfig.provider;
+                subscriberConfig.event_id = [];
+                eventsList === null || eventsList === void 0 ? void 0 : eventsList.forEach((event) => {
+                    subscriberConfig.event_id.push(eventConfig.eventsMap[event.slug]);
+                });
+                const rawRequest = {
+                    method: "put",
+                    url: `${this._fdkConfig.cluster}/service/platform/webhook/v1.0/company/${platformClient.config.companyId}/subscriber`,
+                    data: subscriberConfig,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                        "x-ext-lib-version": `js/${version}`
+                    }
+                };
+                const response = await fdkAxios.request(rawRequest);
+                subscriberConfig.events = eventsList;
+                subscriberConfig.provider = provider;
+                return response;
+            }
         }
         catch (err) {
             if (RetryManger.shouldRetryOnError(err)
@@ -352,14 +485,33 @@ class WebhookRegistry {
         }
     }
     async getSubscriberConfig(platformClient) {
+        const uniqueKey = `getSubscribersByExtensionId_${platformClient.config.companyId}_${this._fdkConfig.api_key}`;
+        const token = await platformClient.config.oauthClient.getAccessToken();
+        const retryInfo = this._retryManager.retryInfoMap.get(uniqueKey);
+        if (retryInfo && !retryInfo.isRetry) {
+            this._retryManager.resetRetryState(uniqueKey);
+        }
         try {
-            const uniqueKey = `getSubscribersByExtensionId_${platformClient.config.companyId}_${this._fdkConfig.api_key}`;
-            const retryInfo = this._retryManager.retryInfoMap.get(uniqueKey);
-            if (retryInfo && !retryInfo.isRetry) {
-                this._retryManager.resetRetryState(uniqueKey);
-            }
-            const subscriberConfig = await platformClient.webhook.getSubscribersByExtensionId({ extensionId: this._fdkConfig.api_key });
-            return subscriberConfig.items[0];
+            const rawRequest = {
+                method: "get",
+                url: `${this._fdkConfig.cluster}/service/platform/webhook/v1.0/company/${platformClient.config.companyId}/extension/${this._fdkConfig.api_key}/subscriber`,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                    "x-ext-lib-version": `js/${version}`
+                }
+            };
+            const subscriberConfigResponse = await fdkAxios.request(rawRequest);
+            const subscriberConfig = {};
+            subscriberConfigResponse.items.forEach((config) => {
+                if (config.provider === 'kafka') {
+                    subscriberConfig['kafka'] = config;
+                }
+                else {
+                    subscriberConfig['rest'] = config;
+                }
+            });
+            return subscriberConfig;
         }
         catch (err) {
             if (RetryManger.shouldRetryOnError(err)
@@ -381,9 +533,6 @@ class WebhookRegistry {
             Object.keys(handlerConfig).forEach((key) => {
                 let eventObj = {};
                 let eventDetails = key.split('/');
-                if (eventDetails.length !== 3) {
-                    throw new FdkInvalidWebhookConfig(`Invalid webhook event map key. Invalid key: ${key}`);
-                }
                 eventObj.event_category = eventDetails[0];
                 eventObj.event_name = eventDetails[1];
                 eventObj.event_type = eventDetails[2];

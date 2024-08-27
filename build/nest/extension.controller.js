@@ -17,7 +17,8 @@ let ExtensionController = class ExtensionController {
     async install(req, res, next) {
         try {
             let companyId = parseInt(req.query.company_id);
-            const { redirectUrl, fdkSession } = await handlers.fpInstall(req.query.company_id, req.query.application_id, extension);
+            let redirectPath = req.query.redirect_path;
+            const { redirectUrl, fdkSession } = await handlers.fpInstall(req.query.company_id, req.query.application_id, redirectPath, extension);
             const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`;
             res.header['x-company-id'] = companyId;
             res.cookie(compCookieName, fdkSession.id, {

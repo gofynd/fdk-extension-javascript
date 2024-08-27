@@ -1,7 +1,7 @@
 {
     "dependencies": {
-        "axios": "^0.21.1",
-        "crypto-js": "^4.0.0",
+        "axios": "^1.6.4",
+        "crypto-js": "^4.2.0",
         "jsonwebtoken": "^9.0.2",
         "querystring": "^0.2.1",
         "url-join": "^4.0.1",
@@ -64,9 +64,9 @@
     "peerDependencies": {
         "@gofynd/fdk-client-javascript": "^1.1.0"
     },
-    "name": "fdk-extension-javascript",
+    "name": "@gofynd/fdk-extension-javascript",
     "description": "FDK Extension Helper Library",
-    "version": "0.7.1",
+    "version": "0.8.10",
     "main": "index.js",
     "directories": {
         "example": "examples"

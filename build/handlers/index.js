@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 const logger = require("../logger");
 const urljoin = require('url-join');
 const { FdkSessionNotFoundError, FdkInvalidOAuthError, } = require("../error_code");
-const fpInstall = async function fpInstall(company_id, application_id, ext) {
+const fpInstall = async function fpInstall(company_id, application_id, redirect_path, ext) {
     let companyId = parseInt(company_id);
     let platformConfig = await ext.getPlatformConfig(companyId);
     let session;
@@ -16,6 +16,7 @@ const fpInstall = async function fpInstall(company_id, application_id, ext) {
         session.expires = sessionExpires;
         session.access_mode = "online";
         session.extension_id = ext.api_key;
+        session.redirect_path = redirect_path;
     }
     else {
         if (session.expires) {
@@ -89,6 +90,9 @@ const fpAuth = async function fpAuth(reqObj, state, code, ext, sessionId) {
         });
     }
     let redirectUrl = await ext.callbacks.auth(reqObj);
+    if (fdkSession.redirect_path) {
+        redirectUrl = fdkSession.redirect_path;
+    }
     logger.debug(`Redirecting after auth callback to url: ${redirectUrl}`);
     return {
         redirectUrl: redirectUrl,

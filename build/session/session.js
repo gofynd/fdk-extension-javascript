@@ -17,6 +17,7 @@ class Session {
         this.refresh_token = null;
         this.isNew = isNew;
         this.extension_id = null;
+        this.redirect_path = null;
     }
     static cloneSession(id, session, isNew = true) {
         let newSession = new Session(id, isNew);
@@ -36,7 +37,8 @@ class Session {
             refresh_token: this.refresh_token,
             expires_in: this.expires_in,
             extension_id: this.extension_id,
-            access_token_validity: this.access_token_validity
+            access_token_validity: this.access_token_validity,
+            redirect_path: this.redirect_path
         };
     }
     updateToken(rawToken) {

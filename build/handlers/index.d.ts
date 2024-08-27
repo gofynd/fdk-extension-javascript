@@ -2,7 +2,7 @@ export function fpAuth(reqObj: any, state: any, code: any, ext: any, sessionId: 
     redirectUrl: any;
     fdkSession: any;
 }>;
-export function fpInstall(company_id: any, application_id: any, ext: any): Promise<{
+export function fpInstall(company_id: any, application_id: any, redirect_path: any, ext: any): Promise<{
     redirectUrl: any;
     fdkSession: Session;
 }>;
