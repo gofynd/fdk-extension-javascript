@@ -31,4 +31,3 @@ class BaseStorage {
     }
 }
 module.exports = BaseStorage;
-//# sourceMappingURL=base_storage.js.map

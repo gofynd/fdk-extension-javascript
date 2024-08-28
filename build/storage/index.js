@@ -7,4 +7,3 @@ module.exports = {
     MemoryStorage,
     RedisStorage
 };
-//# sourceMappingURL=index.js.map

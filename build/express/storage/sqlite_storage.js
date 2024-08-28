@@ -52,4 +52,3 @@ class SQLiteStorage extends BaseStorage {
     }
 }
 module.exports = SQLiteStorage;
-//# sourceMappingURL=sqlite_storage.js.map

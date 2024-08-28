@@ -59,4 +59,3 @@ class Session {
     }
 }
 module.exports = Session;
-//# sourceMappingURL=session.js.map

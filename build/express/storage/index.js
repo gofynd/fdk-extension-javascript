@@ -9,4 +9,3 @@ module.exports = {
     RedisStorage,
     SQLiteStorage
 };
-//# sourceMappingURL=index.js.map

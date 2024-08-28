@@ -34,4 +34,3 @@ class MemoryStorage extends BaseStorage {
     }
 }
 module.exports = MemoryStorage;
-//# sourceMappingURL=memory_storage.js.map

@@ -31,4 +31,3 @@ class SessionStorage {
     }
 }
 module.exports = SessionStorage;
-//# sourceMappingURL=session_storage.js.map

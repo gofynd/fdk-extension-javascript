@@ -199,4 +199,3 @@ const extension = new Extension();
 module.exports = {
     extension
 };
-//# sourceMappingURL=extension.js.map

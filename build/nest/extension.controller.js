@@ -166,4 +166,3 @@ ExtensionController = __decorate([
     Controller()
 ], ExtensionController);
 module.exports = ExtensionController;
-//# sourceMappingURL=extension.controller.js.map

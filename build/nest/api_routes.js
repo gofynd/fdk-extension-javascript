@@ -31,4 +31,3 @@ ApplicationProxyRoutes = __decorate([
 module.exports = {
     applicationProxyRoutes: ApplicationProxyRoutes
 };
-//# sourceMappingURL=api_routes.js.map

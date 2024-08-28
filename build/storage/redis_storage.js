@@ -28,4 +28,3 @@ class RedisStorage extends BaseStorage {
     }
 }
 module.exports = RedisStorage;
-//# sourceMappingURL=redis_storage.js.map

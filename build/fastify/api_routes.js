@@ -21,4 +21,3 @@ const applicationProxyRoutes = fp(function (fastify, options, done) {
 module.exports = {
     applicationProxyRoutes: applicationProxyRoutes
 };
-//# sourceMappingURL=api_routes.js.map

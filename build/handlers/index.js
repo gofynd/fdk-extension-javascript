@@ -236,4 +236,3 @@ module.exports = {
     admInstall: admInstall,
     admAuth: admAuth
 };
-//# sourceMappingURL=index.js.map

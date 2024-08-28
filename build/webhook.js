@@ -565,4 +565,3 @@ class WebhookRegistry {
 module.exports = {
     WebhookRegistry
 };
-//# sourceMappingURL=webhook.js.map

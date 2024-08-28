@@ -10,4 +10,3 @@ exports.ASSOCIATION_CRITERIA = {
 exports.TIMEOUT_STATUS = 504;
 exports.SERVICE_UNAVAILABLE = 503;
 exports.BAD_GATEWAY = 502;
-//# sourceMappingURL=constants.js.map

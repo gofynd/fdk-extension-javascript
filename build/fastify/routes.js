@@ -119,4 +119,3 @@ async function setupRoutes(fastify, options) {
     return fastify;
 }
 module.exports = setupRoutes;
-//# sourceMappingURL=routes.js.map

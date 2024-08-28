@@ -114,4 +114,3 @@ function setupRoutes(ext) {
     return FdkRoutes;
 }
 module.exports = setupRoutes;
-//# sourceMappingURL=routes.js.map

@@ -33,4 +33,3 @@ function setupFdk(data, syncInitialization) {
 module.exports = {
     setupFdk: setupFdk
 };
-//# sourceMappingURL=index.js.map

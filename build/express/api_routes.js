@@ -54,4 +54,3 @@ function setupProxyRoutes(configData) {
 module.exports = {
     setupProxyRoutes: setupProxyRoutes
 };
-//# sourceMappingURL=api_routes.js.map

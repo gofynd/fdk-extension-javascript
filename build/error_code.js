@@ -55,4 +55,3 @@ module.exports = {
     FdkWebhookProcessError,
     FdkWebhookHandlerNotFound
 };
-//# sourceMappingURL=error_code.js.map

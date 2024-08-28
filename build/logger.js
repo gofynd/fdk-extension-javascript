@@ -29,4 +29,3 @@ module.exports.safeStringify = function (jsonObj) {
         return value;
     });
 };
-//# sourceMappingURL=logger.js.map
