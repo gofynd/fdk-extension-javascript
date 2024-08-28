@@ -15,6 +15,13 @@ jobs:
           ]
         node-version: [16.x, 18.x, 20.x]
 
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping || exit 1" --health-interval=10s --health-timeout=5s --health-retries=5
+
     steps:
     - name: Get branch name
       shell: bash
@@ -31,6 +38,10 @@ jobs:
     - name: Install packages and run tests for node
       run: |
         npm install
+        npm run test
+      env:
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
 
     - name: Coveralls (Uploading test report)
       if: ${{ steps.get_branch.outputs.branch == 'main' }}
