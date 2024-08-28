@@ -24,12 +24,14 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Install Docker
-      if: runner.os != 'Linux' # Docker is pre-installed on Linux runners
-      uses: docker/setup-buildx-action@v2
+    - name: Install Redis (Windows Only)
+      if: runner.os == 'Windows'
+      run: |
+        choco install redis
+        redis-server --service-install
+        redis-server --service-start
+      shell: pwsh
 
-    - name: Start Redis container
-      run: docker run -d -p 6379:6379 redis:6
 
     - name: Install packages and run tests for node
       run: |
