@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [16.x, 18.x, 20.x]
 
     steps:
@@ -24,25 +24,12 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Setup Redis (Linux Only)
-      if: runner.os == 'Linux'
-      uses: supercharge/redis-github-action@1.2.0
-      with:
-        redis-version: 6
+    - name: Install Docker
+      if: runner.os != 'Linux' # Docker is pre-installed on Linux runners
+      uses: docker/setup-buildx-action@v2
 
-    - name: Install Redis (Windows Only)
-      if: runner.os == 'Windows'
-      run: |
-        choco install redis
-        redis-server --service-install
-        redis-server --service-start
-      shell: pwsh
-
-    - name: Install Redis (macOS Only)
-      if: runner.os == 'macOS'
-      run: |
-        brew install redis
-        brew services start redis
+    - name: Start Redis container
+      run: docker run -d -p 6379:6379 redis:6
 
     - name: Install packages and run tests for node
       run: |
