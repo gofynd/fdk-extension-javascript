@@ -1,12 +1,12 @@
 'use strict';
 
-const { extension } = require('../extension');
+const { extension } = require('../lib/extension');
 const setupRoutes = require("./routes");
 const { applicationProxyRoutes } = require("./api_routes");
-const logger = require('../logger');
-const { getSessionData, getApplicationConfig, getUserData } = require('../utils');
-const routerHandlers = require('../handlers');
-const { getApplicationClient, getPlatformClient, getPartnerClient } = require('../utils');
+const logger = require('../lib/logger');
+const { getSessionData, getApplicationConfig, getUserData } = require('../lib/utils');
+const routerHandlers = require('../lib/handlers');
+const { getApplicationClient, getPlatformClient, getPartnerClient } = require('../lib/utils');
 
 function setupFdk(data, syncInitialization) {
     if (data.debug) {

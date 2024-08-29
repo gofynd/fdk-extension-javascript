@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-const { extension } = require('../extension');
-const { getApplicationConfig, getUserData } = require('../utils');
+const { extension } = require('../lib/extension');
+const { getApplicationConfig, getUserData } = require('../lib/utils');
 
 @Injectable()
 class ApplicationProxyRoutes {

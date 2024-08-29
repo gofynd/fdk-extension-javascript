@@ -4,7 +4,7 @@ const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
 const axiosMock = require("./../mocks/axiosv1.mock.js");
-const { SESSION_COOKIE_NAME } = require("../../constants");
+const { SESSION_COOKIE_NAME } = require("../../lib/constants");
 const hmacSHA256 = require("crypto-js/hmac-sha256");
 
 function getSignature(body) {

@@ -1,10 +1,10 @@
 'use strict';
 const express = require('express');
-const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('../constants');
-const SessionStorage = require("../session/session_storage");
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('../lib/constants');
+const SessionStorage = require("../lib/session/session_storage");
 const FdkRoutes = express.Router();
-const handlers = require('../handlers');
-const { formRequestObject } = require('../utils');
+const handlers = require('../lib/handlers');
+const { formRequestObject } = require('../lib/utils');
 
 function setupRoutes(ext) {
 

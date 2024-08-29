@@ -3,10 +3,10 @@
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
-const { RedisStorage } = require("../../storage");
+const { RedisStorage } = require("../../lib/storage");
 const { redisConnection } = require("../helpers/setup_db");
 const { userHeaders, applicationHeaders, applicationId, applicationToken, jwtTokenData  } = require("./constants");
-const { formRequestObject } = require('../../utils');
+const { formRequestObject } = require('../../lib/utils');
 const jwt = require('jsonwebtoken'); 
 let JWT_SECRET_KEY = "__jwt_secret_key"
 

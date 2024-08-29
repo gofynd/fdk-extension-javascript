@@ -1,9 +1,9 @@
 'use strict';
-const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('../constants');
-const SessionStorage = require("../session/session_storage");
-const handlers = require('../handlers');
-const { formRequestObject } = require('../utils');
-const { extension } = require('../extension');
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('../lib/constants');
+const SessionStorage = require("../lib/session/session_storage");
+const handlers = require('../lib/handlers');
+const { formRequestObject } = require('../lib/utils');
+const { extension } = require('../lib/extension');
 
 async function setupRoutes(fastify, options){
     

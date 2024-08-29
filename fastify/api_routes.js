@@ -1,6 +1,6 @@
 'use strict';
-const { extension } = require('../extension');
-const { getApplicationConfig, getUserData } = require('../utils');
+const { extension } = require('../lib/extension');
+const { getApplicationConfig, getUserData } = require('../lib/utils');
 const fp = require('fastify-plugin')
 const applicationProxyRoutes = fp(function (fastify, options, done) {
     fastify.addHook('preHandler', async (req, res) => {

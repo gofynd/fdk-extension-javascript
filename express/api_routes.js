@@ -1,8 +1,8 @@
 'use strict';
-const { extension } = require('../extension');
+const { extension } = require('../lib/extension');
 const express = require('express');
-const { sessionMiddleware, partnerSessionMiddleware } = require('../middleware/session_middleware');
-const { getApplicationConfig, getUserData } = require('../utils');
+const { sessionMiddleware, partnerSessionMiddleware } = require('../lib/middleware/session_middleware');
+const { getApplicationConfig, getUserData } = require('../lib/utils');
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
 
 

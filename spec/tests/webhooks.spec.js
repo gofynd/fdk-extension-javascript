@@ -3,11 +3,11 @@
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
-const { SESSION_COOKIE_NAME } = require("../../constants");
+const { SESSION_COOKIE_NAME } = require("../../lib/constants");
 const hmacSHA256 = require("crypto-js/hmac-sha256");
-const { WebhookRegistry } = require('../../webhook');
+const { WebhookRegistry } = require('../../lib/webhook');
 const { applicationId } = require("./constants");
-const { RetryManger } = require("../../retry_manager")
+const { RetryManger } = require("../../lib/retry_manager")
 const axiosMock = require("./../mocks/axios.mock.js");
 
 function getSignature(body) {

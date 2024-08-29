@@ -2,7 +2,7 @@
 
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
-const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../constants");
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../lib/constants");
 const { userHeaders, applicationHeaders, applicationId, applicationToken } = require("./constants");
 const request = require('../helpers/fastify_server');
 const fastify = require("fastify");

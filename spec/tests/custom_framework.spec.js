@@ -3,11 +3,11 @@
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
-const { RedisStorage } = require("../../storage");
+const { RedisStorage } = require("../../lib/storage");
 const { redisConnection } = require("../helpers/setup_db");
-const { SESSION_COOKIE_NAME } = require("../../constants");
+const { SESSION_COOKIE_NAME } = require("../../lib/constants");
 const { userHeaders, applicationHeaders, applicationId, applicationToken  } = require("./constants");
-const { formRequestObject } = require('../../utils');
+const { formRequestObject } = require('../../lib/utils');
 
 describe("Custom framework integration as express - Extension launch flow", () => {
   let webhookConfig = {

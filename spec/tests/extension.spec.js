@@ -1,5 +1,5 @@
 'use strict';
-const { extension } = require('../../extension');
+const { extension } = require('../../lib/extension');
 
 describe("Extension initialization flow and validations", () => {
     it('Should throw error on invalid/missing api key', async () => {

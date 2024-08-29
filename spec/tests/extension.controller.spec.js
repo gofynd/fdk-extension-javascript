@@ -4,7 +4,7 @@ const superTest = require("supertest");
 const { TestModule } = require("./nest/test.module");
 const fdkHelper = require("../helpers/fdk");
 const cookieParser = require("cookie-parser");
-const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../constants");
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../lib/constants");
 const { clearData } = require("../helpers/setup_db");
 const { userHeaders, applicationHeaders } = require("./constants");
 

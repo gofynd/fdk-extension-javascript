@@ -4,7 +4,7 @@ const fdkHelper = require("../helpers/fdk");
 const axiosMock = require("./../mocks/axios.mock.js");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
-const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../constants");
+const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../lib/constants");
 const { userHeaders, applicationHeaders, applicationId, applicationToken } = require("./constants");
 
 describe("Extension launch flow", () => {
