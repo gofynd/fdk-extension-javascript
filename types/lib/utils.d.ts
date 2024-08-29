@@ -13,7 +13,7 @@ export function getApplicationClient(applicationId: any, applicationToken: any):
 export function getSessionData(session_id: any): Promise<any>;
 export function getApplicationConfig(applicationData: any, extension: any): Promise<{
     application: any;
-    applicationConfig: import("@gofynd/fdk-client-javascript/sdk/application/ApplicationConfig") | undefined;
-    applicationClient: import("@gofynd/fdk-client-javascript/sdk/application/ApplicationClient") | undefined;
+    applicationConfig: import("@gofynd/fdk-client-javascript/sdk/application/ApplicationConfig");
+    applicationClient: import("@gofynd/fdk-client-javascript/sdk/application/ApplicationClient");
 }>;
 export function getUserData(userData: any): Promise<any>;

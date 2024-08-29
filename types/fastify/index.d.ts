@@ -9,7 +9,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         callbacks: any;
         access_mode: any;
         cluster: string;
-        webhookRegistry: import("../lib/webhook").WebhookRegistry | null;
+        webhookRegistry: import("../lib/webhook").WebhookRegistry;
         _isInitialized: boolean;
         _retryManager: import("../lib/retry_manager").RetryManger;
         configData: any;
@@ -23,11 +23,11 @@ export function setupFdk(data: any, syncInitialization: any): {
         getPlatformClient(companyId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformClient")>;
         getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
         getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
-        getExtensionDetails(): any;
+        getExtensionDetails(): Promise<any>;
         extensionData: any;
     };
-    webhookRegistry: import("../lib/webhook").WebhookRegistry | null;
-    applicationProxyRoutes: (fastify: import("fastify").FastifyInstance<import("http").Server, import("http").IncomingMessage, import("http").ServerResponse, import("fastify").FastifyBaseLogger, import("fastify").FastifyTypeProviderDefault>, options: Record<never, never>, done: (err?: Error | undefined) => void) => void;
+    webhookRegistry: import("../lib/webhook").WebhookRegistry;
+    applicationProxyRoutes: (fastify: import("fastify").FastifyInstance<import("http").Server, import("http").IncomingMessage, import("http").ServerResponse, import("fastify").FastifyBaseLogger, import("fastify").FastifyTypeProviderDefault>, options: Record<never, never>, done: (err?: Error) => void) => void;
     getPlatformClient: typeof getPlatformClient;
     getPartnerClient: typeof getPartnerClient;
     getApplicationClient: typeof getApplicationClient;
@@ -64,7 +64,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         callbacks: any;
         access_mode: any;
         cluster: string;
-        webhookRegistry: import("../lib/webhook").WebhookRegistry | null;
+        webhookRegistry: import("../lib/webhook").WebhookRegistry;
         _isInitialized: boolean;
         _retryManager: import("../lib/retry_manager").RetryManger;
         configData: any;
@@ -78,11 +78,11 @@ export function setupFdk(data: any, syncInitialization: any): {
         getPlatformClient(companyId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformClient")>;
         getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
         getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
-        getExtensionDetails(): any;
+        getExtensionDetails(): Promise<any>;
         extensionData: any;
     };
-    webhookRegistry: import("../lib/webhook").WebhookRegistry | null;
-    applicationProxyRoutes: (fastify: import("fastify").FastifyInstance<import("http").Server, import("http").IncomingMessage, import("http").ServerResponse, import("fastify").FastifyBaseLogger, import("fastify").FastifyTypeProviderDefault>, options: Record<never, never>, done: (err?: Error | undefined) => void) => void;
+    webhookRegistry: import("../lib/webhook").WebhookRegistry;
+    applicationProxyRoutes: (fastify: import("fastify").FastifyInstance<import("http").Server, import("http").IncomingMessage, import("http").ServerResponse, import("fastify").FastifyBaseLogger, import("fastify").FastifyTypeProviderDefault>, options: Record<never, never>, done: (err?: Error) => void) => void;
     getPlatformClient: typeof getPlatformClient;
     getPartnerClient: typeof getPartnerClient;
     getApplicationClient: typeof getApplicationClient;

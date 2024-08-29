@@ -2,7 +2,7 @@ export = SQLiteStorage;
 declare class SQLiteStorage extends BaseStorage {
     constructor(dbClient: any, prefixKey: any);
     dbClient: any;
-    ttlCheckerInterval: NodeJS.Timer | null;
+    ttlCheckerInterval: NodeJS.Timer;
     initializeTable(): Promise<void>;
     setupTTLChecker(): void;
     get(key: any): Promise<any>;

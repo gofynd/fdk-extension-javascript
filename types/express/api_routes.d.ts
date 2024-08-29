@@ -1,6 +1,1 @@
-export function setupProxyRoutes(configData: any): {
-    partnerApiRoutes: any;
-    platformApiRoutes: any;
-    apiRoutes: any;
-    applicationProxyRoutes: any;
-};
+export function setupProxyRoutes(configData: any): any;

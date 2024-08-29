@@ -7,7 +7,7 @@ declare class Extension {
     callbacks: any;
     access_mode: any;
     cluster: string;
-    webhookRegistry: WebhookRegistry | null;
+    webhookRegistry: WebhookRegistry;
     _isInitialized: boolean;
     _retryManager: RetryManger;
     configData: any;
@@ -21,7 +21,7 @@ declare class Extension {
     getPlatformClient(companyId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/platform/PlatformClient")>;
     getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
     getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
-    getExtensionDetails(): any;
+    getExtensionDetails(): Promise<any>;
     extensionData: any;
 }
 import { WebhookRegistry } from "./webhook";
