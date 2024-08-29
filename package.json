@@ -49,7 +49,7 @@
       "migration/*",
       "coverage/*",
       "run_migration.js",
-      "build/*",
+      "types/*",
       "dist/*",
       "examples/*"
     ],
