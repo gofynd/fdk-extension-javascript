@@ -132,7 +132,7 @@ app.use(router);
 app.listen(3000);
 ```
 ### Parameters of setupFDK function
-Parameter table for `setupFdk` function
+#### Parameter table for `setupFdk` function
 
 | Parameter  | Description | 
 | ------------- | ------------- |
@@ -143,20 +143,20 @@ Parameter table for `setupFdk` function
 | callbacks  | The callback function to handle extension-related tasks. |
 | storage  | An instance of storage (e.g., RedisStorage) for data storage.  |
 | access_mode  | Access mode of an extension. It can be `online` or `offline`.  |
-| cluster  | The API url of the Fynd Platform cluster. |
-| webhook_config  | Necessary configuration for webhooks.  |
+| cluster?  | The API url of the Fynd Platform cluster. |
+| debug?  | Enable debug logs if it is `true`. Value can be `true` or `false`.  |
+| [webhook_config](https://github.com/gofynd/fdk-extension-javascript?tab=readme-ov-file#parameter-table-for-webhook-configuration)  | Necessary configuration for webhooks.  |
 
-Parameter table for `webhook` configuration
+#### Parameter table for `webhook` configuration
 | Parameter  | Description |
 | ------------- | ------------- |
 | api_path  | API endpoint to process webhooks event.  |
 | notification_email  | Email address for webhook related notifications.  |
 | subscribe_on_install?  | Whether to auto subscribe to all webhooks on extension installation. It can be true or false. |
 | subscribed_saleschannel?  | If `specific` then you have to manually subscribe to sales channel/website level events for individual sales channels. Value can be `all` or `optional`. |
-| debug?  | Enable debug logs if it is `true`. Value can be `true` or `false`.  |
-| event_map  | A mapping of events to corresponding handlers for webhook processing.  |
+| [event_map](https://github.com/gofynd/fdk-extension-javascript?tab=readme-ov-file#parameter-table-for-event_map-object)  | A mapping of events to corresponding handlers for webhook processing.  |
 
-Parameter table for `event_map` object
+#### Parameter table for `event_map` object
 | Parameter  | Description |
 | ------------- | ------------- |
 | key  | API endpoint to process webhooks event.  |
