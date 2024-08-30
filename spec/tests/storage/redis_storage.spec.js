@@ -1,4 +1,4 @@
-const RedisStorage = require('../../../express/storage/redis_storage');
+const RedisStorage = require('../../../lib/storage/redis_storage');
 const { redisConnection } = require("../../helpers/setup_db");
 
 describe('Redis Storage', () => {
