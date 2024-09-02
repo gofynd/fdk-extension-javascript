@@ -56,7 +56,7 @@
   },
   "name": "@gofynd/fdk-extension-javascript",
   "description": "FDK Extension Helper Library",
-  "version": "0.7.9",
+  "version": "0.7.10",
   "main": "index.js",
   "directories": {
     "example": "examples"

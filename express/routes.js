@@ -214,11 +214,11 @@ function setupRoutes(ext) {
 
     FdkRoutes.post("/fp/uninstall", async (req, res, next) => {
         try {
-            const reqSignature = req.headers['x-ext-signature'];
+            const reqSignature = req.headers['x-fp-signature'];
             const kCredentials = ext.api_secret;
             
             const strToVerify = `${ext.api_key}:${ext.api_secret}`
-            const calcSignature = `${hmacSHA256(kCredentials, strToVerify)}`;
+            const calcSignature = hmacSHA256(strToVerify, kCredentials).toString();
             if (calcSignature !== reqSignature) {
                 throw new FdkInvalidHMacError(`Signature passed does not match calculated body signature`);
             }
