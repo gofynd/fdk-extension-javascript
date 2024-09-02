@@ -11,8 +11,7 @@ const { RetryManger } = require("./retry_manager");
 let eventConfig = {}
 class WebhookRegistry {
     constructor(retryManager) {
-        this._handlerMap = null;
-        this._topicMap = null;
+        this._eventMap = null;
         this._config = null;
         this._fdkConfig = null;
         this._retryManager = retryManager;
@@ -31,13 +30,16 @@ class WebhookRegistry {
             throw new FdkInvalidWebhookConfig(`Invalid or missing "event_map"`);
         }
         config.subscribe_on_install = config.subscribe_on_install === undefined ? true : config.subscribe_on_install;
-        this._handlerMap = {};
-        this._topicMap = {};
+        this._eventMap = {
+            rest: {},
+            kafka: {},
+            pub_sub: {},
+            sqs: {},
+            event_bridge: {},
+            temporal: {}
+        };
         this._config = config;
         this._fdkConfig = fdkConfig;
-        const handlerConfig = {};
-        const topicConfig = {};
-        const eventsConfig = {};
  
         for (let [eventName, eventData] of Object.entries(this._config.event_map)) {
             // Validate Webhook Event Map
@@ -69,18 +71,26 @@ class WebhookRegistry {
             }else if(eventData.provider === 'event_bridge' && !eventData.hasOwnProperty("event_bridge_name")){
                 throw new FdkInvalidWebhookConfig(`Missing event_bridge_name in webhook event ${eventName}`);
             }
-            if(eventData.provider === 'rest'){
-                handlerConfig[eventName + '/v' + eventData.version] = eventData;
-            }
-            if(eventData.provider === 'kafka'){
-                topicConfig[eventName + '/v' + eventData.version] = eventData;
-            }
-            eventsConfig[eventName + '/v' + eventData.version] = eventData;
+            // if(eventData.provider === 'rest'){
+            //     handlerConfig[eventName + '/v' + eventData.version] = eventData;
+            // }
+            // if(eventData.provider === 'kafka'){
+            //     topicConfig[eventName + '/v' + eventData.version] = eventData;
+            // }
+            // allEventConfig[eventName + '/v' + eventData.version] = eventData;
+
+            this._eventMap[eventData.provider][eventName + '/v' + eventData.version] = eventData;
         }
 
-        await this.getEventConfig(eventsConfig);                                             // get event config for required event_map in eventConfig.event_configs
+        let allEventMap = {...this._eventMap.rest,
+            ...this._eventMap.kafka,
+            ...this._eventMap.sqs,
+            ...this._eventMap.pub_sub,
+            ...this._eventMap.temporal,
+            ...this._eventMap.event_bridge};
+        await this.getEventConfig(allEventMap);                                             // get event config for required event_map in eventConfig.event_configs
         eventConfig.eventsMap = this._getEventIdMap(eventConfig.event_configs);               // generate eventIdMap from eventConfig.event_configs
-        this._validateEventsMap(eventsConfig);
+        this._validateEventsMap(allEventMap);
         
         if(Object.keys(eventConfig.eventsNotFound).length){
             let errors = []
@@ -89,13 +99,11 @@ class WebhookRegistry {
             })
             throw new FdkInvalidWebhookConfig(`Webhooks events ${errors.join(' and ')} not found`);
         }
-        this._handlerMap = handlerConfig;
-        this._topicMap = topicConfig;
         logger.debug('Webhook registry initialized');
     }
 
     get isInitialized() {
-        return !!this._handlerMap || !!this._topicMap;
+        return !!this._eventMap;
     }
 
     get isSubscribeOnInstall(){
@@ -174,8 +182,19 @@ class WebhookRegistry {
         // v3.0 upsert put api does not exist
         if(!subscriberSyncedForAllProvider){
             let subscriberConfigList = await this.getSubscriberConfig(platformClient);
-            await this.syncSubscriberConfig(subscriberConfigList.rest, 'rest', this._handlerMap, platformClient, enableWebhooks);
-            await this.syncSubscriberConfig(subscriberConfigList.kafka, 'kafka', this._topicMap, platformClient, enableWebhooks);
+            await this.syncSubscriberConfig(subscriberConfigList.rest, 'rest', this._eventMap.rest, platformClient, enableWebhooks);
+
+            await this.syncSubscriberConfig(subscriberConfigList.kafka, 'kafka', this._eventMap.kafka , platformClient, enableWebhooks);
+
+            await this.syncSubscriberConfig(subscriberConfigList.pub_sub, 'pub_sub', this._eventMap.pub_sub , platformClient, enableWebhooks);
+
+            await this.syncSubscriberConfig(subscriberConfigList.sqs, 'sqs', this._eventMap.sqs , platformClient, enableWebhooks);
+
+            await this.syncSubscriberConfig(subscriberConfigList.event_bridge, 'event_bridge', this._eventMap.event_bridge , platformClient, enableWebhooks);
+
+            await this.syncSubscriberConfig(subscriberConfigList.temporal, 'temporal', this._eventMap.temporal , platformClient, enableWebhooks);
+            subscriberConfigList = await this.getSubscriberConfig(platformClient);
+            console.log(subscriberConfigList);
         }
 
     }
@@ -314,10 +333,14 @@ class WebhookRegistry {
             const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig
             subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
             subscriberConfig.events = [];
+            // add for temporal
             existingEvents = event_configs.map(event => {
                 return {
                     'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`,
-                    'topic': event.subscriber_event_mapping.topic
+                    'topic': event.subscriber_event_mapping.topic,
+                    'queue': event?.subscriber_event_mapping?.broadcaster_config?.queue,
+                    'event_bridge_name': event?.subscriber_event_mapping?.broadcaster_config?.event_bridge_name,
+
                 }
             });
             // Checking Configuration Updates
@@ -342,7 +365,11 @@ class WebhookRegistry {
             let event_id = eventConfig.eventsMap[eventName]
             if (event_id) {
                 const event = {
-                    slug: eventName
+                    slug: eventName,
+                    topic: currentEventMapConfig[eventName]?.topic,
+                    queue: currentEventMapConfig[eventName]?.queue,
+                    event_bridge_name: currentEventMapConfig[eventName]?.event_bridge_name,
+                    workflow_name: currentEventMapConfig[eventName]?.workflow_name,
                 }
                 if(currentEventMapConfig[eventName].hasOwnProperty('topic')){
                     event['topic'] = currentEventMapConfig[eventName].topic;
@@ -369,13 +396,26 @@ class WebhookRegistry {
                     ...existingEvents.filter(event => !subscriberConfig.events.find(item => item.slug === event.slug))
                 ]
 
-                // Check if only topic is changed for same kafka events
-                if(configType === 'kafka' && !configUpdated){
+                //keys to check for updates in subscriberConfig for different config type
+                let configTypeKeysToCheck = {
+                    'kafka': ['topic'],
+                    'pub_sub': ['topic'],
+                    'temporal': ['queue', 'workflow_name'],
+                    'sqs': ['queue'],
+                    'event_bridge': ['event_bridge_name']
+                }
+
+                // check if these keys have changed
+                if(configType != 'rest' && !configUpdated){
                     for(const event of subscriberConfig.events){
                         const existingEvent = existingEvents.find(e => e.slug === event.slug);
-                        if(existingEvent && !(event.topic === existingEvent.topic)){
-                            configUpdated = true
-                            break;
+                        if(existingEvent){
+                            for(let key of configTypeKeysToCheck[configType]){
+                                if(!(event[key] === existingEvent[key])){
+                                    configUpdated = true;
+                                    break
+                                }
+                            }
                         }
                     }
                 }
@@ -499,7 +539,7 @@ class WebhookRegistry {
 
             const eventName = `${body.event.category}/${body.event.name}/${body.event.type}/v${body.event.version}`;
 
-            const eventHandlerMap = (this._handlerMap[eventName] || {});
+            const eventHandlerMap = (this._eventMap.rest[eventName] || {});
             const extHandler = eventHandlerMap.handler;
 
             if (typeof extHandler === 'function') {
@@ -684,11 +724,8 @@ class WebhookRegistry {
             
             const subscriberConfig = {};
             subscriberConfigResponse.items.forEach((config) => {
-                if(config.provider === 'kafka'){
-                    subscriberConfig['kafka'] = config;
-                }
-                else{
-                    subscriberConfig['rest'] = config;
+                if(config.provider){
+                    subscriberConfig[config.provider] = config
                 }
             })
 
