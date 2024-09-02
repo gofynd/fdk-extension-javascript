@@ -215,7 +215,7 @@ function setupRoutes(ext) {
     FdkRoutes.post("/fp/uninstall", async (req, res, next) => {
         try {
             const reqSignature = req.headers['x-ext-signature'];
-            const kCredentials = "12345"
+            const kCredentials = ext.api_secret;
             
             const strToVerify = `${ext.api_key}:${ext.api_secret}`
             const calcSignature = `${hmacSHA256(kCredentials, strToVerify)}`;
