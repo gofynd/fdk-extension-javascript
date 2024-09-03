@@ -13,6 +13,7 @@ const handlers = require('../lib/handlers');
 const { formRequestObject } = require('../lib/utils');
 const { Controller, Post, Get, Bind, Res, Req, Next, HttpCode } = require('@nestjs/common');
 const { extension } = require('../lib/extension');
+const { verifySignature } = require('../lib/utils');
 let ExtensionController = class ExtensionController {
     async install(req, res, next) {
         try {
@@ -60,7 +61,9 @@ let ExtensionController = class ExtensionController {
     }
     async unInstall(req, res, next) {
         try {
+            const strToVerify = `${extension.api_key}:${extension.api_secret}`;
             const reqObj = formRequestObject(req);
+            await verifySignature(strToVerify, reqObj.headers);
             await handlers.extUninstall(reqObj, req.body.company_id, extension);
             res.json({ success: true });
         }

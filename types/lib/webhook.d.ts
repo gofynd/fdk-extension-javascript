@@ -17,7 +17,6 @@ export class WebhookRegistry {
     syncSubscriberConfig(subscriberConfig: any, configType: any, currentEventMapConfig: any, platformClient: any, enableWebhooks: any): Promise<void>;
     enableSalesChannelWebhook(platformClient: any, applicationId: any): Promise<void>;
     disableSalesChannelWebhook(platformClient: any, applicationId: any): Promise<void>;
-    verifySignature(body: any, headers: any): void;
     processWebhook({ body, headers }: {
         body: any;
         headers: any;

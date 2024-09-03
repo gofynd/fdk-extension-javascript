@@ -4,6 +4,7 @@ const SessionStorage = require("../lib/session/session_storage");
 const handlers = require('../lib/handlers');
 const { formRequestObject } = require('../lib/utils');
 const { extension } = require('../lib/extension');
+const { verifySignature } = require('../lib/utils');
 
 async function setupRoutes(fastify, options){
     
@@ -60,7 +61,9 @@ async function setupRoutes(fastify, options){
 
     fastify.post("/fp/uninstall", async (req, res) => {
         try {
+            const strToVerify = `${extension.api_key}:${extension.api_secret}`
             const reqObj = formRequestObject(req);
+            await verifySignature(strToVerify, reqObj.headers)
             await handlers.extUninstall(reqObj, req.body.company_id, extension);
             res.send({ success: true });
         }

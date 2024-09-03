@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../lib/constants");
 const { clearData } = require("../helpers/setup_db");
 const { userHeaders, applicationHeaders } = require("./constants");
+const { getSignature } = require('../utils/utils');
 
 describe("Nestjs --> Extension launch flow", () => {
   let app;
@@ -74,7 +75,9 @@ describe("Nestjs --> Extension launch flow", () => {
   });
 
   it("/fp/uninstall", async () => {
-    let response = await request.post("/fp/uninstall").send({ company_id: 1 });
+    let response = await request.post("/fp/uninstall")
+    .set('x-fp-signature', getSignature())
+    .send({ company_id: 1 });
     expect(response.status).toBe(200);
   });
   

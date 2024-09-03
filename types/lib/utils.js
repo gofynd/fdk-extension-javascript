@@ -2,6 +2,8 @@ const { extension } = require("./extension");
 const Session = require("./session/session");
 const SessionStorage = require("./session/session_storage");
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const hmacSHA256 = require("crypto-js/hmac-sha256");
+const { FdkInvalidHMacError } = require('./error_code');
 async function getPlatformClient(companyId, sessionId) {
     let client = null;
     let sid = sessionId;
@@ -83,6 +85,14 @@ async function getUserData(userData) {
     }
     return user;
 }
+async function verifySignature(body, headers) {
+    const reqSignature = headers['x-fp-signature'];
+    const bodyToHash = typeof body === 'object' ? JSON.stringify(body) : body;
+    const calcSignature = hmacSHA256(bodyToHash, extension.api_secret).toString();
+    if (reqSignature !== calcSignature) {
+        throw new FdkInvalidHMacError(`Signature passed does not match calculated body signature`);
+    }
+}
 module.exports = {
     formRequestObject,
     getPlatformClient,
@@ -90,5 +100,6 @@ module.exports = {
     getApplicationClient,
     getSessionData,
     getApplicationConfig,
-    getUserData
+    getUserData,
+    verifySignature
 };
