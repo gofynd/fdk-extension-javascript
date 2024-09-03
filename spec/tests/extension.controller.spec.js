@@ -73,13 +73,6 @@ describe("Nestjs --> Extension launch flow", () => {
     expect(response.status).toBe(302);
   });
 
-  it("/fp/auto_install", async () => {
-    let response = await request
-      .post(`/fp/auto_install`)
-      .send({ company_id: 1 });
-    expect(response.status).toBe(200);
-  });
-
   it("/fp/uninstall", async () => {
     let response = await request.post("/fp/uninstall").send({ company_id: 1 });
     expect(response.status).toBe(200);

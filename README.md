@@ -1,47 +1,44 @@
 # fdk-extension-javascript
+- A helper library for extension development on the Fynd Platform.
 
-The FDK Extension JavaScript library is designed to streamline the implementation of OAuth for accessing Fynd Platform APIs and managing webhook subscriptions. This library offers built-in support for Express, Nest.js, and Fastify frameworks. Additionally, it provides flexibility for developing extensions in your preferred framework beyond the default support.
+## Overview
 
-This readme provides step-by-step guidance on implementing FDK extensions in different frameworks.
+The `FDK Extension JavaScript Library` eases the process of implementing OAuth and managing webhook subscriptions for Fynd Platform APIs. With its framework-agnostic nature, it adapts to any JavaScript framework, offering flexible options for extension development.
 
-# [Express Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/express/README.md)
-Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.
+## Usage
 
-# [Nest.js Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/nest/README.md)
-Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.
+### Setting Up OAuth Routes
 
-# [Fastify Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/fastify/README.md)
-Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.
+> The process of integrating OAuth functionality into an existing extension involves creating specific routes within the extension: 
+  - `/fp/install`: This route initiates the OAuth flow and obtains the authorization code with user consent.
+    - Use the `extInstall` handler for this route. It requires three parameters: company_id, application_id, and the extension object, which is obtained from the `setupfdk` method.
+    - The `extInstall` handler returns the redirect URL for the extension consent page and user session data, which should be sent back from the `/fp/install` route as a redirection.
 
-# Developing Extensions in other frameworks
+  - `/fp/auth`: This route is used to exchange the authorization code for an access token.
+    - Use the `extAuth` handler for this route. It takes five arguments: reqObject, state, code, extension object, and sessionId. The reqObject must contain a valid sessionId.
+    - The `extAuth` handler returns the redirect URL for the extension home page and user session data, which should be sent back from the `/fp/auth` route as a redirection.
 
-If you wish to develop an extension in a framework other than Express, Nest.js, or Fastify, refer to the documentation below.
+### Handling Uninstall Events
+To manage cleanup when an extension is uninstalled from a company, you need to implement the `/fp/uninstall` route:
 
->The process of integrating OAuth functionality into an existing extension involves creating specific routes within the extension. These routes, namely `/fp/install`, `/fp/auth`, `/fp/autoinstall`, and `/fp/uninstall`, play a crucial role in OAuth implementation. It is essential to attach a `routerHandler` to each of these created routes, which can be obtained from the `setupfdk` function.
+- `/fp/uninstall`: This route is used to handles clean up process of an extension.
+  - Use the `extUninstall` handler for this route. It takes reqObject, companyId, and extension object as arguments, which is obtained from the `setupfdk` method.
+  - This handler processes the client_id, company_id, and cluster data received in the request payload when the extension is uninstalled, facilitating the necessary cleanup.
 
-> The `fpInstall` function call requires three parameters: company_id, application_id, and exe data (extension exposed through the setupfdk method). This call will return the redirect URL of an extension consent page and session data that must be sent back.
-
-> The `fpAuth` function call takes five arguments: reqobject, state, code, ext and sessionId. Request object must contain valid sessionId. This call will return the redirect URL of an installed extension and the session data that must be sent back.
-
-> The `fpAutoInstall` function call will take reqObject, companyId, code, and extension data as arguments. This is beneficial for installing the extension whenever a company is created.
-
-> The `fpUninstall` function call will take reqObject, companyId, and extension as arguments. This facilitates the uninstallation of a specific extension.
-
-#### Initial Setup
+#### Example code
 
 ```javascript
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { setupFdk } = require("fdk-extension-javascript");
-const { RedisStorage } = require("fdk-extension-javascript/storage"); //RedisStorage class is provided by default. If you have implemented custom storage class, use <YourCustomStorageClass> here.
-const Redis = require("ioredis");
+const sqlite3 = require('sqlite3').verbose();
+const { SQLiteStorage } = require("fdk-extension-javascript/express/storage"); //SQLiteStorage class is provided by default. If you have implemented custom storage class, use <YourCustomStorageClass> here.
+const sqliteInstance = new sqlite3.Database('session_storage.db');
 
 const app = express();
 app.use(cookieParser("ext.session"));
 app.use(bodyParser.json({ limit: "2mb" }));
-
-const redis = new Redis();
 
 let extensionHandler = {
   auth: async function (data) {
@@ -56,24 +53,22 @@ let extensionHandler = {
 let fdkClient = setupFdk({
   api_key: "<API_KEY>", // API Key of an extension for authentication.
   api_secret: "<API_SECRET>", // API Secret of an extension for authentication.
-  base_url: baseUrl, // optional. Base URL for extension.
-  scopes: ["company/products"], // optional. An array of scopes indicating the specific permissions needed for an extension.
-  callbacks: extensionHandler, // The callback function to handle extension-related tasks.
-  storage: new RedisStorage(redis), // An instance of storage (e.g., RedisStorage) for data storage.
+  base_url: "<EXTENSION_BASE_URL>", // Base URL for extension.
+  callbacks: extensionHandler, // An object containing callback functions like auth, uninstall and others, allowing you to execute custom tasks related to your extension's lifecycle.
+  storage: new SQLiteStorage(sqliteInstance), // An instance of storage (e.g. SQLiteStorage) for to store and manage user session data.
   access_mode: "offline", // Access mode of an extension. It can be `online` or `offline`.
-  cluster: "https://api.fyndx0.de", // optional. The API url of the Fynd Platform cluster.
 });
 
-let router = app.express.Router();
+let router = express.Router();
 const handlers = fdkClient.routerHandlers; // Functions that constains implementaion of OAuth
 
 router.get("/fp/install", async (req, res, next) => {
-    const { redirectUrl, fdkSession } = await handlers.fpInstall(
+    const { redirectUrl, fdkSession } = await handlers.extInstall(
         req.query.company_id,
         req.query.application_id, // optional
         fdkClient.extension
     );
-    // Return redirect url obtained in fpInstall call
+    // Return redirect url obtained in extInstall call
     // Return fdk session (for example in cookies or jwt token or any other form )
     /*res.cookie(compCookieName, fdkSession.id, {
         secure: true,
@@ -88,16 +83,16 @@ router.get("/fp/install", async (req, res, next) => {
 
 router.get("/fp/auth", async (req, res, next) => {
     let sessionId = session_id; // Get the session id from cookies or jwt token or any other form
-    req.fdkSession = await redis.get(sessionId); // Attach session to request object
+    req.fdkSession = await sqliteStorageInstance.get(sessionId); // Attach session to request object
     req.extension = fdkClient.extension; // Attach extension to request object
-    const { redirectUrl, fdkSession } = await handlers.fpAuth(
+    const { redirectUrl, fdkSession } = await handlers.extAuth(
         reqObj,
         req.query.state,
         req.query.code,
         fdkClient.extension,
         sessionId
     );
-    // Return redirect url obtained in fpInstall call
+    // Return redirect url obtained in extInstall call
     // Return fdk session (for example in cookies or jwt token or any other form )
     /*res.cookie(compCookieName, fdkSession.id, {
         secure: true,
@@ -109,18 +104,8 @@ router.get("/fp/auth", async (req, res, next) => {
     res.redirect(redirectUrl); */
 });
 
-router.post("/fp/auto_install", async (req, res, next) => {
-    await handlers.fpAutoInstall(
-        reqObj,
-        req.body.company_id,
-        req.body.code,
-        fdkClient.extension
-    );
-    res.json({ message: "success" });
-});
-
 router.post("/fp/uninstall", async (req, res, next) => {
-    await handlers.fpUninstall(
+    await handlers.extUninstall(
         reqObj,
         req.body.company_id,
         fdkClient.extension
@@ -131,21 +116,22 @@ router.post("/fp/uninstall", async (req, res, next) => {
 app.use(router);
 app.listen(3000);
 ```
-### Parameters of setupFDK function
+
+### Parameters Table
 #### Parameter table for `setupFdk` function
 
 | Parameter  | Description | 
 | ------------- | ------------- |
 | api_key  | API Key of an extension for authentication.  |
 | api_secret  | API Secret of an extension for authentication.  |
-| base_url?  | Base URL for extension.  |
-| scopes?  | An array of scopes indicating the specific permissions needed for an extension. |
-| callbacks  | The callback function to handle extension-related tasks. |
-| storage  | An instance of storage (e.g., RedisStorage) for data storage.  |
+| base_url  | Base URL for extension.  |
+| scopes  | An array of scopes indicating the specific permissions needed for an extension. |
+| callbacks  | An object containing callback functions like auth, uninstall and others, allowing you to execute custom tasks related to your extension's lifecycle. |
+| storage  | An instance of storage (e.g. SQLiteStorage) for to store and manage user session data.  |
 | access_mode  | Access mode of an extension. It can be `online` or `offline`.  |
-| cluster?  | The API url of the Fynd Platform cluster. |
+| cluster?  | The API endpoint of the Fynd Platform cluster. |
 | debug?  | Enable debug logs if it is `true`. Value can be `true` or `false`.  |
-| [webhook_config](https://github.com/gofynd/fdk-extension-javascript?tab=readme-ov-file#parameter-table-for-webhook-configuration)  | Necessary configuration for webhooks.  |
+| [webhook_config](#parameter-table-for-webhook-configuration)  | Necessary configuration for webhooks.  |
 
 #### Parameter table for `webhook` configuration
 | Parameter  | Description |
@@ -154,12 +140,12 @@ app.listen(3000);
 | notification_email  | Email address for webhook related notifications.  |
 | subscribe_on_install?  | Whether to auto subscribe to all webhooks on extension installation. It can be true or false. |
 | subscribed_saleschannel?  | If `specific` then you have to manually subscribe to sales channel/website level events for individual sales channels. Value can be `all` or `optional`. |
-| [event_map](https://github.com/gofynd/fdk-extension-javascript?tab=readme-ov-file#parameter-table-for-event_map-object)  | A mapping of events to corresponding handlers for webhook processing.  |
+| [event_map](#parameter-table-for-event_map-object)  | A mapping of events to corresponding handlers for webhook processing.  |
 
 #### Parameter table for `event_map` object
 | Parameter  | Description |
 | ------------- | ------------- |
-| key  | API endpoint to process webhooks event.  |
+| key  | Name of a webhook event.  |
 | value  | `version` and `handler`  |
 |   | `version`  -- API version of specified event |
 |   | `handler` -- A handler function when specified event occures|
@@ -252,7 +238,7 @@ app.use(fdkClient.partnerApiRoutes);
 #### How to register for webhook events?
 
 Webhook events can be helpful to handle tasks when certain events occur on platform. You can subscribe to such events by passing `webhook_config` in setupFdk function.
-Please refer [webhook documentation](https://partners.fynd.com/help/docs/partners/webhooks/webhook-events/article#payload) to know about event payload and it's structure.
+Please refer [webhook documentation](https://partners.fynd.com/help/docs/webhooks/latest/company#article) to know about event payload and it's structure.
 
 ```javascript
 
@@ -269,7 +255,7 @@ let fdkClient = setupFdk({
       console.log("called uninstall callback");
     },
   },
-  storage: new RedisStorage(redis),
+  storage: new SQLiteStorage(sqliteInstance),
   access_mode: "offline",
   webhook_config: {
     api_path: "/api/v1/webhooks", // API endpoint to process webhooks event.
@@ -331,4 +317,18 @@ Other way to update webhook config manually for a company is to call `syncEvents
 
 
 # [Custom storage class](https://github.com/gofynd/fdk-extension-javascript/tree/main/storage/README.md)
-The FDK Extension JavaScript library provides built-in support for Redis and in-memory storage options as default choices for session data storage. However, if you require a different storage option, this readme will guide you through the process of implementing a custom storage class.
+The FDK Extension JavaScript library provides built-in support for SQLite, Redis and in-memory storage options as default choices for session data storage. However, if you require a different storage option, this readme will guide you through the process of implementing a custom storage class.
+
+# Supported frameworks
+This library comes with built-in compatibility for Express, NestJS, and Fastify frameworks.
+
+Below, you'll find step-by-step instructions for implementing FDK extensions library in each of these frameworks.
+
+# [Express Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/express/README.md)
+Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.
+
+# [Nest.js Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/nest/README.md)
+Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.
+
+# [Fastify Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/fastify/README.md)
+Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.

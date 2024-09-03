@@ -12,7 +12,7 @@ function setupRoutes(ext) {
         try {
             let companyId = parseInt(req.query.company_id);
             let redirectPath = req.query.redirect_path;
-            const { redirectUrl, fdkSession } = await handlers.fpInstall(req.query.company_id, req.query.application_id, redirectPath, ext);
+            const { redirectUrl, fdkSession } = await handlers.extInstall(req.query.company_id, req.query.application_id, redirectPath, ext);
             const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`;
             res.header['x-company-id'] = companyId;
             res.cookie(compCookieName, fdkSession.id, {
@@ -37,7 +37,7 @@ function setupRoutes(ext) {
             req.fdkSession = await SessionStorage.getSession(sessionId);
             req.extension = ext;
             const reqObj = formRequestObject(req);
-            const { redirectUrl, fdkSession } = await handlers.fpAuth(reqObj, req.query.state, req.query.code, ext, (_a = req.fdkSession) === null || _a === void 0 ? void 0 : _a.id);
+            const { redirectUrl, fdkSession } = await handlers.extAuth(reqObj, req.query.state, req.query.code, ext, (_a = req.fdkSession) === null || _a === void 0 ? void 0 : _a.id);
             res.header['x-company-id'] = companyId;
             res.cookie(compCookieName, fdkSession.id, {
                 secure: true,
@@ -52,20 +52,10 @@ function setupRoutes(ext) {
             next(error);
         }
     });
-    FdkRoutes.post("/fp/auto_install", async (req, res, next) => {
-        try {
-            const reqObj = formRequestObject(req);
-            await handlers.fpAutoInstall(reqObj, req.body.company_id, req.body.code, ext);
-            return res.json({ message: "success" });
-        }
-        catch (error) {
-            next(error);
-        }
-    });
     FdkRoutes.post("/fp/uninstall", async (req, res, next) => {
         try {
             const reqObj = formRequestObject(req);
-            await handlers.fpUninstall(reqObj, req.body.company_id, ext);
+            await handlers.extUninstall(reqObj, req.body.company_id, ext);
             return res.json({ success: true });
         }
         catch (error) {

@@ -42,7 +42,7 @@ describe("Custom framework integration as express - Extension launch flow", () =
 
     router.get("/fp/install", async (req, res, next) => {
       let companyId = req.query.company_id;
-      const { redirectUrl, fdkSession } = await handlers.fpInstall(
+      const { redirectUrl, fdkSession } = await handlers.extInstall(
         companyId,
         req.query.application_id,
         'test', // redirect path
@@ -68,7 +68,7 @@ describe("Custom framework integration as express - Extension launch flow", () =
         req.fdkSession = await redis.get(sessionId);
         req.extension = fdk_instance.extension;
         const reqObj = formRequestObject(req);
-        const { redirectUrl, fdkSession } = await handlers.fpAuth(
+        const { redirectUrl, fdkSession } = await handlers.extAuth(
           reqObj,
           req.query.state,
           req.query.code,
@@ -89,24 +89,10 @@ describe("Custom framework integration as express - Extension launch flow", () =
       }
     });
 
-    router.post("/fp/auto_install", async (req, res, next) => {
-      try {
-        const reqObj = formRequestObject(req);
-        await handlers.fpAutoInstall(
-          reqObj,
-          req.body.company_id,
-          req.body.code,
-          fdk_instance.extension
-        );
-        res.json({ message: "success" });
-      } catch (error) {
-        next(error);
-      }
-    });
     router.post("/fp/uninstall", async (req, res, next) => {
       try {
         const reqObj = formRequestObject(req);
-        await handlers.fpUninstall(
+        await handlers.extUninstall(
           reqObj,
           req.body.company_id,
           fdk_instance.extension
@@ -224,13 +210,6 @@ describe("Custom framework integration as express - Extension launch flow", () =
       applicationToken
     );
     expect(client.cart).toBeDefined();
-  });
-
-  it("/fp/auto_install", async () => {
-    let response = await request
-      .post(`/custom/fp/auto_install`)
-      .send({ company_id: 1 });
-    expect(response.status).toBe(200);
   });
 
   it("/fp/install auth call back should contains application id", async () => {

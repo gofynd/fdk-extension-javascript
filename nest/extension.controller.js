@@ -14,7 +14,7 @@ class ExtensionController {
             // ?company_id=1&client_id=123313112122
             let companyId = parseInt(req.query.company_id);
             let redirectPath = req.query.redirect_path;
-            const { redirectUrl, fdkSession } = await handlers.fpInstall(req.query.company_id, req.query.application_id, redirectPath, extension);
+            const { redirectUrl, fdkSession } = await handlers.extInstall(req.query.company_id, req.query.application_id, redirectPath, extension);
             
             const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
             res.header['x-company-id'] = companyId;
@@ -41,7 +41,7 @@ class ExtensionController {
             req.fdkSession = await SessionStorage.getSession(sessionId);
             req.extension = extension;
             const reqObj = formRequestObject(req);
-            const { redirectUrl, fdkSession } = await handlers.fpAuth(reqObj, req.query.state, req.query.code, extension, req.fdkSession?.id);
+            const { redirectUrl, fdkSession } = await handlers.extAuth(reqObj, req.query.state, req.query.code, extension, req.fdkSession?.id);
             res.header['x-company-id'] = companyId;
             res.cookie(compCookieName, fdkSession.id, {
                 secure: true,
@@ -57,27 +57,13 @@ class ExtensionController {
         }
     }
     
-    @Post('fp/auto_install')
-    @HttpCode(200)
-    @Bind(Req(), Res(), Next())
-    async autoInstall(req, res, next) {
-        try {
-            const reqObj = formRequestObject(req);
-            await handlers.fpAutoInstall(reqObj ,req.body.company_id, req.body.code, extension);
-            res.json({ message: "success" });
-        }
-        catch (error) {
-            next(error)
-        }
-    }
-    
     @Post('fp/uninstall')
     @HttpCode(200)
     @Bind(Req(), Res(), Next())
     async unInstall(req, res, next) {
         try {
             const reqObj = formRequestObject(req);
-            await handlers.fpUninstall(reqObj, req.body.company_id, extension);
+            await handlers.extUninstall(reqObj, req.body.company_id, extension);
             res.json({ success: true });
         }
         catch (error) {

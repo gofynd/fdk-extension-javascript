@@ -1,13 +1,12 @@
-export function fpAuth(reqObj: any, state: any, code: any, ext: any, sessionId: any): Promise<{
+export function extAuth(reqObj: any, state: any, code: any, ext: any, sessionId: any): Promise<{
     redirectUrl: any;
     fdkSession: any;
 }>;
-export function fpInstall(company_id: any, application_id: any, redirect_path: any, ext: any): Promise<{
+export function extInstall(company_id: any, application_id: any, redirect_path: any, ext: any): Promise<{
     redirectUrl: any;
     fdkSession: Session;
 }>;
-export function fpAutoInstall(reqObj: any, company_id: any, code: any, ext: any): Promise<void>;
-export function fpUninstall(reqObj: any, company_id: any, ext: any): Promise<void>;
+export function extUninstall(reqObj: any, company_id: any, ext: any): Promise<void>;
 export function admInstall(organization_id: any, ext: any): Promise<{
     redirectUrl: any;
     fdkSession: Session;

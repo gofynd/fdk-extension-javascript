@@ -106,13 +106,6 @@ describe("Extension launch flow", () => {
         expect(client.cart).toBeDefined();
     });
 
-    it('/fp/auto_install', async () => {
-        let response = await request
-            .post(`/fp/auto_install`)
-            .send({ company_id: 1 });
-        expect(response.status).toBe(200);
-    });
-
     it('/fp/install redirect url should contains application id', async () => {
         let response = await request
             .get(`/fp/install?company_id=1&install_event=true&application_id=${applicationId}`)

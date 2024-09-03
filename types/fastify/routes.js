@@ -9,7 +9,7 @@ async function setupRoutes(fastify, options) {
         try {
             let companyId = parseInt(req.query.company_id);
             let redirectPath = req.query.redirect_path;
-            const { redirectUrl, fdkSession } = await handlers.fpInstall(req.query.company_id, req.query.application_id, redirectPath, extension);
+            const { redirectUrl, fdkSession } = await handlers.extInstall(req.query.company_id, req.query.application_id, redirectPath, extension);
             const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`;
             res.header['x-company-id'] = companyId;
             res.setCookie(compCookieName, fdkSession.id, {
@@ -36,7 +36,7 @@ async function setupRoutes(fastify, options) {
             req.fdkSession = await SessionStorage.getSession(sessionId);
             req.extension = extension;
             const reqObj = formRequestObject(req);
-            const { redirectUrl, fdkSession } = await handlers.fpAuth(reqObj, req.query.state, req.query.code, extension, (_a = req.fdkSession) === null || _a === void 0 ? void 0 : _a.id);
+            const { redirectUrl, fdkSession } = await handlers.extAuth(reqObj, req.query.state, req.query.code, extension, (_a = req.fdkSession) === null || _a === void 0 ? void 0 : _a.id);
             res.header['x-company-id'] = companyId;
             res.setCookie(compCookieName, fdkSession.id, {
                 domain: req.hostname,
@@ -53,20 +53,10 @@ async function setupRoutes(fastify, options) {
             throw error;
         }
     });
-    fastify.post("/fp/auto_install", async (req, res) => {
-        try {
-            const reqObj = formRequestObject(req);
-            await handlers.fpAutoInstall(reqObj, req.body.company_id, req.body.code, extension);
-            res.send({ message: "success" });
-        }
-        catch (error) {
-            throw error;
-        }
-    });
     fastify.post("/fp/uninstall", async (req, res) => {
         try {
             const reqObj = formRequestObject(req);
-            await handlers.fpUninstall(reqObj, req.body.company_id, extension);
+            await handlers.extUninstall(reqObj, req.body.company_id, extension);
             res.send({ success: true });
         }
         catch (error) {

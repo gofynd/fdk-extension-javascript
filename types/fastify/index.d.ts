@@ -35,16 +35,15 @@ export function setupFdk(data: any, syncInitialization: any): {
     getApplicationConfig: typeof getApplicationConfig;
     getUserData: typeof getUserData;
     routerHandlers: {
-        fpAuth: (reqObj: any, state: any, code: any, ext: any, sessionId: any) => Promise<{
+        extAuth: (reqObj: any, state: any, code: any, ext: any, sessionId: any) => Promise<{
             redirectUrl: any;
             fdkSession: any;
         }>;
-        fpInstall: (company_id: any, application_id: any, redirect_path: any, ext: any) => Promise<{
+        extInstall: (company_id: any, application_id: any, redirect_path: any, ext: any) => Promise<{
             redirectUrl: any;
             fdkSession: import("../lib/session/session");
         }>;
-        fpAutoInstall: (reqObj: any, company_id: any, code: any, ext: any) => Promise<void>;
-        fpUninstall: (reqObj: any, company_id: any, ext: any) => Promise<void>;
+        extUninstall: (reqObj: any, company_id: any, ext: any) => Promise<void>;
         admInstall: (organization_id: any, ext: any) => Promise<{
             redirectUrl: any;
             fdkSession: import("../lib/session/session");
@@ -90,16 +89,15 @@ export function setupFdk(data: any, syncInitialization: any): {
     getApplicationConfig: typeof getApplicationConfig;
     getUserData: typeof getUserData;
     routerHandlers: {
-        fpAuth: (reqObj: any, state: any, code: any, ext: any, sessionId: any) => Promise<{
+        extAuth: (reqObj: any, state: any, code: any, ext: any, sessionId: any) => Promise<{
             redirectUrl: any;
             fdkSession: any;
         }>;
-        fpInstall: (company_id: any, application_id: any, redirect_path: any, ext: any) => Promise<{
+        extInstall: (company_id: any, application_id: any, redirect_path: any, ext: any) => Promise<{
             redirectUrl: any;
             fdkSession: import("../lib/session/session");
         }>;
-        fpAutoInstall: (reqObj: any, company_id: any, code: any, ext: any) => Promise<void>;
-        fpUninstall: (reqObj: any, company_id: any, ext: any) => Promise<void>;
+        extUninstall: (reqObj: any, company_id: any, ext: any) => Promise<void>;
         admInstall: (organization_id: any, ext: any) => Promise<{
             redirectUrl: any;
             fdkSession: import("../lib/session/session");
