@@ -66,19 +66,9 @@ class WebhookRegistry {
                 throw new FdkInvalidWebhookConfig(`Missing queue in webhook event ${eventName}`);
             }else if(eventData.provider === 'temporal' && !eventData.hasOwnProperty("workflow_name")){
                 throw new FdkInvalidWebhookConfig(`Missing workflow_name in webhook event ${eventName}`);
-            }else if(eventData.provider === 'sqs' && !eventData.hasOwnProperty("account_id")){
-                throw new FdkInvalidWebhookConfig(`Missing account_id in webhook event ${eventName}`);
             }else if(eventData.provider === 'event_bridge' && !eventData.hasOwnProperty("event_bridge_name")){
                 throw new FdkInvalidWebhookConfig(`Missing event_bridge_name in webhook event ${eventName}`);
             }
-            // if(eventData.provider === 'rest'){
-            //     handlerConfig[eventName + '/v' + eventData.version] = eventData;
-            // }
-            // if(eventData.provider === 'kafka'){
-            //     topicConfig[eventName + '/v' + eventData.version] = eventData;
-            // }
-            // allEventConfig[eventName + '/v' + eventData.version] = eventData;
-
             this._eventMap[eventData.provider][eventName + '/v' + eventData.version] = eventData;
         }
 
@@ -88,8 +78,10 @@ class WebhookRegistry {
             ...this._eventMap.pub_sub,
             ...this._eventMap.temporal,
             ...this._eventMap.event_bridge};
-        await this.getEventConfig(allEventMap);                                             // get event config for required event_map in eventConfig.event_configs
-        eventConfig.eventsMap = this._getEventIdMap(eventConfig.event_configs);               // generate eventIdMap from eventConfig.event_configs
+        // get event config for required event_map in eventConfig.event_configs
+        await this.getEventConfig(allEventMap);     
+        // generate eventIdMap from eventConfig.event_configs                                        
+        eventConfig.eventsMap = this._getEventIdMap(eventConfig.event_configs);               
         this._validateEventsMap(allEventMap);
         
         if(Object.keys(eventConfig.eventsNotFound).length){
@@ -172,12 +164,8 @@ class WebhookRegistry {
             throw new FdkInvalidWebhookConfig('Webhook registry not initialized');
         }
         logger.debug('Webhook sync events started');
-        let subscriberConfigList = await this.getSubscriberConfig(platformClient);
-        console.log(subscriberConfigList);
 
         let subscriberSyncedForAllProvider = await this.syncSubscriberConfigForAllProviders(platformClient);
-
-        subscriberConfigList = await this.getSubscriberConfig(platformClient);
 
         // v3.0 upsert put api does not exist
         if(!subscriberSyncedForAllProvider){
@@ -193,8 +181,6 @@ class WebhookRegistry {
             await this.syncSubscriberConfig(subscriberConfigList.event_bridge, 'event_bridge', this._eventMap.event_bridge , platformClient, enableWebhooks);
 
             await this.syncSubscriberConfig(subscriberConfigList.temporal, 'temporal', this._eventMap.temporal , platformClient, enableWebhooks);
-            subscriberConfigList = await this.getSubscriberConfig(platformClient);
-            console.log(subscriberConfigList);
         }
 
     }
@@ -289,7 +275,6 @@ class WebhookRegistry {
                     topic: event.topic,
                     queue: event.queue,
                     workflow_name: event.workflow_name,
-                    account_id: event.account_id,
                     event_bridge_name: event.event_bridge_name
                 };
                 payloadEventMap[event.provider].events.push(eventData);
@@ -337,10 +322,10 @@ class WebhookRegistry {
             existingEvents = event_configs.map(event => {
                 return {
                     'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`,
-                    'topic': event.subscriber_event_mapping.topic,
+                    'topic': event?.subscriber_event_mapping?.broadcaster_config?.topic,
                     'queue': event?.subscriber_event_mapping?.broadcaster_config?.queue,
                     'event_bridge_name': event?.subscriber_event_mapping?.broadcaster_config?.event_bridge_name,
-
+                    'workflow_name': event?.subscriber_event_mapping?.broadcaster_config?.workflow_name
                 }
             });
             // Checking Configuration Updates
@@ -452,10 +437,11 @@ class WebhookRegistry {
                 subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
                 subscriberConfig.events = event_configs.map(event => {
                     const eventObj = {
-                        slug: `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`
-                    }
-                    if(subscriberConfig.provider === 'kafka'){
-                        eventObj['topic'] = event.subscriber_event_mapping.topic
+                        'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`,
+                        'topic': event?.subscriber_event_mapping?.broadcaster_config?.topic,
+                        'queue': event?.subscriber_event_mapping?.broadcaster_config?.queue,
+                        'event_bridge_name': event?.subscriber_event_mapping?.broadcaster_config?.event_bridge_name,
+                        'workflow_name': event?.subscriber_event_mapping?.broadcaster_config?.workflow_name
                     }
                     return eventObj;
                 });
@@ -493,11 +479,13 @@ class WebhookRegistry {
                 subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
                 subscriberConfig.events = event_configs.map(event => {
                     const eventObj = {
-                        slug: `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`
+                        'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`,
+                        'topic': event?.subscriber_event_mapping?.broadcaster_config?.topic,
+                        'queue': event?.subscriber_event_mapping?.broadcaster_config?.queue,
+                        'event_bridge_name': event?.subscriber_event_mapping?.broadcaster_config?.event_bridge_name,
+                        'workflow_name': event?.subscriber_event_mapping?.broadcaster_config?.workflow_name
                     }
-                    if(subscriberConfig.provider === 'kafka'){
-                        eventObj['topic'] = event.subscriber_event_mapping.topic
-                    }
+
                     return eventObj;
                 });
                 const arrApplicationId = subscriberConfig.association.application_id;
