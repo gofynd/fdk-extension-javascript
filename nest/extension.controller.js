@@ -63,7 +63,11 @@ class ExtensionController {
     @Bind(Req(), Res(), Next())
     async unInstall(req, res, next) {
         try {
-            const strToVerify = `${extension.api_key}:${extension.api_secret}`
+            const strToVerify = {
+                client_id: extension.api_key.toString(),
+                company_id: req.body.company_id,
+                cluster: extension.cluster
+            }
             const reqObj = formRequestObject(req);
             await verifySignature(strToVerify, reqObj.headers)
             await handlers.extUninstall(reqObj, req.body.company_id, extension);

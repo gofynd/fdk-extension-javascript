@@ -87,8 +87,7 @@ async function getUserData(userData) {
 }
 async function verifySignature(body, headers) {
     const reqSignature = headers['x-fp-signature'];
-    const bodyToHash = typeof body === 'object' ? JSON.stringify(body) : body;
-    const calcSignature = hmacSHA256(bodyToHash, extension.api_secret).toString();
+    const calcSignature = hmacSHA256(JSON.stringify(body), extension.api_secret).toString();
     if (reqSignature !== calcSignature) {
         throw new FdkInvalidHMacError(`Signature passed does not match calculated body signature`);
     }

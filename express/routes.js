@@ -60,7 +60,11 @@ function setupRoutes(ext) {
 
     FdkRoutes.post("/fp/uninstall", async (req, res, next) => {
         try {
-            const strToVerify = `${ext.api_key}:${ext.api_secret}`
+            const strToVerify = {
+                client_id: ext.api_key.toString(),
+                company_id: req.body.company_id,
+                cluster: ext.cluster
+            }
             const reqObj = formRequestObject(req);
             await verifySignature(strToVerify, reqObj.headers)
             await handlers.extUninstall(reqObj, req.body.company_id, ext);
