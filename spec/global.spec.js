@@ -7,6 +7,7 @@ const logger = require("./utils/logger");
 const db = require("./helpers/setup_db");
 const server = require("./helpers/server");
 const fs = require('fs');
+const path = require('path');
 
 beforeAll(async () => {
     logger.info("beforeAll:started");
@@ -20,7 +21,7 @@ afterAll(async () => {
     // globalMock.restore();
     await db.clearData();
     server.app.close();
-    const dbPath = path.join(__dirname, 'session_storage.db');
+    const dbPath = path.join(__dirname, '..', 'session_storage.db');
     // Check if the file exists and delete it
     fs.unlink(dbPath, (err) => {
       if (err) {

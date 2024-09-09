@@ -17,6 +17,7 @@
         "@babel/register": "^7.22.15",
         "@fastify/cookie": "^9.2.0",
         "@gofynd/fdk-client-javascript": "^1.1.0",
+        "@nestjs/platform-express": "^10.4.1",
         "@nestjs/testing": "^10.3.0",
         "axios-mock-adapter": "^1.18.1",
         "body-parser": "^1.19.0",
@@ -24,13 +25,13 @@
         "express": "^4.17.1",
         "fastify": "^4.25.1",
         "ioredis": "^4.24.2",
-        "sqlite3": "^5.1.7",
         "jasmine": "^3.5.0",
         "jasmine-console-reporter": "^3.1.0",
         "jshint": "^2.12.0",
         "ngrok": "^3.4.0",
         "nyc": "^15.0.1",
         "sinon": "^9.0.2",
+        "sqlite3": "^5.1.7",
         "supertest": "^4.0.2"
     },
     "nyc": {

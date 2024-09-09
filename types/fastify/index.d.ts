@@ -24,7 +24,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
         getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
         getExtensionDetails(): Promise<any>;
-        extensionData: any;
+        extensionData: import("axios").AxiosResponse<any, any>;
     };
     webhookRegistry: import("../lib/webhook").WebhookRegistry;
     applicationProxyRoutes: (fastify: import("fastify").FastifyInstance<import("http").Server, import("http").IncomingMessage, import("http").ServerResponse, import("fastify").FastifyBaseLogger, import("fastify").FastifyTypeProviderDefault>, options: Record<never, never>, done: (err?: Error) => void) => void;
@@ -78,7 +78,7 @@ export function setupFdk(data: any, syncInitialization: any): {
         getPartnerConfig(organizationId: any): import("@gofynd/fdk-client-javascript/sdk/partner/PartnerConfig");
         getPartnerClient(organizationId: any, session: any): Promise<import("@gofynd/fdk-client-javascript/sdk/partner/PartnerClient")>;
         getExtensionDetails(): Promise<any>;
-        extensionData: any;
+        extensionData: import("axios").AxiosResponse<any, any>;
     };
     webhookRegistry: import("../lib/webhook").WebhookRegistry;
     applicationProxyRoutes: (fastify: import("fastify").FastifyInstance<import("http").Server, import("http").IncomingMessage, import("http").ServerResponse, import("fastify").FastifyBaseLogger, import("fastify").FastifyTypeProviderDefault>, options: Record<never, never>, done: (err?: Error) => void) => void;
