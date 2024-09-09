@@ -1,5 +1,6 @@
 const RedisStorage = require('../../../lib/storage/redis_storage');
-const { redisConnection } = require("../../helpers/setup_db");
+const Redis = require('ioredis');
+const redisConnection = new Redis("localhost");
 
 describe('Redis Storage', () => {
   let redisStorage;

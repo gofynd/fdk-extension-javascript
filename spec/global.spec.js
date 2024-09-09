@@ -6,14 +6,11 @@ const logger = require("./utils/logger");
 
 const db = require("./helpers/setup_db");
 const server = require("./helpers/server");
+const fs = require('fs');
 
 beforeAll(async () => {
     logger.info("beforeAll:started");
     //jasmine.addMatchers(jsonSchemaMatcher);
-    console.log(db.redisConnection.status);
-    if (db.redisConnection.status !== "connecting" && db.redisConnection.status !== "connected") {
-        await db.connect();
-    }
     logger.info("beforeAll:completed");
     // done();
 }, 50000);
@@ -23,7 +20,16 @@ afterAll(async () => {
     // globalMock.restore();
     await db.clearData();
     server.app.close();
-    await db.disconnect();
+    const dbPath = 'session_storage.db';
+    // Check if the file exists and delete it
+    fs.unlink(dbPath, (err) => {
+      if (err) {
+        console.error(`Failed to delete the database: ${err.message}`);
+      } else {
+        console.log('Database deleted successfully.');
+      }
+    });
+    db.disconnect();
     logger.info("afterAll:completed");
     // done();
 }, 20000);

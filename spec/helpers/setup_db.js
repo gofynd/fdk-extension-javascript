@@ -1,26 +1,22 @@
-const Redis = require('ioredis');
-const redisConnection = new Redis("localhost");
+const sqlite3 = require('sqlite3').verbose();
+const sqliteInstance = new sqlite3.Database('session_storage.db');
 
 async function clearData() {
-    const keys = await redisConnection.keys("test_fdk*");
-    const promises = [];
-    for(let key of keys) {
-        promises.push(redisConnection.del(key));
-    }
-    await Promise.all(promises);
-}
-
-function connect() {
-    return redisConnection.connect();
+    sqliteInstance.run(`DELETE FROM storage`, function(err) {
+        if (err) {
+          return console.error('Error clearing table data:', err.message);
+        }
+        console.log(`All data from table storage has been cleared.`);
+    });      
+    
 }
 
 function disconnect() {
-    return redisConnection.disconnect();
+    return sqliteInstance.close();
 }
 
 module.exports = {
-    redisConnection,
-    connect,
+    sqliteInstance,
     disconnect,
     clearData
 };

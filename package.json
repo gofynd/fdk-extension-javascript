@@ -24,6 +24,7 @@
     "express": "^4.17.1",
     "fastify": "^4.25.1",
     "ioredis": "^4.24.2",
+    "sqlite3": "^5.1.7",
     "jasmine": "^3.5.0",
     "jasmine-console-reporter": "^3.1.0",
     "jshint": "^2.12.0",

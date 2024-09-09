@@ -1,4 +1,7 @@
 # fdk-extension-javascript
+![GitHub package.json version](https://img.shields.io/github/package-json/v/gofynd/fdk-extension-javascript?style=plastic)
+[![Coverage Status](https://coveralls.io/repos/github/gofynd/fdk-extension-javascript/badge.svg)](https://coveralls.io/github/gofynd/fdk-extension-javascript)
+
 - A helper library for extension development on the Fynd Platform.
 
 ## Overview

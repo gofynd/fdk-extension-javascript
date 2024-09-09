@@ -3,8 +3,8 @@
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
-const { RedisStorage } = require("../../lib/storage");
-const { redisConnection } = require("../helpers/setup_db");
+const { SQLiteStorage } = require("../../lib/storage");
+const { sqliteInstance } = require("../helpers/setup_db");
 const { userHeaders, applicationHeaders, applicationId, applicationToken, jwtTokenData  } = require("./constants");
 const { formRequestObject } = require('../../lib/utils');
 const jwt = require('jsonwebtoken'); 
@@ -37,7 +37,7 @@ describe("Custom framework integration as express with jwt token - Extension lau
       access_mode: "offline",
       webhook_config: webhookConfig,
     });
-    const redis = new RedisStorage(redisConnection, "test_fdk");
+    const sqlite = new SQLiteStorage(sqliteInstance, "test_fdk");
     const handlers = fdk_instance.routerHandlers;
     let router = request.app.express.Router();
 
@@ -59,7 +59,7 @@ describe("Custom framework integration as express with jwt token - Extension lau
         const token = req.headers['x-token']; 
         const sessionData = jwt.verify(token, JWT_SECRET_KEY);
         let sessionId = sessionData.id;
-        req.fdkSession = await redis.get(sessionId);
+        req.fdkSession = await sqlite.get(sessionId);
         req.extension = fdk_instance.extension;
         const reqObj = formRequestObject(req);
         const { redirectUrl, fdkSession } = await handlers.extAuth(

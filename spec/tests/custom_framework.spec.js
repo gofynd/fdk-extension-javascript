@@ -3,8 +3,8 @@
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
-const { RedisStorage } = require("../../lib/storage");
-const { redisConnection } = require("../helpers/setup_db");
+const { SQLiteStorage } = require("../../lib/storage");
+const { sqliteInstance } = require("../helpers/setup_db");
 const { SESSION_COOKIE_NAME } = require("../../lib/constants");
 const { userHeaders, applicationHeaders, applicationId, applicationToken  } = require("./constants");
 const { formRequestObject } = require('../../lib/utils');
@@ -36,7 +36,7 @@ describe("Custom framework integration as express - Extension launch flow", () =
       access_mode: "offline",
       webhook_config: webhookConfig,
     });
-    const redis = new RedisStorage(redisConnection, "test_fdk");
+    const sqlite = new SQLiteStorage(sqliteInstance, "test_fdk");
     const handlers = fdk_instance.routerHandlers;
     let router = request.app.express.Router();
 
@@ -65,7 +65,7 @@ describe("Custom framework integration as express - Extension launch flow", () =
         let companyId = parseInt(req.query.company_id);
         const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`;
         let sessionId = req.signedCookies[compCookieName];
-        req.fdkSession = await redis.get(sessionId);
+        req.fdkSession = await sqlite.get(sessionId);
         req.extension = fdk_instance.extension;
         const reqObj = formRequestObject(req);
         const { redirectUrl, fdkSession } = await handlers.extAuth(

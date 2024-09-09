@@ -1,5 +1,5 @@
-const { RedisStorage } = require("../../express/storage");
-const { redisConnection } = require("../helpers/setup_db");
+const { SQLiteStorage } = require("../../express/storage");
+const { sqliteInstance } = require("../helpers/setup_db");
 let sessionId;
 const getSession = () => {
     return sessionId;
@@ -16,7 +16,7 @@ const fdkConfig = {
         },
         uninstall: () => { }
     },
-    storage: new RedisStorage(redisConnection, "test_fdk"),
+    storage: new SQLiteStorage(sqliteInstance, "test_fdk"),
     access_mode: "online",
     cluster: "http://localdev.fyndx0.de",
     debug: true,
