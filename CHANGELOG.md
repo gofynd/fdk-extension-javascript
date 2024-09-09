@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.8.0] - 2024-08-26
+### Added
+- Added support for new frameworks such as Fastify and NestJS.
+- Enabled integration of extension library into any user-preferred framework.
+- Introduced support to access `getPlatformClient`, `getPartnerClient`, and `getApplicationClient` via the `setupFdk` function.
+- Implemented support for `getSessionData` function to retrieve valid user sessions, accessible through the `setupFdk` function.
+- Implemented support for `getUserData` function to fetch user data via the `setupFdk` function.
+- Implemented support for `getApplicationConfig` function to acquire `application`, `applicationConfig`, and `applicationClient` objects through the `setupFdk` function.
+### Changed
+- Updated README documentation to include instructions for integrating the extension library within frameworks such as Fastify, NestJS, or any other preferred frameworks.
+- Updated README documentation to include guidelines for implementing custom storage classes, enabling the integration of extension storage into the user's preferred database.
+---
 ## [v0.7.9] - 2024-08-20
 ### Changed
 - Use api.fynd.com as default cluster domain for webhooks.
