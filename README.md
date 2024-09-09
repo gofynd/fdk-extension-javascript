@@ -319,7 +319,7 @@ Other way to update webhook config manually for a company is to call `syncEvents
 
 
 
-# [Custom storage class](https://github.com/gofynd/fdk-extension-javascript/tree/main/storage/README.md)
+# [Custom storage class](/lib/storage/README.md)
 The FDK Extension JavaScript library provides built-in support for SQLite, Redis and in-memory storage options as default choices for session data storage. However, if you require a different storage option, this readme will guide you through the process of implementing a custom storage class.
 
 # Supported frameworks
@@ -327,11 +327,11 @@ This library comes with built-in compatibility for Express, NestJS, and Fastify 
 
 Below, you'll find step-by-step instructions for implementing FDK extensions library in each of these frameworks.
 
-# [Express Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/express/README.md)
+# [Express Framework](/express/README.md)
 Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.
 
-# [Nest.js Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/nest/README.md)
+# [Nest.js Framework](/nest/README.md)
 Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.
 
-# [Fastify Framework](https://github.com/gofynd/fdk-extension-javascript/tree/main/fastify/README.md)
+# [Fastify Framework](/fastify/README.md)
 Follow this readme if you intend to develop FDK extensions in the Express framework. The instructions outlined here will guide you through the entire implementation process.
