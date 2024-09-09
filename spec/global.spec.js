@@ -20,7 +20,7 @@ afterAll(async () => {
     // globalMock.restore();
     await db.clearData();
     server.app.close();
-    const dbPath = 'session_storage.db';
+    const dbPath = path.join(__dirname, 'session_storage.db');
     // Check if the file exists and delete it
     fs.unlink(dbPath, (err) => {
       if (err) {
