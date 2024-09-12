@@ -258,6 +258,7 @@ class WebhookRegistry {
                         ...payloadEventMap[event.provider],
                         webhook_url: this._webhookUrl,
                         auth_meta: {
+                            type: 'hmac',
                             secret: this._fdkConfig.api_secret
                         }
                     }
