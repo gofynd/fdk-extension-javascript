@@ -4,7 +4,7 @@ const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('../lib/const
 const SessionStorage = require("../lib/session/session_storage");
 const FdkRoutes = express.Router();
 const handlers = require('../lib/handlers');
-const { formRequestObject } = require('../lib/utils');
+const { formRequestObject, verifySignature } = require('../lib/utils');
 
 function setupRoutes(ext) {
 
@@ -60,7 +60,13 @@ function setupRoutes(ext) {
 
     FdkRoutes.post("/fp/uninstall", async (req, res, next) => {
         try {
+            const strToVerify = {
+                client_id: ext.api_key.toString(),
+                company_id: req.body.company_id,
+                cluster: ext.cluster
+            }
             const reqObj = formRequestObject(req);
+            await verifySignature(strToVerify, reqObj.headers)
             await handlers.extUninstall(reqObj, req.body.company_id, ext);
             return res.json({ success: true });
         }

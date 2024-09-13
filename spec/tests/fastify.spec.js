@@ -6,6 +6,7 @@ const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../lib/co
 const { userHeaders, applicationHeaders, applicationId, applicationToken } = require("./constants");
 const request = require('../helpers/fastify_server');
 const fastify = require("fastify");
+const { getSignature } = require('../utils/utils');
 
 describe("Fastify --> Extension launch flow", () => {
     let cookie = "";
@@ -182,6 +183,7 @@ describe("Fastify --> Extension launch flow", () => {
     it('/fp/uninstall', async () => {
         let response = await request
             .post('/fp/uninstall')
+            .set('x-fp-signature', getSignature())
             .send({ company_id: 1 });
         expect(response.status).toBe(200);
     });

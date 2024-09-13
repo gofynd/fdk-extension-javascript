@@ -17,3 +17,4 @@ export function getApplicationConfig(applicationData: any, extension: any): Prom
     applicationClient: import("@gofynd/fdk-client-javascript/sdk/application/ApplicationClient");
 }>;
 export function getUserData(userData: any): Promise<any>;
+export function verifySignature(body: any, headers: any): Promise<void>;

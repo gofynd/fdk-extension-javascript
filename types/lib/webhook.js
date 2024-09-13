@@ -1,9 +1,8 @@
 'use strict';
-const hmacSHA256 = require("crypto-js/hmac-sha256");
 const { fdkAxios } = require("@gofynd/fdk-client-javascript/sdk/common/AxiosHelper");
 const { version } = require('../package.json');
 const { TEST_WEBHOOK_EVENT_NAME, ASSOCIATION_CRITERIA } = require("./constants");
-const { FdkWebhookProcessError, FdkWebhookHandlerNotFound, FdkWebhookRegistrationError, FdkInvalidHMacError, FdkInvalidWebhookConfig } = require("./error_code");
+const { FdkWebhookProcessError, FdkWebhookHandlerNotFound, FdkWebhookRegistrationError, FdkInvalidWebhookConfig } = require("./error_code");
 const logger = require("./logger");
 const { RetryManger } = require("./retry_manager");
 let eventConfig = {};
@@ -327,13 +326,6 @@ class WebhookRegistry {
             throw new FdkWebhookRegistrationError(`Failed to remove saleschannel webhook. Reason: ${ex.message}`);
         }
     }
-    verifySignature(body, headers) {
-        const reqSignature = headers['x-fp-signature'];
-        const calcSignature = hmacSHA256(JSON.stringify(body), this._fdkConfig.api_secret).toString();
-        if (reqSignature !== calcSignature) {
-            throw new FdkInvalidHMacError(`Signature passed does not match calculated body signature`);
-        }
-    }
     async processWebhook({ body, headers }) {
         if (!this.isInitialized) {
             await this.initialize(this._config, this._fdkConfig);
@@ -342,7 +334,8 @@ class WebhookRegistry {
             if (body.event.name === TEST_WEBHOOK_EVENT_NAME) {
                 return;
             }
-            this.verifySignature(body, headers);
+            const { verifySignature } = require('./utils');
+            await verifySignature(body, headers);
             const eventName = `${body.event.category}/${body.event.name}/${body.event.type}/v${body.event.version}`;
             const eventHandlerMap = (this._handlerMap[eventName] || {});
             const extHandler = eventHandlerMap.handler;

@@ -6,6 +6,7 @@ const { clearData } = require("../helpers/setup_db");
 const request = require("../helpers/server");
 const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require("../../lib/constants");
 const { userHeaders, applicationHeaders, applicationId, applicationToken } = require("./constants");
+const { getSignature } = require('../utils/utils');
 
 describe("Extension launch flow", () => {
     let cookie = "";
@@ -134,6 +135,7 @@ describe("Extension launch flow", () => {
     it('/fp/uninstall', async () => {
         let response = await request
             .post('/fp/uninstall')
+            .set('x-fp-signature', getSignature())
             .send({ company_id: 1 });
         expect(response.status).toBe(200);
     });
