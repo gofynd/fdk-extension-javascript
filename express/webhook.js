@@ -380,7 +380,7 @@ class WebhookRegistry {
                 return;
             }
             this.verifySignature(req);
-            //TODO: Please verify this changes properly
+
             const eventName = `${body.event.category}/${body.event.name}/${body.event.type}/v${body.event.version}`;
 
             const eventHandlerMap = (this._handlerMap[eventName] || {});
@@ -391,7 +391,7 @@ class WebhookRegistry {
                 await extHandler(eventName, req.body, req.body.company_id, req.body.application_id);
             }
             else {
-                throw new FdkWebhookHandlerNotFound(`Webhook handler not assigned: ${categoryEventName}`);
+                throw new FdkWebhookHandlerNotFound(`Webhook handler not assigned: ${eventName}`);
             }
         }
         catch (err) {
