@@ -142,6 +142,27 @@ let fdkClient = setupFdk({
         version: '1',
         topic: 'coupon_create_kafka_topic',
         provider: 'kafka'
+      },
+      'company/brand/update': {
+        version: '1',
+        topic: "company-brand-create",  
+        provider: 'pub_sub'
+      },
+      'extension/extension/install': {
+        version: '1',
+        queue: "extension-install", 
+        workflow_name: "extension",
+        provider: 'temporal'
+      },
+      'company/location/create': {
+        version: '1',
+        queue: "company-location-create",  
+        provider: 'sqs'
+      },
+      'company/product-size/create': {
+        version: '1',
+        event_bridge_name: "company-product-size-create",  
+        provider: 'event_bridge'
       }
     }
   },
