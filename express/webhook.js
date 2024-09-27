@@ -319,7 +319,7 @@ class WebhookRegistry {
             const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig
             subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
             subscriberConfig.events = [];
-            // add for temporal
+            
             existingEvents = event_configs.map(event => {
                 return {
                     'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`,
