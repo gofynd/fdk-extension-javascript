@@ -179,3 +179,6 @@ After webhook config is passed to setupFdk whenever extension is launched to any
 > Any update to webhook config will not automatically update subscriber data on Fynd Platform for a company until extension is opened atleast once after the update. 
 
 Other way to update webhook config manually for a company is to call `syncEvents` function of webhookRegistery.   
+
+# [Custom storage class](/express/storage/README.md)
+The FDK Extension JavaScript library provides built-in support for SQLite, Redis and in-memory storage options as default choices for session data storage. However, if you require a different storage option, this readme will guide you through the process of implementing a custom storage class.
