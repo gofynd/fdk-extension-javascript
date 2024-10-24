@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.7.11] - 2024-09-23
 ### Changed
-- Response key change in api.
+- Kafka config response key change in api.
 
 ## [v0.7.10] - 2024-09-23
 ### Changed
