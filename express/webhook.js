@@ -201,7 +201,7 @@ class WebhookRegistry {
             existingEvents = event_configs.map(event => {
                 return {
                     'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`,
-                    'topic': event.subscriber_event_mapping.topic
+                    'topic': event?.subscriber_event_mapping?.broadcaster_config?.topic
                 }
             });
             // Checking Configuration Updates
@@ -299,7 +299,7 @@ class WebhookRegistry {
                         slug: `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`
                     }
                     if(subscriberConfig.provider === 'kafka'){
-                        eventObj['topic'] = event.subscriber_event_mapping.topic
+                        eventObj['topic'] = event?.subscriber_event_mapping?.broadcaster_config?.topic
                     }
                     return eventObj;
                 });
@@ -340,7 +340,7 @@ class WebhookRegistry {
                         slug: `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`
                     }
                     if(subscriberConfig.provider === 'kafka'){
-                        eventObj['topic'] = event.subscriber_event_mapping.topic
+                        eventObj['topic'] = event?.subscriber_event_mapping?.broadcaster_config?.topic
                     }
                     return eventObj;
                 });
