@@ -9,7 +9,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "@gofynd/fdk-client-javascript": "^1.1.0",
+    "@gofynd/fdk-client-javascript": "^1.4.13",
     "axios-mock-adapter": "^1.18.1",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
@@ -52,7 +52,7 @@
     "report-dir": "./coverage"
   },
   "peerDependencies": {
-    "@gofynd/fdk-client-javascript": "^1.1.0"
+    "@gofynd/fdk-client-javascript": "^1.4.13"
   },
   "name": "@gofynd/fdk-extension-javascript",
   "description": "FDK Extension Helper Library",
