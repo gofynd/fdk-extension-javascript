@@ -26,6 +26,9 @@ class WebhookRegistry {
         if (!config.api_path || config.api_path[0] !== '/') {
             throw new FdkInvalidWebhookConfig(`Invalid or missing "api_path"`);
         }
+        if(config.marketplace == true && config.subscribed_saleschannel != "specific"){
+            throw new FdkInvalidWebhookConfig(`marketplace is only allowed when subscribed_saleschannel is specific"`);
+        }
         if (!config.event_map || !Object.keys(config.event_map).length) {
             throw new FdkInvalidWebhookConfig(`Invalid or missing "event_map"`);
         }
@@ -153,6 +156,27 @@ class WebhookRegistry {
             subscriberConfig.webhook_url = this._webhookUrl;
             updated = true;
         }
+        
+        // type marketplace is allowed only when association criteria is specific
+        if(configCriteria == ASSOCIATION_CRITERIA.SPECIFIC){
+            if((subscriberConfig.type == 'marketplace' && !this._config.marketplace)){
+                logger.debug(`Type updated from ${subscriberConfig.type} to null`);
+                subscriberConfig.type = null;
+                updated = true;
+            }else if (((!subscriberConfig.type || subscriberConfig.type != "marketplace") && this._config.marketplace) ){
+                logger.debug(`Type updated from ${subscriberConfig.type} to marketplace`);
+                subscriberConfig.type = "marketplace";
+                updated = true
+            }
+        }else {
+            if(subscriberConfig.type == 'marketplace'){
+                logger.debug(`Type updated from ${subscriberConfig.type} to null`);
+                subscriberConfig.type = null;
+                updated = true;
+            }
+        }
+
+        
         return updated;
     }
 
@@ -165,7 +189,11 @@ class WebhookRegistry {
         }
         logger.debug('Webhook sync events started');
 
-        let subscriberSyncedForAllProvider = await this.syncSubscriberConfigForAllProviders(platformClient);
+        let subscriberConfigList = await this.getSubscriberConfig(platformClient);
+
+        let subscriberSyncedForAllProvider = await this.syncSubscriberConfigForAllProviders(platformClient, subscriberConfigList)
+
+        subscriberConfigList = await this.getSubscriberConfig(platformClient);
 
         // v3.0 upsert put api does not exist
         if(!subscriberSyncedForAllProvider){
@@ -181,14 +209,18 @@ class WebhookRegistry {
             await this.syncSubscriberConfig(subscriberConfigList.event_bridge, 'event_bridge', this._eventMap.event_bridge , platformClient, enableWebhooks);
 
             await this.syncSubscriberConfig(subscriberConfigList.temporal, 'temporal', this._eventMap.temporal , platformClient, enableWebhooks);
+
+            subscriberConfigList = await this.getSubscriberConfig(platformClient);
+
+            console.log('hi');
         }
 
     }
 
     /* this will call the v3.0 upsert put api which will handle syncing in a single api call.
     In case the api does not exist we need to fallback to v2.0 api */
-    async syncSubscriberConfigForAllProviders(platformClient){
-        let payload = this.createRegisterPayloadData();
+    async syncSubscriberConfigForAllProviders(platformClient, subscriberConfigList){
+        let payload = this.createRegisterPayloadData(subscriberConfigList);
         const uniqueKey = `registerSubscriberToEventForAllProvider_${platformClient.config.companyId}_${this._fdkConfig.api_key}`;
         const token = await platformClient.config.oauthClient.getAccessToken();
         const retryInfo = this._retryManager.retryInfoMap.get(uniqueKey);
@@ -232,7 +264,7 @@ class WebhookRegistry {
 
     }
 
-    createRegisterPayloadData(){
+    createRegisterPayloadData(subscriberConfigList){
         let payload = {
             "webhook_config": {
                 notification_email: this._config.notification_email,
@@ -247,11 +279,26 @@ class WebhookRegistry {
 
                 }
             }
-        };
+        };  
+
+        const configKeys = Object.keys(subscriberConfigList);
+        //Every provider has same association. Get the first one.
+        if (this._config.subscribed_saleschannel === 'specific' && configKeys.length > 0) {
+            const firstConfig = subscriberConfigList[configKeys[0]];
+            if ( firstConfig?.association?.criteria == ASSOCIATION_CRITERIA.SPECIFIC) {
+                payload.webhook_config.association = firstConfig.association;
+            }
+        }
+
         let payloadEventMap = payload.webhook_config.event_map;
         for(let [key, event] of Object.entries(this._config.event_map)) {
             if(!payloadEventMap[event.provider]){
                 payloadEventMap[event.provider] = {}
+                if(payload.webhook_config?.association?.criteria == ASSOCIATION_CRITERIA.SPECIFIC){
+                    payloadEventMap[event.provider] = {
+                        type: this._config.marketplace ? 'marketplace' : null
+                    }
+                }
                 payloadEventMap[event.provider].events = []
                 if(event.provider == 'rest'){
                     payloadEventMap[event.provider] = {
@@ -265,20 +312,18 @@ class WebhookRegistry {
                 }
 
             }
-            let eventData = {}
-                let eventDetailsFromKey = key.split('/')
-                eventData.event_category = eventDetailsFromKey[0]
-                eventData.event_name = eventDetailsFromKey[1]
-                eventData.event_type = eventDetailsFromKey[2]
-                eventData = {
-                    ...eventData, 
-                    version: event.version,
-                    topic: event.topic,
-                    queue: event.queue,
-                    workflow_name: event.workflow_name,
-                    event_bridge_name: event.event_bridge_name
-                };
-                payloadEventMap[event.provider].events.push(eventData);
+            let [event_category, event_name, event_type] = key.split('/');
+            let eventData = {
+                event_category,
+                event_name,
+                event_type,
+                version: event.version,
+                topic: event.topic,
+                queue: event.queue,
+                workflow_name: event.workflow_name,
+                event_bridge_name: event.event_bridge_name
+            };
+            payloadEventMap[event.provider].events.push(eventData);
         };
         return payload;
     }
@@ -304,7 +349,7 @@ class WebhookRegistry {
                 }, 
                 "events": [],
                 "provider": configType,
-                "email_id": this._config.notification_email
+                "email_id": this._config.notification_email,
             }
             if(configType === 'rest'){
                 subscriberConfig['webhook_url'] = this._webhookUrl;
@@ -316,10 +361,10 @@ class WebhookRegistry {
         }
         else {
             logger.debug(`Webhook ${configType} config on platform side for company id ${platformClient.config.companyId}: ${JSON.stringify(subscriberConfig)}`)
-            const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig
-            subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
-            subscriberConfig.events = [];
             
+            const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id, type } = subscriberConfig
+            subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id, type };
+            subscriberConfig.events = [];           
             existingEvents = event_configs.map(event => {
                 return {
                     'slug': `${event.event_category}/${event.event_name}/${event.event_type}/v${event.version}`,
@@ -452,6 +497,10 @@ class WebhookRegistry {
                     arrApplicationId.push(applicationId);
                     subscriberConfig.association.application_id = arrApplicationId;
                     subscriberConfig.association.criteria = this._associationCriteria(subscriberConfig.association.application_id);
+
+                    if(subscriberConfig?.association?.criteria == ASSOCIATION_CRITERIA.SPECIFIC){
+                        subscriberConfig.type = this._config.marketplace ? 'marketplace' : null;
+                    }
                     await this.updateSubscriberConfig(platformClient, subscriberConfig);
                     logger.debug(`Webhook enabled for saleschannel: ${applicationId}`);
                 }
@@ -495,6 +544,11 @@ class WebhookRegistry {
                     if (rmIndex > -1) {
                         arrApplicationId.splice(rmIndex, 1);
                         subscriberConfig.association.criteria = this._associationCriteria(subscriberConfig.association.application_id);
+                        if(subscriberConfig?.association?.criteria == ASSOCIATION_CRITERIA.SPECIFIC){
+                            subscriberConfig.type = this._config.marketplace ? 'marketplace' : null;
+                        }else{
+                            subscriberConfig.type = null;
+                        }
                         await this.updateSubscriberConfig(platformClient, subscriberConfig);
                         logger.debug(`Webhook disabled for saleschannel: ${applicationId}`);
                     }
