@@ -128,6 +128,7 @@ let fdkClient = setupFdk({
     notification_email: "test@abc.com", // required
     subscribe_on_install: false, //optional. Default true
     subscribed_saleschannel: 'specific', //optional. Default all
+    marketplace: true, // to receive marketplace saleschannel events. Only allowed when subscribed_saleschannel is set to specific
     event_map: { // required
       'company/brand/create': {
         version: '1',
