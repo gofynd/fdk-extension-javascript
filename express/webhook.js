@@ -145,35 +145,41 @@ class WebhookRegistry {
             updated = true;
         }
 
+        console.log("Local Custom header", this._config.custom_headers);
+        console.log("DB Custom header", subscriberConfig.custom_headers);
         // Adding custom headers
         if (
-            !subscriberConfig.customHeaders && !!this._config.customHeaders
+            !subscriberConfig.custom_headers && !!this._config.custom_headers
         ) {
             console.log("Adding custom headers");
-            subscriberConfig.customHeaders = this._config.customHeaders
+            subscriberConfig.custom_headers = this._config.custom_headers
             updated = true;
         }
         // Removing custom headers
         else if (
-            !!subscriberConfig.customHeaders &&
-            Object.keys(subscriberConfig.customHeaders).length > 0 &&
-            !this._config.customHeaders
+            !!subscriberConfig.custom_headers &&
+            Object.keys(subscriberConfig.custom_headers).length > 0 &&
+            !this._config.custom_headers
         ) {
             console.log("Removing custom headers");
-            subscriberConfig.customHeaders = {};
+            subscriberConfig.custom_headers = {};
             updated = true;
         }
         // Updating custom headers
         else if (
-            !!subscriberConfig.customHeaders && !!this._config.customHeaders
+            !!subscriberConfig.custom_headers && !!this._config.custom_headers
         ) {
             if (
-                JSON.stringify(this._config.customHeaders) !== JSON.stringify(subscriberConfig.customHeaders)
+                JSON.stringify(this._config.custom_headers) !== JSON.stringify(subscriberConfig.custom_headers)
             ) {
                 console.log("Updating custom headers");
-                subscriberConfig.customHeaders = this._config.customHeaders
+                subscriberConfig.custom_headers = this._config.custom_headers
                 updated = true;
+            } else {
+                console.log("Custom headers up to date!!");
             }
+        } else {
+            console.log("Custom headers up to date!!");
         }
 
         return updated;
@@ -227,8 +233,8 @@ class WebhookRegistry {
         }
         else {
             logger.debug(`Webhook ${configType} config on platform side for company id ${platformClient.config.companyId}: ${JSON.stringify(subscriberConfig)}`)
-            const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id } = subscriberConfig
-            subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id };
+            const { id, name, webhook_url, provider="rest", association, status, auth_meta, event_configs, email_id, custom_headers } = subscriberConfig
+            subscriberConfig = { id, name, webhook_url, provider, association, status, auth_meta, email_id, custom_headers };
             subscriberConfig.events = [];
             existingEvents = event_configs.map(event => {
                 return {
