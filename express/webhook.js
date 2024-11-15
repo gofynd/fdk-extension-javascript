@@ -144,6 +144,38 @@ class WebhookRegistry {
             subscriberConfig.webhook_url = this._webhookUrl;
             updated = true;
         }
+
+        // Adding custom headers
+        if (
+            !subscriberConfig.customHeaders && !!this._config.customHeaders
+        ) {
+            console.log("Adding custom headers");
+            subscriberConfig.customHeaders = this._config.customHeaders
+            updated = true;
+        }
+        // Removing custom headers
+        else if (
+            !!subscriberConfig.customHeaders &&
+            Object.keys(subscriberConfig.customHeaders).length > 0 &&
+            !this._config.customHeaders
+        ) {
+            console.log("Removing custom headers");
+            subscriberConfig.customHeaders = {};
+            updated = true;
+        }
+        // Updating custom headers
+        else if (
+            !!subscriberConfig.customHeaders && !!this._config.customHeaders
+        ) {
+            if (
+                JSON.stringify(this._config.customHeaders) !== JSON.stringify(subscriberConfig.customHeaders)
+            ) {
+                console.log("Updating custom headers");
+                subscriberConfig.customHeaders = this._config.customHeaders
+                updated = true;
+            }
+        }
+
         return updated;
     }
 
