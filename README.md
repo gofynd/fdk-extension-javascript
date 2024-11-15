@@ -128,6 +128,9 @@ let fdkClient = setupFdk({
     notification_email: "test@abc.com", // required
     subscribe_on_install: false, //optional. Default true
     subscribed_saleschannel: 'specific', //optional. Default all
+    custom_headers: {
+      "custom-key": "custom-value"
+    },
     event_map: { // required
       'company/brand/create': {
         version: '1',
