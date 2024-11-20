@@ -44,6 +44,19 @@ function setupFdk(data, syncInitialization) {
         return applicationClient;
     }
 
+    async function getPartnerClient(organizationId) {
+        let client = null;
+        if (!extension.isOnlineAccessMode()) {
+            let sid = Session.generateSessionId(false, {
+                cluster: extension.cluster,
+                id: organizationId
+            });
+            let session = await SessionStorage.getSession(sid);
+            client = await extension.getPartnerClient(organizationId, session);
+        }
+        return client;
+    }
+
     const configInstance =  {
         fdkHandler: router,
         extension: extension,
@@ -53,6 +66,7 @@ function setupFdk(data, syncInitialization) {
         webhookRegistry: extension.webhookRegistry,
         applicationProxyRoutes: applicationProxyRoutes,
         getPlatformClient: getPlatformClient,
+        getPartnerClient: getPartnerClient,
         getApplicationClient: getApplicationClient
     };
 

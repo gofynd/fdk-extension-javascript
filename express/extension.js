@@ -176,7 +176,7 @@ class Extension {
         partnerConfig.oauthClient.setToken(session);
         partnerConfig.oauthClient.token_expires_at = session.access_token_validity;
 
-        if (session.access_token_validity && session.refresh_token) {
+        if (!session.access_token_validity || session.refresh_token) {
             let ac_nr_expired = ((session.access_token_validity - new Date().getTime()) / 1000) <= 120;
             if (ac_nr_expired) {
                 logger.debug(`Renewing access token for organization ${organizationId} with platform config ${logger.safeStringify(partnerConfig)}`);
