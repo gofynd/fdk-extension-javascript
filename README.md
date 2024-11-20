@@ -82,6 +82,31 @@ function backgroundHandler(companyId) {
 }
 ```
 
+
+#### How to call partner apis in background tasks?
+
+Background tasks running under some consumer or webhook or under any queue can get partner client via method `getPartnerClient`. It will return instance of `PartnerClient` as well. 
+
+> Here FdkClient `access_mode` should be **offline**. Cause such client can only access PartnerClient in background task.  
+
+```javascript
+function backgroundHandler(organizationId) {
+  try {
+    const partnerClient = await fdkExtension.getPartnerClient(organizationId);
+    let data = await partnerClient.webhook.responseTimeSummary({
+            extensionId: '<EXTENSION_ID>',
+            startDate: '<START_DATE>',
+            endDate: '<END_DATE>'
+      });
+    // Some business logic here
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(404).json({ success: false });
+  }
+}
+```
+
 #### How to call partner apis?
 
 To call partner api you need to have instance of `PartnerClient`. Instance holds methods for SDK classes. All routes registered under `partnerApiRoutes` express router will have `partnerClient` under request object which is instance of `PartnerClient`.

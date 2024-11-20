@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.7.12] - 2024-11-18
 ### Changed
-- Getting partner cient for offline token support added.
+- Added offline token support for partner clients.
 
 ## [v0.7.11] - 2024-09-23
 ### Changed
