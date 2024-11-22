@@ -7,6 +7,7 @@ const { TEST_WEBHOOK_EVENT_NAME, ASSOCIATION_CRITERIA } = require("./constants")
 const { FdkWebhookProcessError, FdkWebhookHandlerNotFound, FdkWebhookRegistrationError, FdkInvalidHMacError, FdkInvalidWebhookConfig } = require("./error_code");
 const logger = require("./logger");
 const { RetryManger } = require("./retry_manager");
+const _ = require('loadsh');
 
 let eventConfig = {}
 class WebhookRegistry {
@@ -72,6 +73,15 @@ class WebhookRegistry {
             }else if(eventData.provider === 'event_bridge' && !eventData.hasOwnProperty("event_bridge_name")){
                 throw new FdkInvalidWebhookConfig(`Missing event_bridge_name in webhook event ${eventName}`);
             }
+
+            if("filters" in eventData && typeof eventData.filters != 'object'){
+                throw new FdkInvalidWebhookConfig(`filters should be an object in webhook event ${eventName}`);
+            }
+
+            if("reducer" in eventData && typeof eventData.reducer != 'object'){
+                throw new FdkInvalidWebhookConfig(`reducer should be an object in webhook event ${eventName}`);
+            }
+
             this._eventMap[eventData.provider][eventName + '/v' + eventData.version] = eventData;
         }
 
@@ -175,7 +185,7 @@ class WebhookRegistry {
                 updated = true;
             }
         }
-
+    
         
         return updated;
     }
@@ -321,7 +331,9 @@ class WebhookRegistry {
                 topic: event.topic,
                 queue: event.queue,
                 workflow_name: event.workflow_name,
-                event_bridge_name: event.event_bridge_name
+                event_bridge_name: event.event_bridge_name,
+                filters: event.filters,
+                reducer: event.reducer
             };
             payloadEventMap[event.provider].events.push(eventData);
         };
@@ -371,7 +383,9 @@ class WebhookRegistry {
                     'topic': event?.subscriber_event_mapping?.broadcaster_config?.topic,
                     'queue': event?.subscriber_event_mapping?.broadcaster_config?.queue,
                     'event_bridge_name': event?.subscriber_event_mapping?.broadcaster_config?.event_bridge_name,
-                    'workflow_name': event?.subscriber_event_mapping?.broadcaster_config?.workflow_name
+                    'workflow_name': event?.subscriber_event_mapping?.broadcaster_config?.workflow_name,
+                    'filters': event.filters,
+                    'reducer': event.reducer
                 }
             });
             // Checking Configuration Updates
@@ -401,6 +415,8 @@ class WebhookRegistry {
                     queue: currentEventMapConfig[eventName]?.queue,
                     event_bridge_name: currentEventMapConfig[eventName]?.event_bridge_name,
                     workflow_name: currentEventMapConfig[eventName]?.workflow_name,
+                    filters: currentEventMapConfig[eventName]?.filters,
+                    reducer: currentEventMapConfig[eventName]?.reducer
                 }
                 if(currentEventMapConfig[eventName].hasOwnProperty('topic')){
                     event['topic'] = currentEventMapConfig[eventName].topic;
@@ -436,13 +452,27 @@ class WebhookRegistry {
                     'event_bridge': ['event_bridge_name']
                 }
 
+                //key to check which are common across all config type
+                let commonKeys = ['filters','reducer']
+
                 // check if these keys have changed
-                if(configType != 'rest' && !configUpdated){
+                if(!configUpdated){
                     for(const event of subscriberConfig.events){
                         const existingEvent = existingEvents.find(e => e.slug === event.slug);
+
                         if(existingEvent){
+
+                            //compare config related keys
                             for(let key of configTypeKeysToCheck[configType]){
                                 if(!(event[key] === existingEvent[key])){
+                                    configUpdated = true;
+                                    break
+                                }
+                            }
+
+                            //compare common keys
+                            for(let key of commonKeys){
+                                if(!_.isEqual(event[key], existingEvent[key])){
                                     configUpdated = true;
                                     break
                                 }
