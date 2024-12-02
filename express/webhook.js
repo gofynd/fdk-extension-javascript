@@ -7,7 +7,7 @@ const { TEST_WEBHOOK_EVENT_NAME, ASSOCIATION_CRITERIA } = require("./constants")
 const { FdkWebhookProcessError, FdkWebhookHandlerNotFound, FdkWebhookRegistrationError, FdkInvalidHMacError, FdkInvalidWebhookConfig } = require("./error_code");
 const logger = require("./logger");
 const { RetryManger } = require("./retry_manager");
-const _ = require('loadsh');
+const _ = require('lodash');
 
 let eventConfig = {}
 class WebhookRegistry {
