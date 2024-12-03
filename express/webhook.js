@@ -203,8 +203,6 @@ class WebhookRegistry {
 
         let subscriberSyncedForAllProvider = await this.syncSubscriberConfigForAllProviders(platformClient, subscriberConfigList)
 
-        subscriberConfigList = await this.getSubscriberConfig(platformClient);
-
         // v3.0 upsert put api does not exist
         if(!subscriberSyncedForAllProvider){
             let subscriberConfigList = await this.getSubscriberConfig(platformClient);
@@ -219,10 +217,6 @@ class WebhookRegistry {
             await this.syncSubscriberConfig(subscriberConfigList.event_bridge, 'event_bridge', this._eventMap.event_bridge , platformClient, enableWebhooks);
 
             await this.syncSubscriberConfig(subscriberConfigList.temporal, 'temporal', this._eventMap.temporal , platformClient, enableWebhooks);
-
-            subscriberConfigList = await this.getSubscriberConfig(platformClient);
-
-            console.log('hi');
         }
 
     }
@@ -269,7 +263,7 @@ class WebhookRegistry {
                     platformClient
                 );
             }
-            throw new FdkWebhookRegistrationError(`Error while updating webhook subscriber configuration for all providers. Reason: ${err.message}`);
+            throw new FdkWebhookRegistrationError(`Error while updating webhook subscriber configuration for all providers. Reason: ${err.message}. Errors: ${JSON.stringify(err?.details)}`);
         }
 
     }
@@ -384,8 +378,8 @@ class WebhookRegistry {
                     'queue': event?.subscriber_event_mapping?.broadcaster_config?.queue,
                     'event_bridge_name': event?.subscriber_event_mapping?.broadcaster_config?.event_bridge_name,
                     'workflow_name': event?.subscriber_event_mapping?.broadcaster_config?.workflow_name,
-                    'filters': event.filters,
-                    'reducer': event.reducer
+                    'filters': event?.subscriber_event_mapping?.filters,
+                    'reducer': event?.subscriber_event_mapping?.reducer
                 }
             });
             // Checking Configuration Updates
@@ -449,7 +443,8 @@ class WebhookRegistry {
                     'pub_sub': ['topic'],
                     'temporal': ['queue', 'workflow_name'],
                     'sqs': ['queue'],
-                    'event_bridge': ['event_bridge_name']
+                    'event_bridge': ['event_bridge_name'],
+                    'rest': []
                 }
 
                 //key to check which are common across all config type
