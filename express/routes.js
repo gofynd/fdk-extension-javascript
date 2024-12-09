@@ -51,7 +51,8 @@ function setupRoutes(ext) {
                 httpOnly: true,
                 expires: session.expires,
                 signed: true,
-                sameSite: "None"
+                sameSite: "None",
+                partitioned: true
             });
 
             let redirectUrl;
@@ -137,7 +138,8 @@ function setupRoutes(ext) {
                 httpOnly: true,
                 expires: sessionExpires,
                 signed: true,
-                sameSite: "None"
+                sameSite: "None",
+                partitioned: true
             });
             res.header['x-company-id'] = companyId;
             req.extension = ext;
@@ -261,7 +263,8 @@ function setupRoutes(ext) {
                 httpOnly: true,
                 expires: session.expires,
                 signed: true,
-                sameSite: "none"
+                sameSite: "none",
+                partitioned: true
             });
 
             session.state = uuidv4();
@@ -344,7 +347,8 @@ function setupRoutes(ext) {
                 httpOnly: true, 
                 expires: sessionExpires,
                 signed: true,
-                sameSite: 'none'
+                sameSite: 'none',
+                partitioned: true
             })
 
             let redirectUrl = urljoin(ext.base_url, '/admin')
