@@ -1,6 +1,8 @@
 'use strict';
 const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('./../constants');
 const SessionStorage = require("../session/session_storage");
+const hmacSHA256 = require("crypto-js/hmac-sha256");
+const CryptoJS = require("crypto-js");
 
 function sessionMiddleware(strict) {
     return async (req, res, next) => {
@@ -38,7 +40,17 @@ function partnerSessionMiddleware(isStrict) {
 }
 
 
+function verifySignature(req) {
+    const reqSignature = req.headers['x-fp-signature'];
+    const { body } = req;
+    const calcSignature = hmacSHA256(JSON.stringify(body), this._fdkConfig.api_secret).toString(CryptoJS.enc.Hex);
+    if (reqSignature !== calcSignature) {
+        return false
+    }
+    return true;
+}
 module.exports = {
     sessionMiddleware : sessionMiddleware,
-    partnerSessionMiddleware: partnerSessionMiddleware
+    partnerSessionMiddleware: partnerSessionMiddleware,
+    verifySignature
 };

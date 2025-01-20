@@ -1,8 +1,9 @@
 'use strict';
 const { extension } = require('./extension');
 const express = require('express');
-const { sessionMiddleware, partnerSessionMiddleware } = require('./middleware/session_middleware');
+const { sessionMiddleware, partnerSessionMiddleware, verifySignature } = require('./middleware/session_middleware');
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const { FdkInvalidHMacError, FdkRequestTimeoutError } = require("./error_code");
 
 
 function setupProxyRoutes(configData) {
@@ -25,6 +26,21 @@ function setupProxyRoutes(configData) {
                     logLevel: configData.debug ===  true? "debug": null
                 });
                 req.applicationClient = new ApplicationClient(req.applicationConfig);
+            }
+            if (req.headers["x-fp-signature"]) {
+                if(!verifySignature(req)) {
+                    throw new FdkInvalidHMacError(`Signature passed does not match calculated body signature`);
+                } else{
+                    const allowedTimeWindow = 1000; // 1 second
+                    const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
+                    const requestTimestamp = body.timestamp; // Ensure the timestamp is part of the request body
+                    if (!requestTimestamp || Math.abs(currentTimestamp - requestTimestamp) > allowedTimeWindow) {
+                        console.error("Timestamp verification failed");
+                        throw new FdkRequestTimeoutError(`Request took too long to process`);
+                    }
+                }
+            } else{
+                throw new Error("Signature not found in request");
             }
             next();
         } catch (error) {

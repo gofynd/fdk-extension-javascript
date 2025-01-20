@@ -54,6 +54,12 @@ class FdkWebhookHandlerNotFound extends Error {
     }
 }
 
+class FdkRequestTimeoutError extends Error {
+    constructor(message) {
+        super(message);
+    }
+}
+
 
 module.exports = {
     FdkInvalidExtensionConfig,
@@ -64,5 +70,6 @@ module.exports = {
     FdkInvalidWebhookConfig,
     FdkWebhookRegistrationError,
     FdkWebhookProcessError,
-    FdkWebhookHandlerNotFound
+    FdkWebhookHandlerNotFound,
+    FdkRequestTimeoutError
 };
