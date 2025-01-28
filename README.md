@@ -209,12 +209,12 @@ webhook_config: {
                 version: '1',
                 handler: handleExtensionUninstall,
                 filters: {
-                    query: "$.payload.brand.uid",
+                    query: "$.brand.uid",
                     condition: "(uid) => uid === 238"
                 },
                 reducer: {
-                    brand_name: "$.payload.brand.name",
-                    logo_link: "$.payload.brand.logo"
+                    brand_name: "$.brand.name",
+                    logo_link: "$.brand.logo"
                 }
             }]
         }
