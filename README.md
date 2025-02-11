@@ -32,7 +32,6 @@ let fdkClient = setupFdk({
   api_key: "<API_KEY>",
   api_secret: "<API_SECRET>",
   base_url: baseUrl, // this is optional
-  scopes: ["company/products"], // this is optional
   callbacks: extensionHandler,
   storage: new RedisStorage(redis),
   access_mode: "offline",
@@ -137,7 +136,6 @@ let fdkClient = setupFdk({
   api_key: "<API_KEY>",
   api_secret: "<API_SECRET>",
   base_url: baseUrl, // this is optional
-  scopes: ["company/products"], // this is optional
   callbacks: {
     auth: async function (data) {
       console.log("called auth callback");
