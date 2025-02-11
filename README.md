@@ -151,6 +151,7 @@ let fdkClient = setupFdk({
     notification_email: "test@abc.com", // required
     subscribe_on_install: false, //optional. Default true
     subscribed_saleschannel: 'specific', //optional. Default all
+    marketplace: true, // to receive marketplace saleschannel events. Only allowed when subscribed_saleschannel is set to specific
     event_map: { // required
       'company/brand/create': {
         version: '1',
@@ -165,6 +166,27 @@ let fdkClient = setupFdk({
         version: '1',
         topic: 'coupon_create_kafka_topic',
         provider: 'kafka'
+      },
+      'company/brand/update': {
+        version: '1',
+        topic: "company-brand-create",  
+        provider: 'pub_sub'
+      },
+      'extension/extension/install': {
+        version: '1',
+        queue: "extension-install", 
+        workflow_name: "extension",
+        provider: 'temporal'
+      },
+      'company/location/create': {
+        version: '1',
+        queue: "company-location-create",  
+        provider: 'sqs'
+      },
+      'company/product-size/create': {
+        version: '1',
+        event_bridge_name: "company-product-size-create",  
+        provider: 'event_bridge'
       }
     }
   },
@@ -195,7 +217,32 @@ app.post('/api/v1/webhooks', async (req, res, next) => {
 
 > Setting `subscribed_saleschannel` as "specific" means, you will have to manually subscribe saleschannel level event for individual saleschannel. Default value here is "all" and event will be subscribed for all sales channels. For enabling events manually use function `enableSalesChannelWebhook`. To disable receiving events for a saleschannel use function `disableSalesChannelWebhook`. 
 
+#### Filters and reducers in webhook events
 
+A filter and reducer can be provided to refine the data delivered for each subscribed event. The Filter functionality allows selective delivery of data by specifying conditions based on JSONPath queries and logical operators. Reducer allow customization of the payload structure by specifying only the fields needed by the subscriber. The reducer extracts fields from the event’s data and restructures them as needed.
+
+```javascript
+webhook_config: {
+        api_path: "/v1.0/webhooks",
+        notification_email: "rahultambe@gofynd.com",
+        marketplace: true,
+        subscribed_saleschannel: 'specific',
+        event_map: {
+            'company/brand/update': {
+                version: '1',
+                handler: handleExtensionUninstall,
+                filters: {
+                    query: "$.brand.uid",
+                    condition: "(uid) => uid === 238"
+                },
+                reducer: {
+                    brand_name: "$.brand.name",
+                    logo_link: "$.brand.logo"
+                }
+            }]
+        }
+}
+```
 ##### How webhook registery subscribes to webhooks on Fynd Platform?
 After webhook config is passed to setupFdk whenever extension is launched to any of companies where extension is installed or to be installed, webhook config data is used to create webhook subscriber on Fynd Platform for that company. 
 
