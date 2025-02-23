@@ -40,6 +40,14 @@ class MultiLevelStorage extends BaseStorage {
         if (!redisInstance || !mongoInstance) {
             throw new StorageConnectionError('Both Redis and MongoDB instances are required.');
         }
+        
+        if (typeof redisInstance.isReady !== 'boolean' || !redisInstance.isReady) {
+            throw new StorageConnectionError('Redis instance is not connected.');
+        }
+    
+        if (mongoInstance.connection.readyState !== 1) { // 1 = connected
+            throw new StorageConnectionError('MongoDB instance is not connected.');
+        }
 
         this.redis = redisInstance;
         this.mongoConnection = mongoInstance;
