@@ -1,4 +1,5 @@
 'use strict';
+const logger = require('../logger');
 
 class BaseStorage {
     constructor(prefixKey) {
@@ -26,14 +27,17 @@ class BaseStorage {
     }
 
     async hget(key, hashKey) {
+        logger.warn("This method will be deprecated in future.");
         throw Error("Method not implemented");
     }
 
     async hset(key, hashKey, value) {
+        logger.warn("This method will be deprecated in future.");
         throw Error("Method not implemented");
     }
 
     async hgetall(key) {
+        logger.warn("This method will be deprecated in future.");
         throw Error("Method not implemented");
     }
 }
