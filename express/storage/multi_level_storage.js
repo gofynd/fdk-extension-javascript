@@ -1,18 +1,31 @@
-// @ts-check
+/** @type {mongoose} */
+let mongoose;
+/** @type {Redis} */
+let Redis;
 
-'use strict';
-const BaseStorage = require('./base_storage');
-const Redis = require('ioredis').default;
-const mongoose = require('mongoose');
+const BaseStorage = require('./BaseStorage');
 
-/**
- * @typedef {Object} RedisOptions
- * @property {string} host - Redis server hostname.
- * @property {number} port - Redis server port number.
- * @property {number} [db=0] - Redis database number (default is 0).
- * @property {string} [password] - Password for Redis authentication (if required).
- * @property {number} [ttl] - Default time-to-live (in seconds) for keys.
- */
+// Custom Error Classes
+class StorageConnectionError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'StorageConnectionError';
+  }
+}
+
+class StorageOperationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'StorageOperationError';
+  }
+}
+
+// Define default MongoDB schema
+const defaultSchema = {
+  key: { type: String, required: true, unique: true },
+  value: { type: Object, required: true },
+  updatedAt: { type: Date, default: Date.now }
+};
 
 /**
  * Multi-level storage using Redis as the primary cache
@@ -20,79 +33,118 @@ const mongoose = require('mongoose');
  * @extends BaseStorage
  */
 class MultiLevelStorage extends BaseStorage {
-    /**
-     * @param {string} prefixKey - Prefix for all keys stored.
-     * @param {RedisOptions} redisOptions - Redis client configuration options.
-     * @param {mongoose.Model} mongoModel - Mongoose model for MongoDB storage.
-     */
-    constructor(prefixKey, redisOptions, mongoModel) {
-        super(prefixKey);
-        this.redis = new Redis(redisOptions);
-        this.mongoModel = mongoModel;
-    }
+  /**
+   * Initializes Redis and MongoDB connections.
+   * @param {string} prefixKey - Prefix for all keys stored.
+   * @param {string|Object} redisConnection - Redis connection string or existing Redis instance.
+   * @param {string|Object} mongoConnection - MongoDB connection URI or existing Mongoose connection.
+   */
+  constructor(prefixKey, redisConnection, mongoConnection) {
+    super(prefixKey);
 
-    /**
-     * Retrieve the value associated with a key from Redis or MongoDB.
-     * @param {string} key - The key to retrieve.
-     * @returns {Promise<*>} - The value stored or null if not found.
-     */
-    async get(key) {
-        const fullKey = this.prefixKey + key;
-        let value = await this.redis.get(fullKey);
-        if (value) return JSON.parse(value);
-
-        // Fallback to MongoDB
-        const doc = await this.mongoModel.findOne({ key: fullKey });
-        if (doc) {
-            await this.redis.set(fullKey, JSON.stringify(doc.value)); // Cache it back in Redis
-            return doc.value;
+    (async () => {
+      try {
+        if (typeof redisConnection === 'string') {
+          if (!Redis) Redis = (await import('ioredis')).default;
+          this.redis = new Redis(redisConnection);
+        } else {
+          this.redis = redisConnection;
         }
-        return null;
-    }
+      } catch (err) {
+        throw new StorageConnectionError(`Redis connection failed: ${err.message}`);
+      }
 
-    /**
-     * Store a value in Redis and MongoDB.
-     * @param {string} key - The key to store.
-     * @param {*} value - The value to store.
-     * @returns {Promise<void>}
-     */
-    async set(key, value) {
-        const fullKey = this.prefixKey + key;
-        await this.redis.set(fullKey, JSON.stringify(value));
-        await this.mongoModel.updateOne(
-            { key: fullKey },
-            { value },
-            { upsert: true }
-        );
-    }
+      try {
+        if (mongoConnection.constructor.name === 'Connection') {
+          this.mongoConnection = mongoConnection;
+        } else {
+          if (!mongoose) mongoose = (await import('mongoose')).default;
+          this.mongoConnection = mongoose.createConnection(mongoConnection, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+          });
+        }
+        this.mongoModel = this.mongoConnection.model('MultiLevelStorage', defaultSchema);
+      } catch (err) {
+        throw new StorageConnectionError(`MongoDB connection failed: ${err.message}`);
+      }
+    })();
+  }
 
-    /**
-     * Delete a key-value pair from both Redis and MongoDB.
-     * @param {string} key - The key to delete.
-     * @returns {Promise<void>}
-     */
-    async del(key) {
-        const fullKey = this.prefixKey + key;
-        await this.redis.del(fullKey);
-        await this.mongoModel.deleteOne({ key: fullKey });
-    }
+  /**
+   * Retrieves a value by key from Redis, falls back to MongoDB if not found.
+   * @param {string} key - The key to retrieve.
+   * @returns {Promise<Object|null>} The retrieved value or null if not found.
+   */
+  async get(key) {
+    const fullKey = this.prefixKey + key;
+    try {
+      let value = await this.redis.get(fullKey);
+      if (value) return JSON.parse(value);
 
-    /**
-     * Store a value with a time-to-live (TTL) in Redis and persist in MongoDB.
-     * @param {string} key - The key to store.
-     * @param {*} value - The value to store.
-     * @param {number} ttl - Time-to-live in seconds.
-     * @returns {Promise<void>}
-     */
-    async setex(key, value, ttl) {
-        const fullKey = this.prefixKey + key;
-        await this.redis.setex(fullKey, ttl, JSON.stringify(value));
-        await this.mongoModel.updateOne(
-            { key: fullKey },
-            { value },
-            { upsert: true }
-        );
+      const doc = await this.mongoModel.findOne({ key: fullKey });
+      if (doc) {
+        await this.redis.set(fullKey, JSON.stringify(doc.value));
+        return doc.value;
+      }
+      return null;
+    } catch (err) {
+      throw new StorageOperationError(`Error retrieving key '${key}': ${err.message}`);
     }
+  }
+
+  /**
+   * Sets a value for a given key in Redis and MongoDB.
+   * @param {string} key - The key to set.
+   * @param {Object} value - The value to store.
+   */
+  async set(key, value) {
+    const fullKey = this.prefixKey + key;
+    try {
+      await this.redis.set(fullKey, JSON.stringify(value));
+      await this.mongoModel.updateOne(
+        { key: fullKey },
+        { value, updatedAt: Date.now() },
+        { upsert: true }
+      );
+    } catch (err) {
+      throw new StorageOperationError(`Error setting key-value pair for '${key}': ${err.message}`);
+    }
+  }
+
+  /**
+   * Deletes a key from Redis and MongoDB.
+   * @param {string} key - The key to delete.
+   */
+  async del(key) {
+    const fullKey = this.prefixKey + key;
+    try {
+      await this.redis.del(fullKey);
+      await this.mongoModel.deleteOne({ key: fullKey });
+    } catch (err) {
+      throw new StorageOperationError(`Error deleting key '${key}': ${err.message}`);
+    }
+  }
+
+  /**
+   * Sets a key-value pair with an expiration time (TTL).
+   * @param {string} key - The key to set.
+   * @param {Object} value - The value to store.
+   * @param {number} ttl - Time to live in seconds.
+   */
+  async setex(key, value, ttl) {
+    const fullKey = this.prefixKey + key;
+    try {
+      await this.redis.setex(fullKey, ttl, JSON.stringify(value));
+      await this.mongoModel.updateOne(
+        { key: fullKey },
+        { value, updatedAt: Date.now() },
+        { upsert: true }
+      );
+    } catch (err) {
+      throw new StorageOperationError(`Error setting key with TTL for '${key}': ${err.message}`);
+    }
+  }
 }
 
 module.exports = MultiLevelStorage;
