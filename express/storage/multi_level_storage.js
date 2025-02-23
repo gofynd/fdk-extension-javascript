@@ -1,4 +1,4 @@
-const BaseStorage = require('./BaseStorage');
+const BaseStorage = require('./base_storage');
 
 // Custom Error Classes
 class StorageConnectionError extends Error {
