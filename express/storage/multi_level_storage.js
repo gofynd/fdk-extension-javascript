@@ -32,25 +32,17 @@ class MultiLevelStorage extends BaseStorage {
      * Initializes Redis and MongoDB connections.
      * @param {string} prefixKey - Prefix for all keys stored.
      * @param {Object} redisInstance - Existing Redis instance.
-     * @param {Object} mongoInstance - Existing Mongoose connection instance.
+     * @param {Object} mongooseInstance - Existing Mongoose connection instance.
      */
-    constructor(prefixKey, redisInstance, mongoInstance) {
+    constructor(prefixKey, redisInstance, mongooseInstance) {
         super(prefixKey);
 
-        if (!redisInstance || !mongoInstance) {
+        if (!redisInstance || !mongooseInstance) {
             throw new StorageConnectionError('Both Redis and MongoDB instances are required.');
-        }
-        
-        if (typeof redisInstance.isReady !== 'boolean' || !redisInstance.isReady) {
-            throw new StorageConnectionError('Redis instance is not connected.');
-        }
-    
-        if (mongoInstance.connection.readyState !== 1) { // 1 = connected
-            throw new StorageConnectionError('MongoDB instance is not connected.');
         }
 
         this.redis = redisInstance;
-        this.mongoConnection = mongoInstance;
+        this.mongoConnection = mongooseInstance;
         this.mongoModel = this.mongoConnection.model('MultiLevelStorage', defaultSchema);
     }
 
@@ -118,7 +110,7 @@ class MultiLevelStorage extends BaseStorage {
     async setex(key, value, ttl) {
         const fullKey = this.prefixKey + key;
         try {
-            await this.redis.set(fullKey, JSON.stringify(value), { EX: ttl });
+            await this.redis.set(fullKey, JSON.stringify(value), 'EX', ttl);
             await this.mongoModel.updateOne(
                 { key: fullKey },
                 { value, updatedAt: Date.now() },
