@@ -1,8 +1,3 @@
-/** @type {mongoose} */
-let mongoose;
-/** @type {Redis} */
-let Redis;
-
 const BaseStorage = require('./BaseStorage');
 
 // Custom Error Classes
@@ -36,39 +31,19 @@ class MultiLevelStorage extends BaseStorage {
   /**
    * Initializes Redis and MongoDB connections.
    * @param {string} prefixKey - Prefix for all keys stored.
-   * @param {string|Object} redisConnection - Redis connection string or existing Redis instance.
-   * @param {string|Object} mongoConnection - MongoDB connection URI or existing Mongoose connection.
+   * @param {Object} redisInstance - Existing Redis instance.
+   * @param {Object} mongoInstance - Existing Mongoose connection instance.
    */
-  constructor(prefixKey, redisConnection, mongoConnection) {
+  constructor(prefixKey, redisInstance, mongoInstance) {
     super(prefixKey);
 
-    (async () => {
-      try {
-        if (typeof redisConnection === 'string') {
-          if (!Redis) Redis = (await import('ioredis')).default;
-          this.redis = new Redis(redisConnection);
-        } else {
-          this.redis = redisConnection;
-        }
-      } catch (err) {
-        throw new StorageConnectionError(`Redis connection failed: ${err.message}`);
-      }
+    if (!redisInstance || !mongoInstance) {
+      throw new StorageConnectionError('Both Redis and MongoDB instances are required.');
+    }
 
-      try {
-        if (mongoConnection.constructor.name === 'Connection') {
-          this.mongoConnection = mongoConnection;
-        } else {
-          if (!mongoose) mongoose = (await import('mongoose')).default;
-          this.mongoConnection = mongoose.createConnection(mongoConnection, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-          });
-        }
-        this.mongoModel = this.mongoConnection.model('MultiLevelStorage', defaultSchema);
-      } catch (err) {
-        throw new StorageConnectionError(`MongoDB connection failed: ${err.message}`);
-      }
-    })();
+    this.redis = redisInstance;
+    this.mongoConnection = mongoInstance;
+    this.mongoModel = this.mongoConnection.model('MultiLevelStorage', defaultSchema);
   }
 
   /**
