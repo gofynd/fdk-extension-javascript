@@ -25,8 +25,9 @@ class MultiLevelStorage extends BaseStorage {
      * @param {string} prefixKey - Prefix for all keys stored.
      * @param {Object} redisInstance - ioredis instance.
      * @param {Object} mongooseInstance - Mongoose connection instance.
+     * @param {Object} options - Additional configuration options (e.g., custom collection name).
      */
-    constructor(prefixKey, redisInstance, mongooseInstance) {
+    constructor(prefixKey, redisInstance, mongooseInstance, options = {}) {
         super(prefixKey);
 
         if (!redisInstance || !mongooseInstance) {
@@ -43,7 +44,8 @@ class MultiLevelStorage extends BaseStorage {
 
         this.redis = redisInstance;
         this.mongoose = mongooseInstance;
-        this.model = this.mongoose.model('MultiLevelStorage', new this.mongoose.Schema({
+        const collectionName = options.collectionName || 'MultiLevelStorage';
+        this.model = this.mongoose.model(collectionName, new this.mongoose.Schema({
             key: { type: String, required: true, unique: true },
             value: { type: Object, required: true },
             updatedAt: { type: Date, default: Date.now },
