@@ -1,4 +1,4 @@
-const BaseStorage = require('./base_storage');
+const BaseStorage = require('../base_storage');
 
 // Custom Error Classes
 class StorageConnectionError extends Error {
@@ -15,39 +15,44 @@ class StorageOperationError extends Error {
     }
 }
 
-// Define default MongoDB schema
-const defaultSchema = {
-    key: { type: String, required: true, unique: true },
-    value: { type: Object, required: true },
-    updatedAt: { type: Date, default: Date.now }
-};
-
 /**
- * Multi-level storage using Redis as the primary cache
- * and MongoDB as the fallback storage.
+ * Multi-level storage using ioredis and Mongoose interfaces.
  * @extends BaseStorage
  */
 class MultiLevelStorage extends BaseStorage {
     /**
-     * Initializes Redis and MongoDB connections.
+     * Initializes Redis and Mongoose connections.
      * @param {string} prefixKey - Prefix for all keys stored.
-     * @param {Object} redisInstance - Existing Redis instance.
-     * @param {Object} mongooseInstance - Existing Mongoose connection instance.
+     * @param {Object} redisInstance - ioredis instance.
+     * @param {Object} mongooseInstance - Mongoose connection instance.
      */
     constructor(prefixKey, redisInstance, mongooseInstance) {
         super(prefixKey);
 
         if (!redisInstance || !mongooseInstance) {
-            throw new StorageConnectionError('Both Redis and MongoDB instances are required.');
+            throw new StorageConnectionError('Both Redis and Mongoose instances are required.');
+        }
+        
+        if (!redisInstance || typeof redisInstance.get !== 'function') {
+            throw new StorageConnectionError('Invalid ioredis instance provided.');
+        }
+
+        if (!mongooseInstance || typeof mongooseInstance.model !== 'function') {
+            throw new StorageConnectionError('Invalid Mongoose instance provided.');
         }
 
         this.redis = redisInstance;
-        this.mongoConnection = mongooseInstance;
-        this.mongoModel = this.mongoConnection.model('MultiLevelStorage', defaultSchema);
+        this.mongoose = mongooseInstance;
+        this.model = this.mongoose.model('MultiLevelStorage', new this.mongoose.Schema({
+            key: { type: String, required: true, unique: true },
+            value: { type: Object, required: true },
+            updatedAt: { type: Date, default: Date.now },
+            expireAt: { type: Date, default: null, index: { expires: 0 } } // Auto-expire index
+        }));
     }
 
     /**
-     * Retrieves a value by key from Redis, falls back to MongoDB if not found.
+     * Retrieves a value by key from Redis, falls back to Mongoose if not found.
      * @param {string} key - The key to retrieve.
      * @returns {Promise<Object|null>} The retrieved value or null if not found.
      */
@@ -57,7 +62,7 @@ class MultiLevelStorage extends BaseStorage {
             let value = await this.redis.get(fullKey);
             if (value) return JSON.parse(value);
 
-            const doc = await this.mongoModel.findOne({ key: fullKey });
+            const doc = await this.model.findOne({ key: fullKey });
             if (doc) {
                 await this.redis.set(fullKey, JSON.stringify(doc.value));
                 return doc.value;
@@ -69,7 +74,7 @@ class MultiLevelStorage extends BaseStorage {
     }
 
     /**
-     * Sets a value for a given key in Redis and MongoDB.
+     * Sets a value for a given key in Redis and Mongoose.
      * @param {string} key - The key to set.
      * @param {Object} value - The value to store.
      */
@@ -77,7 +82,7 @@ class MultiLevelStorage extends BaseStorage {
         const fullKey = this.prefixKey + key;
         try {
             await this.redis.set(fullKey, JSON.stringify(value));
-            await this.mongoModel.updateOne(
+            await this.model.updateOne(
                 { key: fullKey },
                 { value, updatedAt: Date.now() },
                 { upsert: true }
@@ -88,14 +93,14 @@ class MultiLevelStorage extends BaseStorage {
     }
 
     /**
-     * Deletes a key from Redis and MongoDB.
+     * Deletes a key from Redis and Mongoose.
      * @param {string} key - The key to delete.
      */
     async del(key) {
         const fullKey = this.prefixKey + key;
         try {
             await this.redis.del(fullKey);
-            await this.mongoModel.deleteOne({ key: fullKey });
+            await this.model.deleteOne({ key: fullKey });
         } catch (err) {
             throw new StorageOperationError(`Error deleting key '${key}': ${err.message}`);
         }
@@ -109,11 +114,12 @@ class MultiLevelStorage extends BaseStorage {
      */
     async setex(key, value, ttl) {
         const fullKey = this.prefixKey + key;
+        const expirationDate = new Date(Date.now() + ttl * 1000);
         try {
             await this.redis.set(fullKey, JSON.stringify(value), 'EX', ttl);
-            await this.mongoModel.updateOne(
+            await this.model.updateOne(
                 { key: fullKey },
-                { value, updatedAt: Date.now() },
+                { value, updatedAt: Date.now(), expireAt: expirationDate },
                 { upsert: true }
             );
         } catch (err) {
