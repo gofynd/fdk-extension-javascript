@@ -44,7 +44,7 @@ class MultiLevelStorage extends BaseStorage {
 
         this.redis = redisInstance;
         this.mongoose = mongooseInstance;
-        const collectionName = options.collectionName || 'MultiLevelStorage';
+        const collectionName = options.collectionName || 'fdk_ext_acc_tokens';
         this.model = this.mongoose.model(collectionName, new this.mongoose.Schema({
             key: { type: String, required: true, unique: true },
             value: { type: Object, required: true },

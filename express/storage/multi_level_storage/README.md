@@ -25,7 +25,7 @@ const MultiLevelStorage = require('@gofynd/fdk-extension-javascript/express/stor
 ```
 
 ## Options
-- `collectionName` (optional): Custom MongoDB collection name. Defaults to `MultiLevelStorage`.
+- `collectionName` (optional): Custom MongoDB collection name. Defaults to `fdk_ext_acc_tokens`.
 
 ## Notes
 > - Ensure `mongoose` is initialized with `autoIndex: true` **or** manually create a TTL index on the `expireAt` field of the collection (default: `MultiLevelStorage` or your custom collection name).
