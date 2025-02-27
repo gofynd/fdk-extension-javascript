@@ -21,11 +21,8 @@ MultiLevelStorage is a Node.js library that provides a multi-level caching mecha
 ```js
 const Redis = require('ioredis');
 const mongoose = require('mongoose');
-const MultiLevelStorage = require('@gofynd/fdk-extension-javascript/express/storage');
+const { MultiLevelStorage } = require('@gofynd/fdk-extension-javascript/express/storage');
 ```
-
-## Options
-- `collectionName` (optional): Custom MongoDB collection name. Defaults to `fdk_ext_acc_tokens`.
 
 ## Notes
 > - Ensure `mongoose` is initialized with `autoIndex: true` **or** manually create a TTL index on the `expireAt` field of the collection (default: `MultiLevelStorage` or your custom collection name).
@@ -40,7 +37,7 @@ const redisClient = new Redis();
 await mongoose.connect('mongodb://localhost:27017/yourdb');
 
 // Initialize MultiLevelStorage
-const storage = new MultiLevelStorage('app_prefix_', redisClient, mongoose);
+const storage = new MultiLevelStorage('app_prefix_', redisClient, mongoose, { collectionName: 'collection_name' });
 ```
 
 ### Basic Operations

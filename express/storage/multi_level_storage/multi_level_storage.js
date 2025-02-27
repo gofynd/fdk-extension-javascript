@@ -34,11 +34,11 @@ class MultiLevelStorage extends BaseStorage {
             throw new StorageConnectionError('Both Redis and Mongoose instances are required.');
         }
         
-        if (!redisInstance || typeof redisInstance.get !== 'function') {
+        if (typeof redisInstance.get !== 'function') {
             throw new StorageConnectionError('Invalid ioredis instance provided.');
         }
 
-        if (!mongooseInstance || typeof mongooseInstance.model !== 'function') {
+        if (typeof mongooseInstance.model !== 'function') {
             throw new StorageConnectionError('Invalid Mongoose instance provided.');
         }
 

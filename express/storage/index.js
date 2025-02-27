@@ -11,5 +11,5 @@ module.exports = {
     MemoryStorage,
     RedisStorage,
     SQLiteStorage,
-    MultiLevelStorage
+    MultiLevelStorage,
 };
