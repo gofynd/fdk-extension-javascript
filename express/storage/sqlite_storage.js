@@ -52,7 +52,7 @@ class SQLiteStorage extends BaseStorage {
     /**
      * Retrieves a value by key from the storage.
      * @param {string} key - The key to retrieve.
-     * @returns {Promise<string|null>} - The value associated with the key, or null if not found.
+     * @returns {Promise<Object|null>} - The value associated with the key, or null if not found.
      */
     async get(key) {
         const row = await new Promise((resolve, reject) => {
@@ -64,29 +64,37 @@ class SQLiteStorage extends BaseStorage {
                 }
             });
         });
-        return row ? row.value : null;
+        return row ? JSON.parse(row.value) : null;
     }
 
     /**
      * Sets a value by key in the storage.
      * @param {string} key - The key to set.
-     * @param {string} value - The value to set.
+     * @param {Object} value - The value to set.
      * @returns {Promise<void>}
      */
     async set(key, value) {
-        return await this.dbClient.run(`INSERT INTO storage (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`, [this.prefixKey + key, value]);
+        return await this.dbClient.run(
+            `INSERT INTO storage (key, value) VALUES (?, ?) 
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+            [this.prefixKey + key, JSON.stringify(value)]
+        );
     }
 
     /**
      * Sets a value by key in the storage with an expiration time.
      * @param {string} key - The key to set.
-     * @param {string} value - The value to set.
+     * @param {Object} value - The value to set.
      * @param {number} ttl - Time to live in seconds.
      * @returns {Promise<void>}
      */
     async setex(key, value, ttl) {
         const expiresAt = Math.floor(Date.now() / 1000) + ttl;
-        return await this.dbClient.run(`INSERT INTO storage (key, value, ttl) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, ttl = excluded.ttl`, [this.prefixKey + key, value, expiresAt]);
+        return await this.dbClient.run(
+            `INSERT INTO storage (key, value, ttl) VALUES (?, ?, ?) 
+             ON CONFLICT(key) DO UPDATE SET value = excluded.value, ttl = excluded.ttl`,
+            [this.prefixKey + key, JSON.stringify(value), expiresAt]
+        );
     }
 
     /**

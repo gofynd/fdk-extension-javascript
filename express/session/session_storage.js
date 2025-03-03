@@ -17,9 +17,9 @@ class SessionStorage {
             // Convert session.expires from milliseconds to seconds
             let ttl = (new Date() - session.expires) / 1000;
             ttl = Math.abs(Math.round(Math.min(ttl, 0)));
-            return extension.storage.setex(session.id, JSON.stringify(session.toJSON()), ttl);
+            return extension.storage.setex(session.id, session.toJSON(), ttl);
         } else {
-            return extension.storage.set(session.id, JSON.stringify(session.toJSON()));
+            return extension.storage.set(session.id, session.toJSON());
         }
     }
 
@@ -31,7 +31,6 @@ class SessionStorage {
     static async getSession(sessionId) {
         let session = await extension.storage.get(sessionId);
         if(session) {
-            session = JSON.parse(session);
             session = Session.cloneSession(sessionId, session, false);
         }
         else {
