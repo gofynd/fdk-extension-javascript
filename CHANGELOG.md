@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.0] - 2025-03-06
+### Changed
+- Multi-Level Storage Support: Introduced a new storage mechanism that utilizes Redis as a temporary cache and MongoDB as persistent storage.
+- Previously, storage returned raw values, but now it ensures consistency by accepting and returning objects.
+
 ## [v1.0.0] - 2025-02-11
 ### Changed
 - Added `partitioned` attribute on cookies set for extension sessions for Platform and Partners. This is to ensure extension works fine inside iframe when Chrome rolls our 3rd party cookie blocking. To check impact of this refer [MDN CHIPS documentation](https://developer.mozilla.org/en-US/docs/Web/Privacy/Privacy_sandbox/Partitioned_cookies).
