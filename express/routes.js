@@ -219,8 +219,7 @@ function setupRoutes(ext) {
             const reqSignature = req.headers['x-fp-signature'];
             const kCredentials = ext.api_secret;
             
-            const strToVerify = `${ext.api_key}:${ext.api_secret}`
-            const calcSignature = hmacSHA256(strToVerify, kCredentials).toString();
+            const calcSignature = hmacSHA256(JSON.stringify(req.body), kCredentials).toString();
             if (calcSignature !== reqSignature) {
                 throw new FdkInvalidHMacError(`Signature passed does not match calculated body signature`);
             }
