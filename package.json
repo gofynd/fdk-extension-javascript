@@ -2,6 +2,7 @@
   "dependencies": {
     "axios": "^1.6.4",
     "crypto-js": "^4.2.0",
+    "lodash": "^4.17.21",
     "querystring": "^0.2.1",
     "url-join": "^4.0.1",
     "uuid": "^8.3.2",
@@ -9,7 +10,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "@gofynd/fdk-client-javascript": "^1.1.0",
+    "@gofynd/fdk-client-javascript": "^1.4.13",
     "axios-mock-adapter": "^1.18.1",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
@@ -52,11 +53,11 @@
     "report-dir": "./coverage"
   },
   "peerDependencies": {
-    "@gofynd/fdk-client-javascript": "^1.1.0"
+    "@gofynd/fdk-client-javascript": "^1.4.13"
   },
   "name": "@gofynd/fdk-extension-javascript",
   "description": "FDK Extension Helper Library",
-  "version": "0.7.10",
+  "version": "1.1.0",
   "main": "index.js",
   "directories": {
     "example": "examples"

@@ -4,9 +4,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.7.10] - 2024-09-02
+## [v1.1.0] - 2025-03-06
+### Added
+- Multi-Level Storage Support: Introduced a new storage mechanism that utilizes Redis as a temporary cache and MongoDB as persistent storage.
 ### Changed
-- Add the `x-fp-signature` header to validate the authenticity of extension uninstall requests.
+- Previously, storage returned raw values, but now it ensures consistency by accepting and returning objects.
+
+## [v1.0.0] - 2025-02-11
+### Changed
+- Added `partitioned` attribute on cookies set for extension sessions for Platform and Partners. This is to ensure extension works fine inside iframe when Chrome rolls our 3rd party cookie blocking. To check impact of this refer [MDN CHIPS documentation](https://developer.mozilla.org/en-US/docs/Web/Privacy/Privacy_sandbox/Partitioned_cookies).
+
+## [v0.7.13] - 2024-11-18
+### Changed
+- Pub/Sub, temporal, sqs, event_bridge support added.
+- Added support for Filters and reducers
+
+## [v0.7.12] - 2024-11-18
+### Changed
+- Added offline token support for partner clients.
+
+## [v0.7.11] - 2024-09-23
+### Changed
+- Kafka config response key change in api.
+
+## [v0.7.10] - 2024-09-23
+### Changed
+- Bugfix in process webhook
 ---
 ## [v0.7.9] - 2024-08-20
 ### Changed
