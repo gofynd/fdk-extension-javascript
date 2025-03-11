@@ -37,8 +37,13 @@ const redisClient = new Redis();
 await mongoose.connect('mongodb://localhost:27017/yourdb');
 
 // Initialize MultiLevelStorage
-const storage = new MultiLevelStorage('app_prefix_', redisClient, mongoose, { collectionName: 'collection_name' });
+const storage = new MultiLevelStorage('app_prefix_', redisClient, mongoose, { collectionName: 'collection_name', autoIndex: true });
 ```
+
+### Options
+
+- `collectionName` (default: `'fdk_ext_acc_tokens'`): The name of the MongoDB collection to use.
+- `autoIndex` (default: `true`): Whether to automatically create indexes on the MongoDB collection.
 
 ### Basic Operations
 
@@ -62,6 +67,20 @@ await storage.setex('session:456', { token: 'abcd1234' }, 3600); // Expires in 1
 ```js
 await storage.del('user:123');
 ```
+
+## Index Creation
+
+If `autoIndex` is set to `true` and the MongoDB instance is connected to a primary node, the TTL index will be created automatically on the `expireAt` field. If connected to a secondary node, you will need to create the index manually.
+
+### Manual Index Creation
+
+To manually create the TTL index on the `expireAt` field, run the following command in your MongoDB shell:
+
+```shell
+db.collection_name.createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
+```
+
+Replace `collection_name` with the name of your collection.
 
 ## Error Handling
 

@@ -1,4 +1,5 @@
 const BaseStorage = require('../base_storage');
+const logger = require('../../logger');
 
 // Custom Error Classes
 class StorageConnectionError extends Error {
@@ -25,7 +26,7 @@ class MultiLevelStorage extends BaseStorage {
      * @param {string} prefixKey - Prefix for all keys stored.
      * @param {Object} redisInstance - ioredis instance.
      * @param {Object} mongooseInstance - Mongoose connection instance.
-     * @param {Object} options - Additional configuration options (e.g., custom collection name).
+     * @param {Object} options - Additional configuration options (e.g., custom collection name, autoIndex).
      */
     constructor(prefixKey, redisInstance, mongooseInstance, options = {}) {
         super(prefixKey);
@@ -45,12 +46,31 @@ class MultiLevelStorage extends BaseStorage {
         this.redis = redisInstance;
         this.mongoose = mongooseInstance;
         const collectionName = options.collectionName || 'fdk_ext_acc_tokens';
-        this.model = this.mongoose.model(collectionName, new this.mongoose.Schema({
+        const autoIndex = options.autoIndex !== undefined ? options.autoIndex : true;
+
+        const schema = new this.mongoose.Schema({
             key: { type: String, required: true, unique: true },
             value: { type: Object, required: true },
             updatedAt: { type: Date, default: Date.now },
             expireAt: { type: Date, default: null, index: { expires: 0 } } // Auto-expire index
-        }));
+        });
+
+        if (autoIndex) {
+            this.mongoose.connection.db.admin().command({ replSetGetStatus: 1 }, (err, info) => {
+                if (err) {
+                    logger.warn('Unable to determine MongoDB replica set status. Please ensure indexes are created manually.');
+                } else {
+                    const isPrimary = info.members.some(member => member.stateStr === 'PRIMARY' && member.self);
+                    if (isPrimary) {
+                        schema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
+                    } else {
+                        logger.warn(`Connected to secondary MongoDB instance. Please ensure indexes are created manually on the collection '${collectionName}' for the field 'expireAt'.`);
+                    }
+                }
+            });
+        }
+
+        this.model = this.mongoose.model(collectionName, schema);
     }
 
     /**
