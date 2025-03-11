@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.1-beta.0] - 2025-03-11
+### Changed
+- Added option to enable autoIndex in MultiLevelStorage constructor
+- Create index automatically if connected to primary node and autoIndex is true.
+
+
 ## [v1.1.0] - 2025-03-06
 ### Added
 - Multi-Level Storage Support: Introduced a new storage mechanism that utilizes Redis as a temporary cache and MongoDB as persistent storage.
