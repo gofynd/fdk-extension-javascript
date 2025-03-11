@@ -56,21 +56,16 @@ class MultiLevelStorage extends BaseStorage {
         });
 
         if (autoIndex) {
-            this.mongoose.connection.db.admin().command({ replSetGetStatus: 1 }, (err, info) => {
-                if (err) {
-                    logger.warn('Unable to determine MongoDB replica set status. Please ensure indexes are created manually.');
-                } else {
-                    const isPrimary = info.members.some(member => member.stateStr === 'PRIMARY' && member.self);
-                    if (isPrimary) {
-                        schema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
-                    } else {
-                        logger.warn(`Connected to secondary MongoDB instance. Please ensure indexes are created manually on the collection '${collectionName}' for the field 'expireAt'.`);
-                    }
-                }
-            });
+            schema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
         }
 
         this.model = this.mongoose.model(collectionName, schema);
+
+        if (autoIndex) {
+            this.model.createIndexes().catch(err => {
+                logger.warn(`Error creating indexes: ${err.message}`);
+            });
+        }
     }
 
     /**
