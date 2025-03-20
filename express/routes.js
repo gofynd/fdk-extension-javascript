@@ -88,7 +88,7 @@ function setupRoutes(ext) {
             }
 
             if (req.fdkSession.state !== req.query.state) {
-                logger.error(`State value mismatch: ${req.fdkSession.state} != ${req.query.state}`);
+                logger.debug(`State value mismatch: ${req.fdkSession.state} != ${req.query.state}`);
                 throw new FdkInvalidOAuthError("Invalid oauth call");
             }
             const companyId = req.fdkSession.company_id
