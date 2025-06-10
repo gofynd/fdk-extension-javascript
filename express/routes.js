@@ -88,7 +88,9 @@ function setupRoutes(ext) {
             }
 
             if (req.fdkSession.state !== req.query.state) {
-                logger.debug(`State value mismatch: ${req.fdkSession.state} != ${req.query.state}`);
+                const companyId = req.headers['x-company-id'] || req.query['company_id'];
+                const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`;
+                res.clearCookie(compCookieName, { path: "/", httpOnly: true, secure: true, sameSite: "None" });
                 throw new FdkInvalidOAuthError("Invalid oauth call");
             }
             const companyId = req.fdkSession.company_id
