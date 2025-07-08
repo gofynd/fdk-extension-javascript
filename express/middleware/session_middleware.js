@@ -41,13 +41,19 @@ function partnerSessionMiddleware(isStrict) {
 }
 
 
-function verifySignature(req) {
+function verifySignature(req, secret) {
     const reqSignature = req.headers['x-fp-signature'];
-    const { body } = req;
-    
+    const { body, headers, method, path, host } = req;
 
-    const calcSignature = hmacSHA256(JSON.stringify(body), this._fdkConfig.api_secret).toString(CryptoJS.enc.Hex);
-    if (reqSignature !== calcSignature) {
+    const signatureData = {
+        host,
+        method,
+        headers,
+        path,
+        body,
+    }
+    const calcSignature = sign(signatureData, {secret, headers: ['x-user-data']});
+    if (reqSignature !== calcSignature['x-fp-signature']) {
         return false
     }
     return true;
