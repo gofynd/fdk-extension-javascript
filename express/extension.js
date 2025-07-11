@@ -72,11 +72,6 @@ class Extension {
         }
         this.base_url = data.base_url;
 
-        if (data.scopes) {
-            data.scopes = this.verifyScopes(data.scopes, this.extensionData);
-        }
-        this.scopes = data.scopes || this.extensionData.scope;
-
         logger.debug(`Extension initialized`);
 
         if (data.webhook_config && Object.keys(data.webhook_config)) {
@@ -88,14 +83,6 @@ class Extension {
 
     get isInitialized() {
         return this._isInitialized;
-    }
-
-    verifyScopes(scopes, extensionData) {
-        const missingScopes = scopes.filter(val => extensionData.scope.indexOf(val) === -1);
-        if (!scopes || scopes.length <= 0 || missingScopes.length) {
-            throw new FdkInvalidExtensionConfig("Invalid scopes in extension config. Invalid scopes: " + missingScopes.join(", "));
-        }
-        return scopes;
     }
 
     getAuthCallback() {
