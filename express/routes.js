@@ -16,7 +16,7 @@ function setupRoutes(ext) {
     let storage = ext.storage;
     let callbacks = ext.callbacks;
 
-    FdkRoutes.get("/fp/install", async (req, res, next) => {
+    FdkRoutes.get("/fp/install", sessionMiddleware(false), async (req, res, next) => {
         // ?company_id=1&client_id=123313112122
         try {
             let companyId = parseInt(req.query.company_id);
@@ -24,39 +24,39 @@ function setupRoutes(ext) {
             let session;
             let redirectPath = req.query.redirect_path;
 
-            session = new Session(Session.generateSessionId(true));
-
-            let sessionExpires = new Date(Date.now() + 900000); // 15 min
-
-            if (session.isNew) {
-                session.company_id = companyId;
-                session.scope = ext.scopes;
-                session.expires = sessionExpires;
-                session.access_mode = 'online'; // Always generate online mode token for extension launch
-                session.extension_id = ext.api_key;
-                session.redirect_path = redirectPath;
-            } else {
-                if (session.expires) {
-                    session.expires = new Date(session.expires);
-                }
-            }
-
-            req.fdkSession = session;
             req.extension = ext;
+            if (req.fdkSession?.isSessionValid()) {
+                session = req.fdkSession;
+                session.expires && (session.expires = new Date(session.expires));
+            } else {
+                session = new Session(Session.generateSessionId(true));
+                let sessionExpires = new Date(Date.now() + 900000); // 15 min
+                if (session.isNew) {
+                    session.company_id = companyId;
+                    session.scope = ext.scopes;
+                    session.expires = sessionExpires;
+                    session.access_mode = 'online'; // Always generate online mode token for extension launch
+                    session.extension_id = ext.api_key;
+                    session.redirect_path = redirectPath;
+                } else {
+                    if (session.expires) {
+                        session.expires = new Date(session.expires);
+                    }
+                }
+                req.fdkSession = session;
+                session.state = uuidv4();
 
-            const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
-            res.header['x-company-id'] = companyId;
-            res.cookie(compCookieName, session.id, {
-                secure: true,
-                httpOnly: true,
-                expires: session.expires,
-                signed: true,
-                sameSite: "None"
-            });
-
+                const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
+                res.header['x-company-id'] = companyId;
+                res.cookie(compCookieName, session.id, {
+                    secure: true,
+                    httpOnly: true,
+                    expires: session.expires,
+                    signed: true,
+                    sameSite: "None"
+                });
+            }
             let redirectUrl;
-
-            session.state = uuidv4();
 
             // pass application id if received
             let authCallback = ext.getAuthCallback();

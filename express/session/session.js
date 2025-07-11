@@ -54,6 +54,12 @@ class Session {
         this.access_token_validity = rawToken.access_token_validity
     }
 
+    // Verifies if token is already generated and it is valid
+    isSessionValid() {
+        const currentTimestamp = (new Date()).getTime();
+        return this.access_token && this.access_token_validity > currentTimestamp;
+    }
+
     static generateSessionId(isOnline, options) {
         if(isOnline) {
             return v4();
