@@ -12,7 +12,7 @@ MultiLevelStorage is a Node.js library that provides a multi-level caching mecha
 ## Prerequisites
 
 - A running Redis instance.
-- A connected Mongoose instance for MongoDB.
+- A connected **Mongoose connection object** (recommended) for MongoDB. (You can obtain this from `mongoose.connection` after connecting.)
 
 ## Usage
 
@@ -25,7 +25,8 @@ const { MultiLevelStorage } = require('@gofynd/fdk-extension-javascript/express/
 ```
 
 ## Notes
-> - Ensure `mongoose` is initialized with `autoIndex: true` **or** manually create a TTL index on the `expireAt` field of the collection (default: `MultiLevelStorage` or your custom collection name).
+> - **Recommended:** Pass the `mongoose.connection` object (the Mongoose connection object) to MultiLevelStorage for best compatibility, especially in applications with multiple connections or advanced setups. Passing the main mongoose object is still supported for backward compatibility, but using the connection object is preferred.
+> - Ensure your MongoDB collection has a TTL index on the `expireAt` field (see Index Creation below).
 
 ### Initialize Connections
 
@@ -36,8 +37,8 @@ const redisClient = new Redis();
 // Connect to MongoDB
 await mongoose.connect('mongodb://localhost:27017/yourdb');
 
-// Initialize MultiLevelStorage
-const storage = new MultiLevelStorage('app_prefix_', redisClient, mongoose, { collectionName: 'collection_name', autoIndex: true });
+// Use the mongoose connection object (recommended)
+const storage = new MultiLevelStorage('app_prefix_', redisClient, mongoose.connection, { collectionName: 'collection_name', autoIndex: true });
 ```
 
 ### Options
@@ -70,7 +71,7 @@ await storage.del('user:123');
 
 ## Index Creation
 
-If `autoIndex` is set to `true` and the MongoDB instance is connected to a primary node, the TTL index will be created automatically on the `expireAt` field. If connected to a secondary node, you will need to create the index manually.
+If `autoIndex` is set to `true` and the MongoDB connection is to a primary node, the TTL index will be created automatically on the `expireAt` field. If connected to a secondary node, you will need to create the index manually.
 
 ### Manual Index Creation
 
