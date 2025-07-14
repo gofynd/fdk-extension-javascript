@@ -52,7 +52,12 @@ function verifySignature(req, secret) {
         path,
         body,
     }
+    console.log('----> signatureData',signatureData);
     const calcSignature = sign(signatureData, {secret, headers: ['x-user-data']});
+    console.log('----> calcSignature',calcSignature);
+    console.log('----> reqSignature',reqSignature);
+    console.log('----> equal',reqSignature === calcSignature['x-fp-signature']);
+
     if (reqSignature !== calcSignature['x-fp-signature']) {
         return false
     }
