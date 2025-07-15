@@ -99,8 +99,14 @@ function setupRoutes(ext) {
 
             req.fdkSession.expires = sessionExpires;
             token.access_token_validity = sessionExpires.getTime();
+            if (req.fdkSession.current_user?.id != token.current_user?.id) {
+                const newSessionId = Session.generateSessionId(true);
+                const newSession = Session.cloneSession(newSessionId, req.fdkSession, false);
+                newSession.id = newSessionId;
+                await SessionStorage.deleteSession(req.fdkSession.id);
+                req.fdkSession = newSession;
+            }
             req.fdkSession.updateToken(token);
-
             await SessionStorage.saveSession(req.fdkSession);
 
             // Generate separate access token for offline mode
