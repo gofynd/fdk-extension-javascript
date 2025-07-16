@@ -22,7 +22,7 @@ afterAll(async () => {
     logger.info("afterAll:started");
     // globalMock.restore();
     await db.clearData();
-    server.app.close();
+    // server.app.close();
     await db.disconnect();
     logger.info("afterAll:completed");
     // done();

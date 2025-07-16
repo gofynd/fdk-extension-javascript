@@ -20,7 +20,7 @@ function setupRoutes(ext) {
         // ?company_id=1&client_id=123313112122
         try {
             let companyId = parseInt(req.query.company_id);
-            let platformConfig = await ext.getPlatformConfig(companyId);
+            let platformOAuth = await ext.getPlatformOAuth(companyId);
             let session;
             let redirectPath = req.query.redirect_path;
 
@@ -66,7 +66,7 @@ function setupRoutes(ext) {
             }
 
             // start authorization flow 
-            redirectUrl = platformConfig.oauthClient.startAuthorization({
+            redirectUrl = platformOAuth.startAuthorization({
                 scope: session.scope,
                 redirectUri: authCallback,
                 state: session.state,
@@ -95,10 +95,10 @@ function setupRoutes(ext) {
             }
             const companyId = req.fdkSession.company_id
 
-            const platformConfig = await ext.getPlatformConfig(req.fdkSession.company_id);
-            await platformConfig.oauthClient.verifyCallback(req.query);
+            const platformOAuth = await ext.getPlatformOAuth(req.fdkSession.company_id);
+            await platformOAuth.verifyCallback(req.query);
 
-            let token = platformConfig.oauthClient.raw_token;
+            let token = platformOAuth.raw_token;
             let sessionExpires = new Date(Date.now() + token.expires_in * 1000);
 
             req.fdkSession.expires = sessionExpires;
@@ -121,13 +121,13 @@ function setupRoutes(ext) {
                     session = new Session(sid);
                 }
 
-                let offlineTokenRes = await platformConfig.oauthClient.getOfflineAccessToken(ext.scopes, req.query.code);
+                let offlineTokenRes = await platformOAuth.getOfflineAccessToken(ext.scopes, req.query.code);
 
                 session.company_id = companyId;
                 session.scope = ext.scopes;
                 session.state = req.fdkSession.state;
                 session.extension_id = ext.api_key;
-                offlineTokenRes.access_token_validity = platformConfig.oauthClient.token_expires_at;
+                offlineTokenRes.access_token_validity = platformOAuth.token_expires_at;
                 offlineTokenRes.access_mode = 'offline';
                 session.updateToken(offlineTokenRes);
 
@@ -172,7 +172,7 @@ function setupRoutes(ext) {
 
             logger.debug(`Extension auto install started for company: ${company_id} on company creation.`);
 
-            let platformConfig = await ext.getPlatformConfig(company_id);
+            let platformOAuth = await ext.getPlatformOAuth(company_id);
             let sid = Session.generateSessionId(false, {
                 cluster: ext.cluster,
                 id: company_id
@@ -185,13 +185,13 @@ function setupRoutes(ext) {
                 session = new Session(sid);
             }
 
-            let offlineTokenRes = await platformConfig.oauthClient.getOfflineAccessToken(ext.scopes, code);
+            let offlineTokenRes = await platformOAuth.getOfflineAccessToken(ext.scopes, code);
 
             session.company_id = company_id;
             session.scope = ext.scopes;
             session.state = uuidv4();
             session.extension_id = ext.api_key;
-            offlineTokenRes.access_token_validity = platformConfig.oauthClient.token_expires_at;
+            offlineTokenRes.access_token_validity = platformOAuth.token_expires_at;
             offlineTokenRes.access_mode = 'offline';
             session.updateToken(offlineTokenRes);
 
@@ -239,7 +239,7 @@ function setupRoutes(ext) {
     FdkRoutes.get("/adm/install", async (req, res, next) => {
         try {
             let organizationId = req.query.organization_id;
-            let partnerConfig = ext.getPartnerConfig(organizationId);
+            let partnerOAuth = ext.getPartnerOAuth(organizationId);
             let session;
 
             session = new Session(Session.generateSessionId(true));
@@ -274,7 +274,7 @@ function setupRoutes(ext) {
 
             let authCallback = urljoin(ext.base_url, "/adm/auth");
 
-            let redirectUrl = partnerConfig.oauthClient.startAuthorization({
+            let redirectUrl = partnerOAuth.startAuthorization({
                 scope: session.scope,
                 redirectUri: authCallback,
                 state: session.state,
@@ -303,10 +303,10 @@ function setupRoutes(ext) {
             
             const organizationId = req.fdkSession.organization_id;
 
-            const partnerConfig = ext.getPartnerConfig(req.fdkSession.organization_id);
-            await partnerConfig.oauthClient.verifyCallback(req.query);
+            const partnerOAuth = ext.getPartnerOAuth(req.fdkSession.organization_id);
+            await partnerOAuth.verifyCallback(req.query);
 
-            let token = partnerConfig.oauthClient.raw_token;
+            let token = partnerOAuth.raw_token;
             let sessionExpires = new Date(Date.now() + token.expires_in * 1000);
             
             req.fdkSession.expires = sessionExpires;
@@ -330,13 +330,13 @@ function setupRoutes(ext) {
                     session = new Session(sid);
                 }
                 
-                let offlineTokenRes = await partnerConfig.oauthClient.getOfflineAccessToken(ext.scopes, req.query.code);
+                let offlineTokenRes = await partnerOAuth.getOfflineAccessToken(ext.scopes, req.query.code);
 
                 session.organization_id = organizationId;
                 session.scope = ext.scopes;
                 session.state = req.fdkSession.state;
                 session.extension_id = ext.api_key;
-                offlineTokenRes.access_token_validity = partnerConfig.oauthClient.token_expires_at;
+                offlineTokenRes.access_token_validity = partnerOAuth.token_expires_at;
                 offlineTokenRes.access_mode = 'offline';
                 session.updateToken(offlineTokenRes);
 
