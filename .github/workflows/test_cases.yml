@@ -1,0 +1,74 @@
+name: Run test cases
+
+on: workflow_call
+
+jobs:
+  run-test-cases:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18.x, 20.x]
+      fail-fast: false
+
+    # Redis service only for Linux (Windows/macOS need different setup)
+    services:
+      redis:
+        image: redis:6-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        # Only run Redis service on Linux
+        if: matrix.os == 'ubuntu-latest'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    # Setup Redis for Windows
+    - name: Setup Redis (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install redis-64 -y
+        redis-server --service-install
+        redis-server --service-start
+
+    # Setup Redis for macOS  
+    - name: Setup Redis (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install redis
+        brew services start redis
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Wait for Redis (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        until redis-cli -h localhost -p 6379 ping; do
+          echo "Waiting for Redis..."
+          sleep 2
+        done
+
+    - name: Run tests
+      run: npm test
+      env:
+        NODE_ENV: test
+
+    - name: Upload coverage (Ubuntu + Node 18 only)
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '18.x' && github.ref == 'refs/heads/main'
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
