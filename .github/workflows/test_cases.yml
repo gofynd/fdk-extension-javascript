@@ -12,20 +12,6 @@ jobs:
         node-version: [18.x, 20.x]
       fail-fast: false
 
-    # Redis service only for Linux (Windows/macOS need different setup)
-    services:
-      redis:
-        image: redis:6-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        # Only run Redis service on Linux
-        if: matrix.os == 'ubuntu-latest'
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -35,6 +21,11 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+
+    # Setup Redis for Ubuntu (pre-installed)
+    - name: Start Redis (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo systemctl start redis-server
 
     # Setup Redis for Windows
     - name: Setup Redis (Windows)
@@ -54,13 +45,18 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Wait for Redis (Linux)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Wait for Redis to be ready
       run: |
-        until redis-cli -h localhost -p 6379 ping; do
+        for i in {1..10}; do
+          if redis-cli ping | grep PONG; then
+            echo "Redis is ready"
+            exit 0
+          fi
           echo "Waiting for Redis..."
           sleep 2
         done
+        echo "Redis did not start in time"
+        exit 1
 
     - name: Run tests
       run: npm test
