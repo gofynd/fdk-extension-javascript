@@ -121,7 +121,7 @@ class Extension {
             logLevel: this.configData.debug === true? "debug": null
         });
         
-        return platformClient.config.oauthClient; // Return just the oauthClient
+        return platformClient.config; // Return just the config
     }
 
     async getPlatformClient(companyId, session) {
@@ -173,7 +173,7 @@ class Extension {
             logLevel: this.configData.debug === true? "debug": null
         });
         
-        return partnerClient.config.oauthClient; // Return just the oauthClient
+        return partnerClient.config; // Return just the config
     }
 
     async getPartnerClient(organizationId, session) {
