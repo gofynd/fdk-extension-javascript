@@ -106,7 +106,7 @@ class Extension {
         return this.access_mode === 'online';
     }
 
-    async getPlatformOAuth(companyId) {
+    async getPlatformConfig(companyId) {
         if (!this._isInitialized){
             await this.initialize(this.configData);
         }
@@ -158,7 +158,7 @@ class Extension {
         return platformClient;
     }
 
-    getPartnerOAuth(organizationId) {
+    getPartnerConfig(organizationId) {
         if (!this._isInitialized) {
             throw new FdkInvalidExtensionConfig("Extension not initialized due to invalid data");
         }

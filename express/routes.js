@@ -20,7 +20,7 @@ function setupRoutes(ext) {
         // ?company_id=1&client_id=123313112122
         try {
             let companyId = parseInt(req.query.company_id);
-            let platformOAuth = await ext.getPlatformOAuth(companyId);
+            let platformOAuth = await ext.getPlatformConfig(companyId);
             let session;
             let redirectPath = req.query.redirect_path;
 
@@ -95,7 +95,7 @@ function setupRoutes(ext) {
             }
             const companyId = req.fdkSession.company_id
 
-            const platformOAuth = await ext.getPlatformOAuth(req.fdkSession.company_id);
+            const platformOAuth = await ext.getPlatformConfig(req.fdkSession.company_id);
             await platformOAuth.verifyCallback(req.query);
 
             let token = platformOAuth.raw_token;
@@ -172,7 +172,7 @@ function setupRoutes(ext) {
 
             logger.debug(`Extension auto install started for company: ${company_id} on company creation.`);
 
-            let platformOAuth = await ext.getPlatformOAuth(company_id);
+            let platformOAuth = await ext.getPlatformConfig(company_id);
             let sid = Session.generateSessionId(false, {
                 cluster: ext.cluster,
                 id: company_id
@@ -239,7 +239,7 @@ function setupRoutes(ext) {
     FdkRoutes.get("/adm/install", async (req, res, next) => {
         try {
             let organizationId = req.query.organization_id;
-            let partnerOAuth = ext.getPartnerOAuth(organizationId);
+            let partnerOAuth = ext.getPartnerConfig(organizationId);
             let session;
 
             session = new Session(Session.generateSessionId(true));
@@ -303,7 +303,7 @@ function setupRoutes(ext) {
             
             const organizationId = req.fdkSession.organization_id;
 
-            const partnerOAuth = ext.getPartnerOAuth(req.fdkSession.organization_id);
+            const partnerOAuth = ext.getPartnerConfig(req.fdkSession.organization_id);
             await partnerOAuth.verifyCallback(req.query);
 
             let token = partnerOAuth.raw_token;
