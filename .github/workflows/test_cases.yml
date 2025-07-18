@@ -26,7 +26,15 @@ jobs:
       run: npm ci
 
     - name: Run tests
-      run: npm test
+      shell: bash
+      run: |
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          echo "Running test with npx on Windows..."
+          npx nyc node spec.js
+        else
+          echo "Running test with npm test on $RUNNER_OS..."
+          npm test
+        fi
       env:
         NODE_ENV: test
 
