@@ -22,20 +22,23 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    # Setup Redis for Ubuntu (pre-installed)
-    - name: Start Redis (Ubuntu)
+    # Setup Redis on Ubuntu
+    - name: Setup Redis (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
-      run: sudo systemctl start redis-server
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y redis-server
+        sudo systemctl enable redis-server
+        sudo systemctl start redis-server
 
-    # Setup Redis for Windows
+    # Setup Redis on Windows using Memurai
     - name: Setup Redis (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        choco install redis-64 -y
-        redis-server --service-install
-        redis-server --service-start
+        choco install memurai -y
+        Start-Process -NoNewWindow -FilePath "C:\Program Files\Memurai\memurai.exe"
 
-    # Setup Redis for macOS  
+    # Setup Redis on macOS
     - name: Setup Redis (macOS)
       if: matrix.os == 'macos-latest'
       run: |
