@@ -3,12 +3,13 @@ const express = require('express');
 const { v4: uuidv4 } = require("uuid");
 const Session = require("./session/session");
 const SessionStorage = require("./session/session_storage");
-const { FdkSessionNotFoundError, FdkInvalidOAuthError } = require("./error_code");
+const { FdkSessionNotFoundError, FdkInvalidOAuthError, FdkInvalidHMacError } = require("./error_code");
 const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('./constants');
 const { sessionMiddleware, partnerSessionMiddleware } = require('./middleware/session_middleware');
 const logger = require('./logger');
 const urljoin = require('url-join');
 const FdkRoutes = express.Router();
+const hmacSHA256 =  require('crypto-js/hmac-sha256');
 
 
 function setupRoutes(ext) {
@@ -218,6 +219,13 @@ function setupRoutes(ext) {
 
     FdkRoutes.post("/fp/uninstall", async (req, res, next) => {
         try {
+            const reqSignature = req.headers['x-fp-signature'];
+            const kCredentials = ext.api_secret;
+            
+            const calcSignature = hmacSHA256(JSON.stringify(req.body), kCredentials).toString();
+            if (calcSignature !== reqSignature) {
+                throw new FdkInvalidHMacError(`Signature passed does not match calculated body signature`);
+            }
             let { company_id } = req.body;
             let sid;
             if (!ext.isOnlineAccessMode()) {
