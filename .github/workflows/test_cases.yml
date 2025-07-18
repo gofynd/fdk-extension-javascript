@@ -31,12 +31,6 @@ jobs:
         sudo systemctl enable redis-server
         sudo systemctl start redis-server
 
-    # Setup Redis on Windows via Docker
-    - name: Setup Redis (Windows via Docker)
-      if: matrix.os == 'windows-latest'
-      run: |
-        docker run -d -p 6379:6379 --name redis redis:6
-
     # Setup Redis on macOS
     - name: Setup Redis (macOS)
       if: matrix.os == 'macos-latest'
