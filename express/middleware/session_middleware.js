@@ -43,21 +43,22 @@ function partnerSessionMiddleware(isStrict) {
 
 function verifySignature(req, secret) {
     const reqSignature = req.headers['x-fp-signature'];
-    const { body, headers, method, path, host } = req;
+    const { body, headers, method, host, originalUrl, query } = req;
 
     const signatureData = {
         host,
         method,
         headers,
-        path,
-        body,
+        path: originalUrl
     }
-    console.log('----> signatureData',signatureData);
-    const calcSignature = sign(signatureData, {secret, headers: ['x-user-data']});
-    console.log('----> calcSignature',calcSignature);
-    console.log('----> reqSignature',reqSignature);
-    console.log('----> equal',reqSignature === calcSignature['x-fp-signature']);
+    if(Object.keys(query).length){
+        signatureData.query = query;
+    }
+    if(Object.keys(body).length){
+        signatureData.body = body;
+    }
 
+    const calcSignature = sign(signatureData, {secret, headers: ['x-user-data']});
     if (reqSignature !== calcSignature['x-fp-signature']) {
         return false
     }

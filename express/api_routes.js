@@ -4,6 +4,7 @@ const express = require('express');
 const { sessionMiddleware, partnerSessionMiddleware, verifySignature } = require('./middleware/session_middleware');
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
 const { FdkInvalidHMacError, FdkRequestTimeoutError } = require("./error_code");
+const logger = require('./logger');
 
 
 function setupProxyRoutes(configData) {
@@ -15,18 +16,26 @@ function setupProxyRoutes(configData) {
         try {
             if (req.headers["x-fp-signature"]) {
                 if(!verifySignature(req, configData.api_secret)) {
-                    throw new FdkInvalidHMacError(`Signature passed does not match calculated body signature`);
+                    logger.error("Invalid signature");
+                    return res.status(401).send({
+                        message: "Invalid signature"
+                    });
                 } else{
                     const allowedTimeWindow = 1000; // 1 second
                     const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
-                    const requestTimestamp = body.timestamp; // Ensure the timestamp is part of the request body
+                    const requestTimestamp = req.headers.timestamp; // Ensure the timestamp is part of the request body
                     if (!requestTimestamp || Math.abs(currentTimestamp - requestTimestamp) > allowedTimeWindow) {
-                        console.error("Timestamp verification failed");
-                        throw new FdkRequestTimeoutError(`Request took too long to process`);
+                        logger.error("Request took too long to process");
+                        return res.status(401).send({
+                            message: "Request expired"
+                        });
                     }
                 }
             } else{
-                throw new Error("Signature not found in request");
+                logger.error("Signature not found");
+                return res.status(401).send({
+                    message: "Signature not found"
+                });
             }
 
             if (req.headers["x-user-data"]) {
