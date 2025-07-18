@@ -22,37 +22,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    # Setup Redis on Ubuntu
-    - name: Setup Redis (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y redis-server
-        sudo systemctl enable redis-server
-        sudo systemctl start redis-server
-
-    # Setup Redis on macOS
-    - name: Setup Redis (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install redis
-        brew services start redis
-
     - name: Install dependencies
       run: npm ci
-
-    - name: Wait for Redis to be ready
-      run: |
-        for i in {1..10}; do
-          if redis-cli ping | grep PONG; then
-            echo "Redis is ready"
-            exit 0
-          fi
-          echo "Waiting for Redis..."
-          sleep 2
-        done
-        echo "Redis did not start in time"
-        exit 1
 
     - name: Run tests
       run: npm test

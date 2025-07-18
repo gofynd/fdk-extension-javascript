@@ -1,25 +1,26 @@
-const Redis = require('ioredis');
-const redisConnection = new Redis("localhost");
+// Simple mock for memory storage - no Redis needed
+const storage = new Map();
 
 async function clearData() {
-    const keys = await redisConnection.keys("test_fdk*");
-    const promises = [];
-    for(let key of keys) {
-        promises.push(redisConnection.del(key));
+    // Clear all test data from memory storage
+    for (const key of storage.keys()) {
+        if (key.startsWith("test_fdk")) {
+            storage.delete(key);
+        }
     }
-    await Promise.all(promises);
 }
 
 function connect() {
-    return redisConnection.connect();
+    // No connection needed for memory storage
+    return Promise.resolve();
 }
 
 function disconnect() {
-    return redisConnection.disconnect();
+    // No disconnection needed for memory storage
+    return Promise.resolve();
 }
 
 module.exports = {
-    redisConnection,
     connect,
     disconnect,
     clearData
