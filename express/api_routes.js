@@ -16,7 +16,7 @@ function setupProxyRoutes(configData) {
         try {
             if (req.headers["x-fp-signature"]) {
                 if(!verifySignature(req, configData.api_secret)) {
-                    logger.error("Invalid signature");
+                    logger.error("Invalid signature: Signature generated not matching with the x-fp-signature requestheader");
                     return res.status(401).send({
                         message: "Invalid signature"
                     });
@@ -25,14 +25,14 @@ function setupProxyRoutes(configData) {
                     const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
                     const requestTimestamp = req.headers.timestamp; // Ensure the timestamp is part of the request body
                     if (!requestTimestamp || Math.abs(currentTimestamp - requestTimestamp) > allowedTimeWindow) {
-                        logger.error("Request took too long to process");
+                        logger.error("Request expired: Request took more than 1 second to process");
                         return res.status(401).send({
                             message: "Request expired"
                         });
                     }
                 }
             } else{
-                logger.error("Signature not found");
+                logger.error("Signature not found: x-fp-signature not found in the request headers");
                 return res.status(401).send({
                     message: "Signature not found"
                 });
