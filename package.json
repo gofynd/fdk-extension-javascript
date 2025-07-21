@@ -63,7 +63,7 @@
     "example": "examples"
   },
   "scripts": {
-    "test": "./node_modules/.bin/nyc node spec.js"
+    "test": "npx nyc node spec.js"
   },
   "repository": {
     "type": "git",
