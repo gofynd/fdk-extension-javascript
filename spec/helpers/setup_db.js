@@ -10,18 +10,6 @@ async function clearData() {
     }
 }
 
-function connect() {
-    // No connection needed for memory storage
-    return Promise.resolve();
-}
-
-function disconnect() {
-    // No disconnection needed for memory storage
-    return Promise.resolve();
-}
-
 module.exports = {
-    connect,
-    disconnect,
     clearData
 };
