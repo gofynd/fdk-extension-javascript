@@ -1,8 +1,6 @@
 'use strict';
 const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('./../constants');
 const SessionStorage = require("../session/session_storage");
-const hmacSHA256 = require("crypto-js/hmac-sha256");
-const CryptoJS = require("crypto-js");
 const { sign } = require("@gofynd/fp-signature");
 
 function sessionMiddleware(strict) {
