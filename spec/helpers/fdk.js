@@ -1,6 +1,5 @@
 const { setupFdk } = require("../../express");
-const { RedisStorage } = require("../../express/storage");
-const { redisConnection } = require("../helpers/setup_db");
+const { MemoryStorage } = require("../../express/storage");
 
 module.exports = (settings) => {
     return setupFdk({
@@ -12,7 +11,7 @@ module.exports = (settings) => {
             auth: ()=>{},
             uninstall: ()=>{}
         },
-        storage: new RedisStorage(redisConnection, "test_fdk"),
+        storage: new MemoryStorage("test_fdk"),
         access_mode: "online",
         cluster: "http://localdev.fyndx0.de",
         ...settings
