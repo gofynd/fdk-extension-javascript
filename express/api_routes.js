@@ -3,7 +3,6 @@ const { extension } = require('./extension');
 const express = require('express');
 const { sessionMiddleware, partnerSessionMiddleware, verifySignature } = require('./middleware/session_middleware');
 const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
-const { FdkInvalidHMacError, FdkRequestTimeoutError } = require("./error_code");
 const logger = require('./logger');
 
 
