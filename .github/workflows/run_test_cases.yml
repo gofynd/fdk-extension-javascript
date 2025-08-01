@@ -1,0 +1,9 @@
+name: PR Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    uses: ./.github/workflows/test_cases.yml

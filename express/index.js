@@ -5,7 +5,7 @@ const setupRoutes = require("./routes");
 const { setupProxyRoutes } = require("./api_routes");
 const Session = require("./session/session");
 const SessionStorage = require("./session/session_storage");
-const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const { ApplicationClient } = require("@gofynd/fdk-client-javascript");
 const logger = require('./logger');
 
 function setupFdk(data, syncInitialization) {
@@ -34,14 +34,12 @@ function setupFdk(data, syncInitialization) {
     }
 
     async function getApplicationClient(applicationId, applicationToken) {
-        let applicationConfig = new ApplicationConfig({
+        return new ApplicationClient({
             applicationID: applicationId,
             applicationToken: applicationToken,
             domain: extension.cluster,
-            logLevel: data.debug ===  true? "debug": null
+            logLevel: data.debug === true ? "debug" : null
         });
-        let applicationClient = new ApplicationClient(applicationConfig);
-        return applicationClient;
     }
 
     async function getPartnerClient(organizationId) {
