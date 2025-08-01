@@ -39,16 +39,26 @@ class MultiLevelStorage extends BaseStorage {
             throw new StorageConnectionError('Invalid ioredis instance provided.');
         }
 
-        if (typeof mongooseInstance.model !== 'function') {
-            throw new StorageConnectionError('Invalid Mongoose instance provided.');
-        }
-
         this.redis = redisInstance;
         this.mongoose = mongooseInstance;
         const collectionName = options.collectionName || 'fdk_ext_acc_tokens';
         const autoIndex = options.autoIndex !== undefined ? options.autoIndex : true;
 
-        const schema = new this.mongoose.Schema({
+        // Support both mongoose main object and connection object
+        let SchemaCtor, modelFn;
+        if (this.mongoose.base && typeof this.mongoose.base.Schema === 'function') {
+            // It's a connection object
+            SchemaCtor = this.mongoose.base.Schema;
+            modelFn = this.mongoose.model.bind(this.mongoose);
+        } else if (typeof this.mongoose.Schema === 'function') {
+            // It's the main mongoose object
+            SchemaCtor = this.mongoose.Schema;
+            modelFn = this.mongoose.model.bind(this.mongoose);
+        } else {
+            throw new StorageConnectionError('Invalid Mongoose instance provided.');
+        }
+
+        const schema = new SchemaCtor({
             key: { type: String, required: true, unique: true },
             value: { type: Object, required: true },
             updatedAt: { type: Date, default: Date.now },
@@ -59,7 +69,7 @@ class MultiLevelStorage extends BaseStorage {
             schema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
         }
 
-        this.model = this.mongoose.model(collectionName, schema);
+        this.model = modelFn(collectionName, schema);
 
         if (autoIndex) {
             this.model.createIndexes().catch(err => {
