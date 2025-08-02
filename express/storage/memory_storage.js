@@ -1,5 +1,5 @@
 const BaseStorage = require('./base_storage');
-const _logger = require('../logger');
+// const _logger = require('../logger');
 
 /**
  * MemoryStorage class for handling in-memory storage operations.

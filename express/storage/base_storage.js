@@ -1,4 +1,4 @@
-const _logger = require('../logger');
+// // const _logger = require('../logger');
 
 /**
  * BaseStorage class to define a standard interface for different storage implementations.

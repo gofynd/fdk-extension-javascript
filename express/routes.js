@@ -11,8 +11,8 @@ const logger = require('./logger');
 const FdkRoutes = express.Router();
 
 function setupRoutes(ext) {
-  const { storage: _storage } = ext;
-  const { callbacks: _callbacks } = ext;
+  // const { storage: _storage } = ext;
+  // const { callbacks: _callbacks } = ext;
 
   FdkRoutes.get('/fp/install', async (req, res, next) => {
     // ?company_id=1&client_id=123313112122
@@ -161,7 +161,9 @@ function setupRoutes(ext) {
     try {
       const { company_id, code } = req.body; // eslint-disable-line camelcase
 
-      logger.debug(`Extension auto install started for company: ${company_id} on company creation.`); // eslint-disable-line camelcase
+      logger.debug(
+        `Extension auto install started for company: ${company_id} on company creation.`,
+      ); // eslint-disable-line camelcase
 
       const platformConfig = await ext.getPlatformConfig(company_id); // eslint-disable-line camelcase
       const sid = Session.generateSessionId(false, {
@@ -196,7 +198,9 @@ function setupRoutes(ext) {
           logger.error(err);
         });
       }
-      logger.debug(`Extension installed for company: ${company_id} on company creation.`); // eslint-disable-line camelcase
+      logger.debug(
+        `Extension installed for company: ${company_id} on company creation.`,
+      ); // eslint-disable-line camelcase
       if (ext.callbacks.auto_install) {
         await ext.callbacks.auto_install(req);
       }
