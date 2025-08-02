@@ -24,6 +24,27 @@ function setupRoutes(ext) {
             let session;
             let redirectPath = req.query.redirect_path;
 
+            const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`;
+            const sessionId = req.signedCookies[compCookieName];
+            if (sessionId) {
+                session = await SessionStorage.getSession(sessionId);
+                if (session && session.access_token) {
+                    let ac_nr_expired = !session.access_token_validity ? true : ((session.access_token_validity - new Date().getTime()) / 1000) <= 120;
+                    if (!ac_nr_expired) {
+                        logger.debug(`Session found in cookie, using existing session for company: ${companyId}`);
+                        req.fdkSession = session;
+                        req.extension = ext;
+                        let redirectUrl = await ext.callbacks.auth(req);
+                        if (req.fdkSession.redirect_path) {
+                            redirectUrl = req.fdkSession.redirect_path;
+                        }
+                        logger.debug(`Redirecting to auth callback url: ${redirectUrl}`);
+                        return res.redirect(redirectUrl);
+                    }
+                }
+            }
+
+
             session = new Session(Session.generateSessionId(true));
 
             let sessionExpires = new Date(Date.now() + 900000); // 15 min
@@ -44,7 +65,6 @@ function setupRoutes(ext) {
             req.fdkSession = session;
             req.extension = ext;
 
-            const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
             res.header['x-company-id'] = companyId;
             res.cookie(compCookieName, session.id, {
                 secure: true,
