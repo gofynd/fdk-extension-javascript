@@ -1,4 +1,14 @@
 {
+  "name": "@gofynd/fdk-extension-javascript",
+  "version": "1.1.5",
+  "description": "FDK Extension Helper Library",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "npx nyc node spec.js"
+  },
   "dependencies": {
     "axios": "^1.6.4",
     "crypto-js": "^4.2.0",
@@ -19,10 +29,13 @@
     "jasmine": "^3.5.0",
     "jasmine-console-reporter": "^3.1.0",
     "jshint": "^2.12.0",
-    "ngrok": "^3.4.0",
+    "ngrok": "^4.3.3",
     "nyc": "^15.0.1",
     "sinon": "^9.0.2",
     "supertest": "^4.0.2"
+  },
+  "peerDependencies": {
+    "@gofynd/fdk-client-javascript": ">=3.4.2"
   },
   "nyc": {
     "all": true,
@@ -52,31 +65,18 @@
     ],
     "report-dir": "./coverage"
   },
-  "peerDependencies": {
-    "@gofynd/fdk-client-javascript": ">=3.4.2"
-  },
-  "name": "@gofynd/fdk-extension-javascript",
-  "description": "FDK Extension Helper Library",
-  "version": "1.1.5",
-  "main": "index.js",
-  "directories": {
-    "example": "examples"
-  },
-  "scripts": {
-    "test": "npx nyc node spec.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gofynd/fdk-extension-javascript.git"
   },
+  "bugs": {
+    "url": "https://github.com/gofynd/fdk-extension-javascript/issues"
+  },
+  "homepage": "https://github.com/gofynd/fdk-extension-javascript#readme",
   "keywords": [
     "fdk",
     "fdk-extension-javascript"
   ],
   "author": "dev@fynd.com",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/gofynd/fdk-extension-javascript/issues"
-  },
-  "homepage": "https://github.com/gofynd/fdk-extension-javascript#readme"
+  "license": "ISC"
 }
