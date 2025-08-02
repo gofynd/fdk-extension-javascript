@@ -8,6 +8,7 @@ const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('./constants'
 const { sessionMiddleware, partnerSessionMiddleware } = require('./middleware/session_middleware');
 const logger = require('./logger');
 const urljoin = require('url-join');
+const jwt = require('jsonwebtoken');
 const FdkRoutes = express.Router();
 
 
@@ -20,10 +21,51 @@ function setupRoutes(ext) {
         // ?company_id=1&client_id=123313112122
         try {
             let companyId = parseInt(req.query.company_id);
-            let platformConfig = await ext.getPlatformConfig(companyId);
-            let session;
+            const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`;
+            const token = req.cookies[compCookieName];
+            let session = null;
+
+            if (token) {
+                try {
+                    const decoded = jwt.verify(token, ext.api_secret);
+                    const sessionId = decoded.id;
+                    session = await SessionStorage.getSession(sessionId);
+                } catch (err) {
+                    logger.debug(`Error verifying JWT during install: ${err.message}`);
+                }
+            }
+
             let redirectPath = req.query.redirect_path;
 
+            if (session && session.expires && new Date() < new Date(session.expires)) {
+                if (redirectPath) {
+                    session.redirect_path = redirectPath;
+                }
+                req.fdkSession = session;
+                req.extension = ext;
+                await ext.getPlatformClient(companyId, session);
+                await SessionStorage.saveSession(session);
+                const expiresIn = Math.floor((new Date(session.expires) - new Date()) / 1000);
+                const jwtToken = jwt.sign({ id: session.id }, ext.api_secret, { expiresIn: expiresIn > 0 ? expiresIn : 0 });
+                res.cookie(compCookieName, jwtToken, {
+                    secure: true,
+                    httpOnly: true,
+                    expires: new Date(session.expires),
+                    signed: false,
+                    sameSite: "None",
+                    partitioned: true
+                });
+                res.header['x-company-id'] = companyId;
+                let redirectUrl = await ext.callbacks.auth(req);
+                if (req.fdkSession.redirect_path) {
+                    redirectUrl = req.fdkSession.redirect_path;
+                }
+                logger.debug(`Redirecting with existing session to url: ${redirectUrl}`);
+                return res.redirect(redirectUrl);
+            }
+
+
+            let platformConfig = await ext.getPlatformConfig(companyId);
             session = new Session(Session.generateSessionId(true));
 
             let sessionExpires = new Date(Date.now() + 900000); // 15 min
@@ -44,13 +86,13 @@ function setupRoutes(ext) {
             req.fdkSession = session;
             req.extension = ext;
 
-            const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
             res.header['x-company-id'] = companyId;
-            res.cookie(compCookieName, session.id, {
+            const tempJwt = jwt.sign({ id: session.id }, ext.api_secret, { expiresIn: '15m' });
+            res.cookie(compCookieName, tempJwt, {
                 secure: true,
                 httpOnly: true,
                 expires: session.expires,
-                signed: true,
+                signed: false,
                 sameSite: "None",
                 partitioned: true
             });
@@ -135,12 +177,13 @@ function setupRoutes(ext) {
 
             }
 
-            const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
-            res.cookie(compCookieName, req.fdkSession.id, {
+            const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`;
+            const jwtToken = jwt.sign({ id: req.fdkSession.id }, ext.api_secret, { expiresIn: req.fdkSession.expires_in });
+            res.cookie(compCookieName, jwtToken, {
                 secure: true,
                 httpOnly: true,
                 expires: sessionExpires,
-                signed: true,
+                signed: false,
                 sameSite: "None",
                 partitioned: true
             });

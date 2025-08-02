@@ -24,6 +24,9 @@ class Session {
     static cloneSession(id, session, isNew=true) {
         let newSession = new Session(id, isNew);
         Object.assign(newSession, session);
+        if (newSession.expires) {
+            newSession.expires = new Date(newSession.expires);
+        }
         return newSession;
     }
 
