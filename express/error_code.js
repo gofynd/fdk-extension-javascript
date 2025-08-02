@@ -1,68 +1,29 @@
-'use strict';
+/* eslint-disable max-classes-per-file */
+class FdkInvalidExtensionConfig extends Error {}
 
-class FdkInvalidExtensionConfig extends Error {
-    constructor(message) {
-        super(message);
-    }
-}
+class FdkClusterMetaMissingEror extends Error {}
 
+class FdkSessionNotFoundError extends Error {}
+class FdkInvalidOAuthError extends Error {}
 
-class FdkClusterMetaMissingEror extends Error {
-    constructor(message) {
-        super(message);
-    }
-}
+class FdkInvalidHMacError extends Error {}
 
-class FdkSessionNotFoundError extends Error {
-    constructor(message) {
-        super(message);
-    }
-}
-class FdkInvalidOAuthError extends Error {
-    constructor(message) {
-        super(message);
-    }
-}
+class FdkInvalidWebhookConfig extends Error {}
 
-class FdkInvalidHMacError extends Error {
-    constructor(message) {
-        super(message);
-    }
-}
+class FdkWebhookRegistrationError extends Error {}
 
-class FdkInvalidWebhookConfig extends Error {
-    constructor(message) {
-        super(message);
-    }
-}
+class FdkWebhookProcessError extends Error {}
 
-class FdkWebhookRegistrationError extends Error {
-    constructor(message) {
-        super(message);
-    }
-}
-
-class FdkWebhookProcessError extends Error {
-    constructor(message) {
-        super(message);
-    }
-}
-
-class FdkWebhookHandlerNotFound extends Error {
-    constructor(message) {
-        super(message);
-    }
-}
-
+class FdkWebhookHandlerNotFound extends Error {}
 
 module.exports = {
-    FdkInvalidExtensionConfig,
-    FdkClusterMetaMissingEror,
-    FdkSessionNotFoundError,
-    FdkInvalidOAuthError,
-    FdkInvalidHMacError,
-    FdkInvalidWebhookConfig,
-    FdkWebhookRegistrationError,
-    FdkWebhookProcessError,
-    FdkWebhookHandlerNotFound
+  FdkInvalidExtensionConfig,
+  FdkClusterMetaMissingEror,
+  FdkSessionNotFoundError,
+  FdkInvalidOAuthError,
+  FdkInvalidHMacError,
+  FdkInvalidWebhookConfig,
+  FdkWebhookRegistrationError,
+  FdkWebhookProcessError,
+  FdkWebhookHandlerNotFound,
 };
