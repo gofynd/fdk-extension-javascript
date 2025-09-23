@@ -93,9 +93,6 @@ function verifySignature(req, secret) {
         headers: headersForSigning,
         path: originalUrl
     }
-    if(Object.keys(query).length){
-        signatureData.query = query;
-    }
     if(Object.keys(body).length){
         signatureData.body = body;
     }
