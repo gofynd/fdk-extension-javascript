@@ -2,7 +2,7 @@
 const { extension } = require('./extension');
 const express = require('express');
 const { sessionMiddleware, partnerSessionMiddleware, verifySignature } = require('./middleware/session_middleware');
-const { ApplicationConfig, ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const { ApplicationClient } = require("@gofynd/fdk-client-javascript");
 const logger = require('./logger');
 
 
@@ -34,13 +34,12 @@ function setupProxyRoutes(configData) {
             }
             if (req.headers["x-application-data"]) {
                 req.application = JSON.parse(req.headers["x-application-data"]);
-                req.applicationConfig = new ApplicationConfig({
+                req.applicationClient = new ApplicationClient({
                     applicationID: req.application._id,
                     applicationToken: req.application.token,
                     domain: extension.cluster,
-                    logLevel: configData.debug ===  true? "debug": null
+                    logLevel: configData.debug === true ? "debug" : null
                 });
-                req.applicationClient = new ApplicationClient(req.applicationConfig);
             }
 
             next();

@@ -2,7 +2,7 @@
 Custom storage classes allow you to implement extension storage in your preferred database. To achieve this, you are required to create a custom storage class by extending the base storage class provided by the fdk extension JavaScript library and implementing the mandatory methods according to your chosen database.
 
 ```javascript
-const BaseStorage = require('fdk-extension-javascript');
+const { BaseStorage } = require('@gofynd/fdk-extension-javascript/express/storage');
 
 class MyCustomStorage extends BaseStorage {
     constructor(client, prefixKey) {
@@ -26,18 +26,6 @@ class MyCustomStorage extends BaseStorage {
 
     async setex(key, value, ttl) {
         // Implementation of a setex method
-    }
-
-    async hget(key, hashKey) {
-        // Implementation of a hget method
-    }
-
-    async hset(key, hashKey, value) {
-        // Implementation of a hset method
-    }
-
-    async hgetall(key) {
-        // Implementation of a hgetall method
     }
 }
 ```
@@ -69,18 +57,6 @@ class RedisStorage extends BaseStorage {
 
     async del(key) {
         this.client.del(this.prefixKey + key);
-    }
-
-    async hget(key, hashKey) {
-        return await this.client.hget(this.prefixKey + key, hashKey);
-    }
-
-    async hset(key, hashKey, value) {
-        return await this.client.hset(this.prefixKey + key, hashKey, value);
-    }
-
-    async hgetall(key) {
-        return await this.client.hgetall(this.prefixKey + key);
     }
 }
 

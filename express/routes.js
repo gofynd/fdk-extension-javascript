@@ -51,7 +51,8 @@ function setupRoutes(ext) {
                 httpOnly: true,
                 expires: session.expires,
                 signed: true,
-                sameSite: "None"
+                sameSite: "None",
+                partitioned: true
             });
 
             let redirectUrl;
@@ -87,6 +88,9 @@ function setupRoutes(ext) {
             }
 
             if (req.fdkSession.state !== req.query.state) {
+                const companyId = req.headers['x-company-id'] || req.query['company_id'];
+                const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`;
+                res.clearCookie(compCookieName, { path: "/", httpOnly: true, secure: true, sameSite: "None" });
                 throw new FdkInvalidOAuthError("Invalid oauth call");
             }
             const companyId = req.fdkSession.company_id
@@ -137,7 +141,8 @@ function setupRoutes(ext) {
                 httpOnly: true,
                 expires: sessionExpires,
                 signed: true,
-                sameSite: "None"
+                sameSite: "None",
+                partitioned: true
             });
             res.header['x-company-id'] = companyId;
             req.extension = ext;
@@ -261,7 +266,8 @@ function setupRoutes(ext) {
                 httpOnly: true,
                 expires: session.expires,
                 signed: true,
-                sameSite: "none"
+                sameSite: "none",
+                partitioned: true
             });
 
             session.state = uuidv4();
@@ -344,7 +350,8 @@ function setupRoutes(ext) {
                 httpOnly: true, 
                 expires: sessionExpires,
                 signed: true,
-                sameSite: 'none'
+                sameSite: 'none',
+                partitioned: true
             })
 
             let redirectUrl = urljoin(ext.base_url, '/admin')

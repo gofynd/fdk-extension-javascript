@@ -2,7 +2,7 @@
 
 const fdkHelper = require("../helpers/fdk");
 const { clearData } = require("../helpers/setup_db");
-const request = require("../helpers/server")();
+const request = require("../helpers/server")(5071);
 const axiosMock = require("./../mocks/axios.mock.js");
 const { SESSION_COOKIE_NAME } = require("../../express/constants");
 const hmacSHA256 = require("crypto-js/hmac-sha256");

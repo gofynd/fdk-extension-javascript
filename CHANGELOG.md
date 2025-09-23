@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.2] - 2025-03-20
+### Changed
+- Fixed peer dependency minimum version requirement.
+
+## [v1.1.1] - 2025-03-12
+### Changed
+- Added option to enable autoIndex inside MultiLevelStorage constructor
+
+## [v1.1.1-beta.0] - 2025-03-11
+### Changed
+- Added option to enable autoIndex in MultiLevelStorage constructor
+- Create index automatically if connected to primary node and autoIndex is true.
+
+
+## [v1.1.0] - 2025-03-06
+### Added
+- Multi-Level Storage Support: Introduced a new storage mechanism that utilizes Redis as a temporary cache and MongoDB as persistent storage.
+### Changed
+- Previously, storage returned raw values, but now it ensures consistency by accepting and returning objects.
+
+## [v1.0.0] - 2025-02-11
+### Changed
+- Added `partitioned` attribute on cookies set for extension sessions for Platform and Partners. This is to ensure extension works fine inside iframe when Chrome rolls our 3rd party cookie blocking. To check impact of this refer [MDN CHIPS documentation](https://developer.mozilla.org/en-US/docs/Web/Privacy/Privacy_sandbox/Partitioned_cookies).
+
+## [v0.7.13] - 2024-11-18
+### Changed
+- Pub/Sub, temporal, sqs, event_bridge support added.
+- Added support for Filters and reducers
+
 ## [v0.7.12] - 2024-11-18
 ### Changed
 - Added offline token support for partner clients.
