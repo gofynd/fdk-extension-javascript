@@ -2,7 +2,6 @@
 const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('./../constants');
 const SessionStorage = require("../session/session_storage");
 const { sign } = require("@gofynd/fp-signature");
-const axios = require('axios');
 
 function sessionMiddleware(strict) {
     return async (req, res, next) => {
@@ -39,6 +38,50 @@ function partnerSessionMiddleware(isStrict) {
     }
 }
 
+/**
+ * Custom body encoding function for signature generation
+ * Handles different content types appropriately without depending on axios internals
+ * @param {Object} body - The request body object
+ * @param {Object} headers - Headers for context
+ * @returns {string} - Encoded body string for signature calculation
+ */
+function encodeBodyForSignature(body, headers) {
+    // If body is already a string, return as is
+    if (typeof body === 'string') {
+        return body;
+    }
+    
+    // If body is null or undefined, return empty string
+    if (body === null || body === undefined) {
+        return '';
+    }
+    
+    // For JSON content type or when content-type is not specified, stringify the object
+    const contentType = headers['content-type'] || '';
+    if (contentType.includes('application/json') || !contentType) {
+        return JSON.stringify(body);
+    }
+    
+    // For form data (application/x-www-form-urlencoded), encode as URL search params
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+        const params = new URLSearchParams();
+        Object.keys(body).forEach(key => {
+            if (body[key] !== null && body[key] !== undefined) {
+                params.append(key, body[key]);
+            }
+        });
+        return params.toString();
+    }
+    
+    // For multipart/form-data, we can't easily reconstruct the boundary
+    // so we'll stringify the object as a fallback
+    if (contentType.includes('multipart/form-data')) {
+        return JSON.stringify(body);
+    }
+    
+    // Default fallback: stringify the object
+    return JSON.stringify(body);
+}
 
 function verifySignature(req, secret) {
     const reqSignature = req.headers['x-fp-signature'];
@@ -95,10 +138,8 @@ function verifySignature(req, secret) {
         path: originalUrl
     }
     if(Object.keys(body).length){
-        // Transform the body using axios.defaults.transformRequest
-        const transformedBody = axios.defaults.transformRequest.reduce((data, transform) => {
-            return transform(data, { headers: headersForSigning });
-        }, body);
+        // Custom body encoding for signature generation
+        const transformedBody = encodeBodyForSignature(body, headersForSigning);
         signatureData.body = transformedBody;
     }
 
