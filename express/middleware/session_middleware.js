@@ -2,6 +2,7 @@
 const { SESSION_COOKIE_NAME, ADMIN_SESSION_COOKIE_NAME } = require('./../constants');
 const SessionStorage = require("../session/session_storage");
 const { sign } = require("@gofynd/fp-signature");
+const axios = require('axios');
 
 function sessionMiddleware(strict) {
     return async (req, res, next) => {
@@ -94,7 +95,11 @@ function verifySignature(req, secret) {
         path: originalUrl
     }
     if(Object.keys(body).length){
-        signatureData.body = body;
+        // Transform the body using axios.defaults.transformRequest
+        const transformedBody = axios.defaults.transformRequest.reduce((data, transform) => {
+            return transform(data, { headers: headersForSigning });
+        }, body);
+        signatureData.body = transformedBody;
     }
 
     const calcSignature = sign(signatureData, {secret});
