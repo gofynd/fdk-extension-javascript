@@ -117,7 +117,7 @@ function verifySignature(req, secret) {
     }
 
     // Create headers for signing, only including allowed headers: x-user-data, x-fp-date, host, x-application-data
-    const allowedHeaders = ['x-user-data', 'x-fp-date', 'host', 'x-application-data'];
+    const allowedHeaders = ['x-user-data', 'x-fp-date', 'host', 'x-application-data', 'x-fp-sdk-version'];
     const headersForSigning = {};
     
     // Only include allowed headers in signature calculation (case-insensitive)
