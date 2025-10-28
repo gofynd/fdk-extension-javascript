@@ -17,7 +17,12 @@ function setupProxyRoutes(configData) {
                 const verificationResult = verifySignature(req, configData.api_secret);
                 if(!verificationResult.isValid) {
                     logger.error(`Signature verification failed: ${verificationResult.error}`);
-                    return res.status(401).send({
+                    if(verificationResult.isSignError) {
+                        return res.status(403).send({
+                            message: verificationResult.error
+                        });
+                    }
+                    return res.status(400).send({
                         message: verificationResult.error
                     });
                 }

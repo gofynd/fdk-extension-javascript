@@ -145,7 +145,7 @@ function verifySignature(req, secret) {
 
     const calcSignature = sign(signatureData, {secret});
     if (reqSignature !== calcSignature) {
-        return { isValid: false, error: 'Invalid signature' };
+        return { isValid: false, error: 'Invalid signature', isSignError: true };
     }
     return { isValid: true };
 }
