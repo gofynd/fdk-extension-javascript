@@ -1,15 +1,21 @@
-# fdk-extension-javascript
+# FDK Extension JavaScript (External Partner Guide)
 
-FDK Extension Helper Library
+Build Fynd platform extensions with an Express-first helper library that handles authentication, API clients, and webhook registration for you. This guide is tailored for external partners who want fast, production-ready integration.
 
-#### Initial Setup
+## Install
+
+```bash
+npm install @gofynd/fdk-extension-javascript
+```
+
+## Quick Start
 
 ```javascript
 const bodyParser = require("body-parser");
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const { setupFdk } = require("fdk-extension-javascript/express");
-const { RedisStorage } = require("fdk-extension-javascript/express/storage");
+const { setupFdk } = require("@gofynd/fdk-extension-javascript/express");
+const { RedisStorage } = require("@gofynd/fdk-extension-javascript/express/storage");
 const Redis = require("ioredis");
 
 const app = express();
@@ -18,40 +24,52 @@ app.use(bodyParser.json({ limit: "2mb" }));
 
 const redis = new Redis();
 
-let extensionHandler = {
+const extensionHandler = {
   auth: async function (data) {
     console.log("called auth callback");
   },
-
   uninstall: async function (data) {
     console.log("called uninstall callback");
   },
 };
 
-let fdkClient = setupFdk({
+const fdkClient = setupFdk({
   api_key: "<API_KEY>",
   api_secret: "<API_SECRET>",
-  base_url: baseUrl, // this is optional
-  scopes: ["company/products"], // this is optional
+  base_url: "https://your-domain.com", // optional, defaults to extension base_url
+  scopes: ["company/products"], // optional; defaults to extension scopes
   callbacks: extensionHandler,
   storage: new RedisStorage(redis),
   access_mode: "offline",
 });
-app.use(fdkClient.fdkHandler);
 
+app.use(fdkClient.fdkHandler);
 app.listen(8080);
 ```
 
-#### How to call platform apis?
+## Configuration reference
 
-To call platform api you need to have instance of `PlatformClient`. Instance holds methods for SDK classes. All routes registered under `platformApiRoutes` express router will have `platformClient` under request object which is instance of `PlatformClient`.
+| Key | Required | Description |
+| --- | --- | --- |
+| `api_key` | Yes | Extension API key from Fynd partner dashboard. |
+| `api_secret` | Yes | Extension API secret from Fynd partner dashboard. |
+| `base_url` | No | Public URL for your extension (used for redirects and webhooks). |
+| `scopes` | No | Override extension scopes. Must be a subset of registered scopes. |
+| `callbacks` | Yes | `auth` and `uninstall` handlers. |
+| `storage` | Yes | Session storage adapter (Redis, SQLite, memory, or custom). |
+| `access_mode` | No | `offline` (default) or `online`. |
+| `webhook_config` | No | Webhook registration configuration. |
+| `debug` | No | Enable debug logging. |
+| `cluster` | No | API cluster override. |
 
-> Here `platformApiRoutes` has middleware attached which allows passing such request which are called after launching extension under any company.
+## Call platform APIs (HTTP routes)
+
+When you register routes under `platformApiRoutes`, the middleware injects a `platformClient` into the request.
 
 ```javascript
 fdkClient.platformApiRoutes.get("/test/routes", async (req, res, next) => {
   try {
-    let data = await req.platformClient.lead.getTickets();
+    const data = await req.platformClient.lead.getTickets();
     res.json(data);
   } catch (error) {
     console.error(error);
@@ -62,61 +80,29 @@ fdkClient.platformApiRoutes.get("/test/routes", async (req, res, next) => {
 app.use(fdkClient.platformApiRoutes);
 ```
 
-#### How to call platform apis in background tasks?
-
-Background tasks running under some consumer or webhook or under any queue can get platform client via method `getPlatformClient`. It will return instance of `PlatformClient` as well. 
-
-> Here FdkClient `access_mode` should be **offline**. Cause such client can only access PlatformClient in background task.  
+## Call platform APIs (background jobs)
 
 ```javascript
-function backgroundHandler(companyId) {
+async function backgroundHandler(companyId) {
   try {
-    const platformClient = await fdkExtension.getPlatformClient(companyId);
-    let data = await platformClient.lead.getTickets();
-    // Some business logic here
-    res.json({ success: true });
+    const platformClient = await fdkClient.getPlatformClient(companyId);
+    const data = await platformClient.lead.getTickets();
+    return data;
   } catch (err) {
     console.error(err);
-    res.status(404).json({ success: false });
+    throw err;
   }
 }
 ```
 
+> Background access requires `access_mode: "offline"`.
 
-#### How to call partner apis in background tasks?
-
-Background tasks running under some consumer or webhook or under any queue can get partner client via method `getPartnerClient`. It will return instance of `PartnerClient` as well. 
-
-> Here FdkClient `access_mode` should be **offline**. Cause such client can only access PartnerClient in background task.  
-
-```javascript
-function backgroundHandler(organizationId) {
-  try {
-    const partnerClient = await fdkExtension.getPartnerClient(organizationId);
-    let data = await partnerClient.webhook.responseTimeSummary({
-            extensionId: '<EXTENSION_ID>',
-            startDate: '<START_DATE>',
-            endDate: '<END_DATE>'
-      });
-    // Some business logic here
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(404).json({ success: false });
-  }
-}
-```
-
-#### How to call partner apis?
-
-To call partner api you need to have instance of `PartnerClient`. Instance holds methods for SDK classes. All routes registered under `partnerApiRoutes` express router will have `partnerClient` under request object which is instance of `PartnerClient`.
-
-> Here `partnerApiRoutes` has middleware attached which allows passing such request which are called after launching extension under any company.
+## Call partner APIs (HTTP routes)
 
 ```javascript
 fdkClient.partnerApiRoutes.get("/test/routes", async (req, res, next) => {
   try {
-    let data = await req.partnerClient.lead.getTickets();
+    const data = await req.partnerClient.lead.getTickets();
     res.json(data);
   } catch (error) {
     console.error(error);
@@ -127,130 +113,120 @@ fdkClient.partnerApiRoutes.get("/test/routes", async (req, res, next) => {
 app.use(fdkClient.partnerApiRoutes);
 ```
 
-#### How to register for webhook events?
+## Call partner APIs (background jobs)
 
-Webhook events can be helpful to handle tasks when certan events occur on platform. You can subscribe to such events by passing `webhook_config` in setupFdk function.
- 
 ```javascript
+async function backgroundHandler(organizationId) {
+  try {
+    const partnerClient = await fdkClient.getPartnerClient(organizationId);
+    const data = await partnerClient.webhook.responseTimeSummary({
+      extensionId: "<EXTENSION_ID>",
+      startDate: "<START_DATE>",
+      endDate: "<END_DATE>",
+    });
+    return data;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+```
 
-let fdkClient = setupFdk({
+> Background access requires `access_mode: "offline"`.
+
+## Webhooks
+
+### Register webhook events
+
+```javascript
+const fdkClient = setupFdk({
   api_key: "<API_KEY>",
   api_secret: "<API_SECRET>",
-  base_url: baseUrl, // this is optional
-  scopes: ["company/products"], // this is optional
-  callbacks: {
-    auth: async function (data) {
-      console.log("called auth callback");
-    },
-    uninstall: async function (data) {
-      console.log("called uninstall callback");
-    },
-  },
+  callbacks: extensionHandler,
   storage: new RedisStorage(redis),
   access_mode: "offline",
   webhook_config: {
-    api_path: "/api/v1/webhooks", // required
-    notification_email: "test@abc.com", // required
-    subscribe_on_install: false, //optional. Default true
-    subscribed_saleschannel: 'specific', //optional. Default all
-    marketplace: true, // to receive marketplace saleschannel events. Only allowed when subscribed_saleschannel is set to specific
-    event_map: { // required
-      'company/brand/create': {
-        version: '1',
+    api_path: "/api/v1/webhooks",
+    notification_email: "partner@example.com",
+    subscribe_on_install: true,
+    subscribed_saleschannel: "all",
+    event_map: {
+      "company/brand/create": {
+        version: "1",
         handler: handleBrandCreate,
-        provider: 'rest' // if not provided, Default is `rest`
+        provider: "rest",
       },
-      'company/location/update': {
-        version: '1',
-        handler: handleLocationUpdate,
+      "application/coupon/create": {
+        version: "1",
+        topic: "coupon_create_kafka_topic",
+        provider: "kafka",
       },
-      'application/coupon/create': {
-        version: '1',
-        topic: 'coupon_create_kafka_topic',
-        provider: 'kafka'
-      },
-      'company/brand/update': {
-        version: '1',
-        topic: "company-brand-create",  
-        provider: 'pub_sub'
-      },
-      'extension/extension/install': {
-        version: '1',
-        queue: "extension-install", 
-        workflow_name: "extension",
-        provider: 'temporal'
-      },
-      'company/location/create': {
-        version: '1',
-        queue: "company-location-create",  
-        provider: 'sqs'
-      },
-      'company/product-size/create': {
-        version: '1',
-        event_bridge_name: "company-product-size-create",  
-        provider: 'event_bridge'
-      }
-    }
+    },
   },
-  debug: true // optional. Enables debug logs if `true`. Default `false`
+  debug: true,
 });
-
 ```
-> By default all webhook events all subscribed for all companies whenever they are installed. To disable this behavior set `subscribe_on_install` to `false`. If `subscribe_on_install` is set to false, you need to manually enable webhook event subscription by calling `syncEvents` method of `webhookRegistry`
 
-There should be view on given api path to receive webhook call. It should be `POST` api path. Api view should call `processWebhook` method of `webhookRegistry` object available under `fdkClient` here.
-
-> Here `processWebhook` will do payload validation with signature and calls individual handlers for event passed with webhook config. 
+### Handle webhook requests
 
 ```javascript
-
-app.post('/api/v1/webhooks', async (req, res, next) => {
+app.post("/api/v1/webhooks", async (req, res) => {
   try {
     await fdkClient.webhookRegistry.processWebhook(req);
-    return res.status(200).json({"success": true});
-  }
-  catch(err) {
-    logger.error(err);
-    return res.status(500).json({"success": false});
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false });
   }
 });
-
 ```
 
-> Setting `subscribed_saleschannel` as "specific" means, you will have to manually subscribe saleschannel level event for individual saleschannel. Default value here is "all" and event will be subscribed for all sales channels. For enabling events manually use function `enableSalesChannelWebhook`. To disable receiving events for a saleschannel use function `disableSalesChannelWebhook`. 
+### Saleschannel scoping
 
-#### Filters and reducers in webhook events
-
-A filter and reducer can be provided to refine the data delivered for each subscribed event. The Filter functionality allows selective delivery of data by specifying conditions based on JSONPath queries and logical operators. Reducer allow customization of the payload structure by specifying only the fields needed by the subscriber. The reducer extracts fields from the event’s data and restructures them as needed.
+If you want to subscribe only to specific sales channels, set:
 
 ```javascript
 webhook_config: {
-        api_path: "/v1.0/webhooks",
-        notification_email: "rahultambe@gofynd.com",
-        marketplace: true,
-        subscribed_saleschannel: 'specific',
-        event_map: {
-            'company/brand/update': {
-                version: '1',
-                handler: handleExtensionUninstall,
-                filters: {
-                    query: "$.brand.uid",
-                    condition: "(uid) => uid === 238"
-                },
-                reducer: {
-                    brand_name: "$.brand.name",
-                    logo_link: "$.brand.logo"
-                }
-            }]
-        }
+  subscribed_saleschannel: "specific",
+  subscribed_saleschannel_ids: ["application_id_1", "application_id_2"],
 }
 ```
-##### How webhook registery subscribes to webhooks on Fynd Platform?
-After webhook config is passed to setupFdk whenever extension is launched to any of companies where extension is installed or to be installed, webhook config data is used to create webhook subscriber on Fynd Platform for that company. 
 
-> Any update to webhook config will not automatically update subscriber data on Fynd Platform for a company until extension is opened atleast once after the update. 
+> If `subscribed_saleschannel` is set to `specific` with an empty `subscribed_saleschannel_ids` list, no saleschannel-specific events will be delivered.
 
-Other way to update webhook config manually for a company is to call `syncEvents` function of webhookRegistery.   
+### Filters and reducers
 
-# [Custom storage class](/express/storage/README.md)
-The FDK Extension JavaScript library provides built-in support for SQLite, Redis and in-memory storage options as default choices for session data storage. However, if you require a different storage option, this readme will guide you through the process of implementing a custom storage class.
+```javascript
+webhook_config: {
+  api_path: "/v1.0/webhooks",
+  notification_email: "partner@example.com",
+  subscribed_saleschannel: "specific",
+  subscribed_saleschannel_ids: ["application_id_1"],
+  event_map: {
+    "company/brand/update": {
+      version: "1",
+      handler: handleExtensionUninstall,
+      filters: {
+        query: "$.brand.uid",
+        condition: "(uid) => uid === 238",
+      },
+      reducer: {
+        brand_name: "$.brand.name",
+        logo_link: "$.brand.logo",
+      },
+    },
+  },
+}
+```
+
+### Sync webhook configuration
+
+If you update your webhook configuration, call `syncEvents` to upsert the configuration for a specific company:
+
+```javascript
+await fdkClient.webhookRegistry.syncEvents(req.platformClient);
+```
+
+## Custom storage
+
+See the custom storage guide: [express/storage/README.md](express/storage/README.md).

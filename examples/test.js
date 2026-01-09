@@ -121,26 +121,6 @@ webhookRouter.post("/webhook", async (req, res, next) => {
     }
 });
 
-fdkExtension.apiRoutes.post("/webhook/application/:application_id/subscribe", async (req, res, next) => {
-    try {
-        await fdkExtension.webhookRegistry.enableSalesChannelWebhook(req.platformClient, req.params.application_id);
-        res.json({ "success": true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ "success": false });
-    }
-});
-
-fdkExtension.apiRoutes.post("/webhook/application/:application_id/unsubscribe", async (req, res, next) => {
-    try {
-        await fdkExtension.webhookRegistry.disableSalesChannelWebhook(req.platformClient, req.params.application_id);
-        res.json({ "success": true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ "success": false });
-    }
-});
-
 app.use(webhookRouter);
 app.use(fdkExtension.applicationProxyRoutes);
 app.use(fdkExtension.apiRoutes);
