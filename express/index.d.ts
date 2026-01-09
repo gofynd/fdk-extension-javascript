@@ -31,7 +31,6 @@ export interface WebhookEventConfig {
 
 export interface WebhookConfig {
   api_path: string;
-  notification_email: string;
   subscribe_on_install?: boolean;
   subscribed_saleschannel?: "all" | "specific";
   subscribed_saleschannel_ids?: Array<string | number>;

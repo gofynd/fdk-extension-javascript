@@ -57,7 +57,6 @@ let fdkExtension = setupFdk({
     cluster: "https://api.fyndx0.de", // this is optional by default it points to prod.
     webhook_config: {
         api_path: "/webhook",
-        notification_email: "test2@abc.com", // required
         subscribed_saleschannel: 'specific', //optional
         event_map: { // required
             'application/coupon/update': {

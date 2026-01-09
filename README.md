@@ -136,6 +136,8 @@ async function backgroundHandler(organizationId) {
 
 ## Webhooks
 
+Webhook notification email is taken from your extension details in the partner dashboard and does not need to be provided in `webhook_config`.
+
 ### Register webhook events
 
 ```javascript
@@ -147,7 +149,6 @@ const fdkClient = setupFdk({
   access_mode: "offline",
   webhook_config: {
     api_path: "/api/v1/webhooks",
-    notification_email: "partner@example.com",
     subscribe_on_install: true,
     subscribed_saleschannel: "all",
     event_map: {
@@ -199,7 +200,6 @@ webhook_config: {
 ```javascript
 webhook_config: {
   api_path: "/v1.0/webhooks",
-  notification_email: "partner@example.com",
   subscribed_saleschannel: "specific",
   subscribed_saleschannel_ids: ["application_id_1"],
   event_map: {

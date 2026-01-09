@@ -19,10 +19,15 @@ class WebhookRegistry {
 
     async initialize(config, fdkConfig) {
       
+        const notificationEmail = config.notification_email
+            || fdkConfig?.extension_details?.notification_email
+            || fdkConfig?.extension_details?.contact_email
+            || fdkConfig?.extension_details?.email;
         const emailRegex = new RegExp(/^\S+@\S+\.\S+$/, 'gi');
-        if (!config.notification_email || !emailRegex.test(config.notification_email)) {
+        if (!notificationEmail || !emailRegex.test(notificationEmail)) {
             throw new FdkInvalidWebhookConfig(`Invalid or missing "notification_email"`);
         }
+        config.notification_email = notificationEmail;
         if (!config.api_path || config.api_path[0] !== '/') {
             throw new FdkInvalidWebhookConfig(`Invalid or missing "api_path"`);
         }

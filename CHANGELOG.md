@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated partner-facing README guidance.
 - Removed legacy webhook subscriber API integrations in favor of v3 upsert flows.
+- Webhook notification email now comes from extension details instead of webhook config.
 
 ## [v1.1.2] - 2025-03-20
 ### Changed
