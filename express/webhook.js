@@ -257,6 +257,9 @@ class WebhookRegistry {
             };
             payloadEventMap[event.provider].events.push(eventData);
         };
+        return payload;
+    }
+
     verifySignature(req) {
         const reqSignature = req.headers['x-fp-signature'];
         const { body } = req;
