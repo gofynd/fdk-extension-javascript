@@ -1,8 +1,9 @@
 'use strict';
 const { extension } = require('./extension');
 const express = require('express');
-const { sessionMiddleware, partnerSessionMiddleware } = require('./middleware/session_middleware');
+const { sessionMiddleware, partnerSessionMiddleware, verifySignature } = require('./middleware/session_middleware');
 const { ApplicationClient } = require("@gofynd/fdk-client-javascript");
+const logger = require('./logger');
 
 
 function setupProxyRoutes(configData) {
@@ -12,6 +13,26 @@ function setupProxyRoutes(configData) {
 
     applicationProxyRoutes.use(async (req, res, next) => {
         try {
+            if (req.headers["x-fp-signature"]) {
+                const verificationResult = verifySignature(req, configData.api_secret);
+                if(!verificationResult.isValid) {
+                    logger.error(`Signature verification failed: ${verificationResult.error}`);
+                    if(verificationResult.isSignError) {
+                        return res.status(403).send({
+                            message: verificationResult.error
+                        });
+                    }
+                    return res.status(400).send({
+                        message: verificationResult.error
+                    });
+                }
+            } else{
+                logger.error("Signature not found: x-fp-signature not found in the request headers");
+                return res.status(401).send({
+                    message: "Signature not found"
+                });
+            }
+
             if (req.headers["x-user-data"]) {
                 req.user = JSON.parse(req.headers["x-user-data"]);
                 req.user.user_id = req.user._id;
@@ -25,6 +46,7 @@ function setupProxyRoutes(configData) {
                     logLevel: configData.debug === true ? "debug" : null
                 });
             }
+
             next();
         } catch (error) {
             next(error);
