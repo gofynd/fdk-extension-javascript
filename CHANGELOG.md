@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Added TypeScript typings for the Express helper and storage exports.
+### Changed
+- Updated partner-facing README guidance.
+- Removed legacy webhook subscriber API integrations in favor of v3 upsert flows.
+- Webhook notification email now comes from extension details instead of webhook config.
+
 ## [v1.1.2] - 2025-03-20
 ### Changed
 - Fixed peer dependency minimum version requirement.

@@ -63,6 +63,7 @@ class Extension {
         this.webhookRegistry = new WebhookRegistry(this._retryManager);
 
         await this.getExtensionDetails();
+        data.extension_details = this.extensionData;
 
         if (data.base_url && !validator.isURL(data.base_url)) {
             throw new FdkInvalidExtensionConfig("Invalid base_url value. Invalid value: " + data.base_url);
@@ -80,6 +81,13 @@ class Extension {
         logger.debug(`Extension initialized`);
 
         if (data.webhook_config && Object.keys(data.webhook_config)) {
+            const notificationEmail = this.extensionData?.notification_email
+                || this.extensionData?.contact_email
+                || this.extensionData?.email;
+            if (!notificationEmail) {
+                throw new FdkInvalidExtensionConfig("Missing notification email in extension details.");
+            }
+            data.webhook_config.notification_email = notificationEmail;
             await this.webhookRegistry.initialize(data.webhook_config, data);
         }
 

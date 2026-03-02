@@ -57,7 +57,6 @@ let fdkExtension = setupFdk({
     cluster: "https://api.fyndx0.de", // this is optional by default it points to prod.
     webhook_config: {
         api_path: "/webhook",
-        notification_email: "test2@abc.com", // required
         subscribed_saleschannel: 'specific', //optional
         event_map: { // required
             'application/coupon/update': {
@@ -118,26 +117,6 @@ webhookRouter.post("/webhook", async (req, res, next) => {
     } catch (err) {
         console.error(err);
         res.status(404).json({ "success": false });
-    }
-});
-
-fdkExtension.apiRoutes.post("/webhook/application/:application_id/subscribe", async (req, res, next) => {
-    try {
-        await fdkExtension.webhookRegistry.enableSalesChannelWebhook(req.platformClient, req.params.application_id);
-        res.json({ "success": true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ "success": false });
-    }
-});
-
-fdkExtension.apiRoutes.post("/webhook/application/:application_id/unsubscribe", async (req, res, next) => {
-    try {
-        await fdkExtension.webhookRegistry.disableSalesChannelWebhook(req.platformClient, req.params.application_id);
-        res.json({ "success": true });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ "success": false });
     }
 });
 
