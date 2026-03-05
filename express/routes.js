@@ -16,21 +16,26 @@ function setupRoutes(ext) {
     let storage = ext.storage;
     let callbacks = ext.callbacks;
 
-    FdkRoutes.get("/fp/install", async (req, res, next) => {
+    FdkRoutes.get("/fp/install", sessionMiddleware(false), async (req, res, next) => {
         // ?company_id=1&client_id=123313112122
         try {
             let companyId = parseInt(req.query.company_id);
             let platformConfig = await ext.getPlatformConfig(companyId);
             let session;
             let redirectPath = req.query.redirect_path;
+            let isAuthenticated = false;
 
+            if (req.fdkSession?.isSessionValid()) {
+                isAuthenticated = true;
+            }
+            else {
             session = new Session(Session.generateSessionId(true));
 
             let sessionExpires = new Date(Date.now() + 900000); // 15 min
 
             if (session.isNew) {
                 session.company_id = companyId;
-                session.scope = ext.scopes;
+                    session.scope = ext.scopes;
                 session.expires = sessionExpires;
                 session.access_mode = 'online'; // Always generate online mode token for extension launch
                 session.extension_id = ext.api_key;
@@ -40,8 +45,10 @@ function setupRoutes(ext) {
                     session.expires = new Date(session.expires);
                 }
             }
-
             req.fdkSession = session;
+            }
+
+
             req.extension = ext;
 
             const compCookieName = `${SESSION_COOKIE_NAME}_${companyId}`
@@ -67,10 +74,10 @@ function setupRoutes(ext) {
 
             // start authorization flow 
             redirectUrl = platformConfig.oauthClient.startAuthorization({
-                scope: session.scope,
+                scope: null,
                 redirectUri: authCallback,
                 state: session.state,
-                access_mode: 'online' // Always generate online mode token for extension launch
+                access_mode: !isAuthenticated? 'online': 'offline' // Always generate online mode token for extension launch
             });
             await SessionStorage.saveSession(session);
             logger.debug(`Redirecting after install callback to url: ${redirectUrl}`);
@@ -96,16 +103,22 @@ function setupRoutes(ext) {
             const companyId = req.fdkSession.company_id
 
             const platformConfig = await ext.getPlatformConfig(req.fdkSession.company_id);
+
+            let sessionExpires;
+
+            if (!req.fdkSession.isSessionValid()) {
+
             await platformConfig.oauthClient.verifyCallback(req.query);
 
             let token = platformConfig.oauthClient.raw_token;
-            let sessionExpires = new Date(Date.now() + token.expires_in * 1000);
+                sessionExpires = new Date(Date.now() + token.expires_in * 1000);
 
             req.fdkSession.expires = sessionExpires;
             token.access_token_validity = sessionExpires.getTime();
             req.fdkSession.updateToken(token);
-
             await SessionStorage.saveSession(req.fdkSession);
+            }
+
 
             // Generate separate access token for offline mode
             if (!ext.isOnlineAccessMode()) {
@@ -121,10 +134,9 @@ function setupRoutes(ext) {
                     session = new Session(sid);
                 }
 
-                let offlineTokenRes = await platformConfig.oauthClient.getOfflineAccessToken(ext.scopes, req.query.code);
+                let offlineTokenRes = await platformConfig.oauthClient.getOfflineAccessToken(null, req.query.code);
 
                 session.company_id = companyId;
-                session.scope = ext.scopes;
                 session.state = req.fdkSession.state;
                 session.extension_id = ext.api_key;
                 offlineTokenRes.access_token_validity = platformConfig.oauthClient.token_expires_at;
@@ -185,7 +197,7 @@ function setupRoutes(ext) {
                 session = new Session(sid);
             }
 
-            let offlineTokenRes = await platformConfig.oauthClient.getOfflineAccessToken(ext.scopes, code);
+            let offlineTokenRes = await platformConfig.oauthClient.getOfflineAccessToken(null, code);
 
             session.company_id = company_id;
             session.scope = ext.scopes;
@@ -247,7 +259,6 @@ function setupRoutes(ext) {
 
             if (session.isNew) {
                 session.organization_id = organizationId;
-                session.scope = ext.scopes;
                 session.expires = sessionExpires;
                 session.access_mode = 'online';
                 session.extension_id = ext.api_key;
@@ -275,7 +286,7 @@ function setupRoutes(ext) {
             let authCallback = urljoin(ext.base_url, "/adm/auth");
 
             let redirectUrl = partnerConfig.oauthClient.startAuthorization({
-                scope: session.scope,
+                scope: null,
                 redirectUri: authCallback,
                 state: session.state,
                 access_mode: 'online'
@@ -330,10 +341,9 @@ function setupRoutes(ext) {
                     session = new Session(sid);
                 }
                 
-                let offlineTokenRes = await partnerConfig.oauthClient.getOfflineAccessToken(ext.scopes, req.query.code);
+                let offlineTokenRes = await partnerConfig.oauthClient.getOfflineAccessToken(null, req.query.code);
 
                 session.organization_id = organizationId;
-                session.scope = ext.scopes;
                 session.state = req.fdkSession.state;
                 session.extension_id = ext.api_key;
                 offlineTokenRes.access_token_validity = partnerConfig.oauthClient.token_expires_at;
