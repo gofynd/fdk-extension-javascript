@@ -1,6 +1,5 @@
-const { BAD_GATEWAY, SERVICE_UNAVAILABLE, TIMEOUT_STATUS } = require("./constants");
+const { BAD_GATEWAY, SERVICE_UNAVAILABLE, TIMEOUT_STATUS } = require('./constants');
 const logger = require('./logger');
-
 
 /**
  * @typedef {Object} RetryInfo
@@ -17,7 +16,6 @@ const logger = require('./logger');
  */
 
 class RetryManger {
-
   constructor() {
     /**
      * @type {RetryInfoMap}
@@ -26,21 +24,19 @@ class RetryManger {
   }
 
   static shouldRetryOnError(err) {
-    const statusCode = (err.response && err.response.status) || err.code; 
-    return [BAD_GATEWAY, SERVICE_UNAVAILABLE, TIMEOUT_STATUS].includes(statusCode)
+    const statusCode = (err.response && err.response.status) || err.code;
+    return [BAD_GATEWAY, SERVICE_UNAVAILABLE, TIMEOUT_STATUS].includes(statusCode);
   }
 
-
   async retry(uniqueKey, fn, ...args) {
-
     if (!this.retryInfoMap.has(uniqueKey)) {
       this.retryInfoMap.set(uniqueKey, {
-        fn: fn,
-        args: args,
+        fn,
+        args,
         retryCount: 0,
         retryTimer: null,
-        isRetryInProgress: false
-      })
+        isRetryInProgress: false,
+      });
     }
 
     const retryInfo = this.retryInfoMap.get(uniqueKey);
@@ -48,13 +44,12 @@ class RetryManger {
     retryInfo.isRetryInProgress = true;
     retryInfo.retryCount++;
 
-    await (new Promise((resolve, reject) => {
+    await (new Promise((resolve, _reject) => {
       retryInfo.retryTimer = setTimeout(resolve, this._getNextRetrySeconds(retryInfo.retryCount));
-    }))
+    }));
 
     return await this._makeRetry(uniqueKey);
   }
-
 
   _getNextRetrySeconds(retryCount) {
     let nextRetrySeconds = 30 * 1000; // 30 seconds
@@ -68,10 +63,7 @@ class RetryManger {
     return nextRetrySeconds;
   }
 
-
-
   async _makeRetry(uniqueKey) {
-
     const retryInfo = this.retryInfoMap.get(uniqueKey);
 
     clearTimeout(retryInfo.retryTimer);
@@ -83,18 +75,14 @@ class RetryManger {
       logger.debug(`api call succeeded. stopping retry for ${uniqueKey}`);
       this.resetRetryState(uniqueKey);
       return data;
-
-    } catch(error) {
+    } catch (error) {
       retryInfo.isRetry = false;
       logger.debug(`API call failed on retry ${retryInfo.retryCount}: ${error.message}`);
       return await this.retry(uniqueKey, retryInfo.fn, ...retryInfo.args);
-
     }
   }
 
-
   resetRetryState(uniqueKey) {
-
     const retryInfo = this.retryInfoMap.get(uniqueKey);
 
     if (retryInfo.retryTimer) {
@@ -107,10 +95,10 @@ class RetryManger {
   }
 
   isRetryInProgress(uniqueKey) {
-    return this.retryInfoMap.get(uniqueKey)? this.retryInfoMap.get(uniqueKey).isRetryInProgress: false;
+    return this.retryInfoMap.get(uniqueKey) ? this.retryInfoMap.get(uniqueKey).isRetryInProgress : false;
   }
 }
 
 module.exports = {
-  RetryManger
-}
+  RetryManger,
+};
