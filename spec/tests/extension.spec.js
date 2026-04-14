@@ -13,7 +13,6 @@ function getBaseConfig(overrides) {
         api_key: "API_KEY",
         api_secret: "API_SECRET",
         base_url: "http://localdev.fyndx0.de",
-        scopes: ["company/products"],
         callbacks: {
             auth: () => {},
             uninstall: () => {}
@@ -77,5 +76,23 @@ describe("Extension base_url sync", () => {
         await extension.initialize(getBaseConfig());
 
         expect(extension.base_url).toBe("http://localdev.fyndx0.de");
+    });
+
+    it("should always use platform scopes and ignore local scopes config", async () => {
+        await extension.initialize(getBaseConfig({ scopes: ["company/saleschannel"] }));
+
+        expect(extension.scopes).toEqual(["company/products"]);
+    });
+
+    it("should use platform scopes when scopes not provided", async () => {
+        await extension.initialize(getBaseConfig());
+
+        expect(extension.scopes).toEqual(["company/products"]);
+    });
+
+    it("should not break when invalid scopes are passed locally", async () => {
+        await extension.initialize(getBaseConfig({ scopes: ["invalid/scope"] }));
+
+        expect(extension.scopes).toEqual(["company/products"]);
     });
 });
