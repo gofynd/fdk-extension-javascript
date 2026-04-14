@@ -54,7 +54,6 @@ class FdkWebhookHandlerNotFound extends Error {
     }
 }
 
-
 module.exports = {
     FdkInvalidExtensionConfig,
     FdkClusterMetaMissingEror,
