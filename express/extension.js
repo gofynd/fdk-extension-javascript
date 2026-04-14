@@ -70,6 +70,11 @@ class Extension {
         else if (!data.base_url) {
             data.base_url = this.extensionData.base_url;
         }
+
+        if (data.base_url && data.base_url !== this.extensionData.base_url) {
+            await this.updateExtensionBaseUrl(data.base_url);
+        }
+
         this.base_url = data.base_url;
 
         if (data.scopes) {
@@ -249,6 +254,30 @@ class Extension {
             }
 
             throw new FdkInvalidExtensionConfig("Invalid api_key or api_secret. Reason:" + err.message);
+        }
+    }
+
+    async updateExtensionBaseUrl(baseUrl) {
+        const url = `${this.cluster}/service/panel/partners/v1.0/extensions/details/${this.api_key}`;
+        const token = Buffer.from(
+            `${this.api_key}:${this.api_secret}`,
+            "utf8"
+        ).toString("base64");
+
+        try {
+            await fdkAxios.request({
+                method: "PATCH",
+                url: url,
+                headers: {
+                    Authorization: `Basic ${token}`,
+                    "Content-Type": "application/json",
+                    'x-ext-lib-version': `js/${version}`
+                },
+                data: { base_url: baseUrl }
+            });
+            logger.debug(`Extension base_url synced to platform: ${baseUrl}`);
+        } catch (err) {
+            logger.warn(`Failed to sync base_url to platform: ${err.message}`);
         }
     }
 }
