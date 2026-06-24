@@ -50,7 +50,6 @@ let fdkExtension = setupFdk({
     api_key: "6220daa4a5414621b975a41f",
     api_secret: "EbeGBRC~Fthv5om",
     base_url: baseUrl, // this is optional 
-    scopes: ["company/product"], // this is optional
     callbacks: extensionHandler,
     storage: new RedisStorage(redis),
     access_mode: "offline",
