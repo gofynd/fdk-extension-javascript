@@ -169,6 +169,7 @@ function setupRoutes(ext) {
         try {
 
             let { company_id, code } = req.body;
+            company_id = parseInt(company_id);
 
             logger.debug(`Extension auto install started for company: ${company_id} on company creation.`);
 
