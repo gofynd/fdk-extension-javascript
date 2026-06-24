@@ -5,6 +5,28 @@ const { sessionMiddleware, partnerSessionMiddleware, verifySignature } = require
 const { ApplicationClient } = require("@gofynd/fdk-client-javascript");
 const logger = require('./logger');
 
+function isUnauthorizedError(error) {
+    const statusCode = error?.code || error?.status || error?.response?.status;
+    return statusCode === 401 || statusCode === 403;
+}
+
+async function validateCurrentUserExposure(req) {
+    if (!req?.fdkSession?.current_user) {
+        return;
+    }
+
+    try {
+        await req.platformClient.companyProfile.cbsOnboardGet();
+    } catch (error) {
+        if (isUnauthorizedError(error)) {
+            logger.debug('Token validation failed. Hiding current_user from request session.');
+            req.fdkSession.current_user = null;
+        } else {
+            logger.warn(`Skipping current_user validation due to non-auth error: ${error?.message || error}`);
+        }
+    }
+}
+
 
 function setupProxyRoutes(configData) {
     const apiRoutes = express.Router({ mergeParams: true });
@@ -58,6 +80,7 @@ function setupProxyRoutes(configData) {
             const client = await extension.getPlatformClient(req.fdkSession.company_id, req.fdkSession);
             req.platformClient = client;
             req.extension = extension;
+            await validateCurrentUserExposure(req);
             next();
         } catch (error) {
             next(error);
