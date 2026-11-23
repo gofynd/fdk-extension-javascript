@@ -2,7 +2,7 @@ name: Publish package to NPM
 
 on:
   release:
-    types: [published]
+    types: [created]
 
 permissions:
   id-token: write
@@ -21,6 +21,14 @@ jobs:
         with:
           version: ${{ github.ref_name }}
       - run: npm ci
-      - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+      - name: Publish package
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+
+          if [[ "$VERSION" =~ -([A-Za-z]+) ]]; then
+            TAG="${BASH_REMATCH[1]}"
+            echo "Publishing prerelease with tag $TAG"
+            npm publish --access public --tag "$TAG"
+          else
+            npm publish --access public
+          fi
