@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fdk-extension-javascript",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "FDK Extension Helper Library",
   "main": "index.js",
   "directories": {
