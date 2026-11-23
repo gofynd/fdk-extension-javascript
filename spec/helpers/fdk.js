@@ -6,7 +6,6 @@ module.exports = (settings) => {
         api_key: "API_KEY",
         api_secret: "API_SECRET",
         base_url: "http://localdev.fyndx0.de",
-        scopes: ["company/products"],
         callbacks: {
             auth: ()=>{},
             uninstall: ()=>{}
