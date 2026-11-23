@@ -47,6 +47,10 @@ mock.onGet(extension_details_url).reply(200, {
     "scope": ["company/products"]
 });
 
+mock.onPatch(extension_details_url).reply(200, {
+    "message": "Updated successfully"
+});
+
 mock.onPost(webhook_events_url).reply(200, webhook_event_configs);
 mock.onGet(webhook_extension_subscriber_url).reply(200, {items: [webhook_subscriber]});
 
